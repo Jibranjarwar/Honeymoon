@@ -1,2 +1,8 @@
+
+SOURCES = Main.cpp Window.cpp
+SRC_DIR = scripts/
+
+SRC_FILES = $(addprefix $(SRC_DIR), $(SOURCES))
+
 all:
-	g++ -I include -L lib -o main main.cpp -lmingw32 -lSDL2main -lSDL2
+	g++ -I include -L lib -o main $(SRC_FILES) -lmingw32 -lSDL2main -lSDL2
