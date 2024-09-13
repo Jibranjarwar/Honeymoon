@@ -4,6 +4,8 @@
 // Gives value too static window value
 SDL_Window* Window::window = nullptr;
 
+SDL_Renderer* Window::renderer = nullptr;
+
 // Constructor
 Window::Window(const std::string &title, int width, int height) : _title(title), _width(width), _height(height)
 {
@@ -12,6 +14,7 @@ Window::Window(const std::string &title, int width, int height) : _title(title),
 
 // Destructor
 Window::~Window(){
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
@@ -33,27 +36,47 @@ bool Window::init(){
         return false;
     }
 
+    // creates the SDL renderer
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+
+    // checks if there were any issues with the creation of the renderer if so return error
+    if(renderer == nullptr){
+        std::cerr << "Failed to create renderer." << std::endl;
+        return false;
+    }
+
     return true;
 }
 
 // handles events right now only reacts too ESC key and the X Button
 void Window::pollEvents(SDL_Event &event){
     
-    if(SDL_PollEvent(&event)){
-        switch (event.type)
+    switch (event.type)
+    {
+    case SDL_QUIT:
+        _closed = true;
+        break;
+    
+    case SDL_KEYDOWN:
+        switch(event.key.keysym.sym)
         {
-        case SDL_QUIT:
-            _closed = true;
-            break;
-        
-        case SDL_KEYDOWN:
-            switch(event.key.keysym.sym)
-            {
-                case SDLK_ESCAPE:
-                    _closed = true;
-                    break;
-            }
-        
+            case SDLK_ESCAPE:
+                _closed = true;
+                break;
         }
+    
     }
+}
+
+// renders everything including background NOTE: needs to be the last thing called in Main.cpp
+void Window::createDisplay() const{
+    
+    // presents everything to the window
+    SDL_RenderPresent(renderer);
+
+    // sets background colour
+    SDL_SetRenderDrawColor(renderer, 112, 112, 108, 255);
+    
+    // Clears the current rendering target
+    SDL_RenderClear(renderer);
 }

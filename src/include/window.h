@@ -11,6 +11,9 @@ public:
     ~Window();
     void pollEvents(SDL_Event &event);
     
+    // function is not allowed to modify any members with the const
+    void createDisplay() const;
+    
     // inline function which checks if the application should close or not
     inline bool isClosed() const { return _closed; }
 
@@ -21,6 +24,7 @@ private:
 // public members
 public:
     static SDL_Window* window;
+    static SDL_Renderer* renderer;
 
 
 // private members
