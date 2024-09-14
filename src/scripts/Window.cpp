@@ -1,4 +1,5 @@
 #include <window.h>
+#include <SDL2/SDL_image.h>
 #include <iostream>
 
 // Gives value too static window value
@@ -16,6 +17,7 @@ Window::Window(const std::string &title, int width, int height) : _title(title),
 Window::~Window(){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    IMG_Quit();
     SDL_Quit();
 }
 
@@ -24,6 +26,15 @@ bool Window::init(){
     // Initialize SDL VIDEO as of now
     if(SDL_Init(SDL_INIT_VIDEO) != 0){
         std::cerr << "Failed to initialize SDL." << std::endl;
+        return false;
+    }
+
+    // setting FLags variable for checking against Initalization
+    int IMG_Flags = IMG_INIT_PNG | IMG_INIT_JPG;
+
+    // Initialize SDL Image to take in PNG and JPG images
+    if(IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) != IMG_Flags){
+        std::cerr << "Failed to initialize SDL_image." << std::endl;
         return false;
     }
 
