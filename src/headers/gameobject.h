@@ -12,8 +12,11 @@ public:
     GameObject(SDL_Renderer* renderer, std::string filename, int width, int height, int x, int y);
     ~GameObject();
 
-    // renderer
+    // Renderer
     void Render();
+
+    // Movement
+    void Movement(SDL_Event &event);
 
     // Texture
     SDL_Texture* Texture(const std::string filename);

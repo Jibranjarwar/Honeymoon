@@ -55,21 +55,25 @@ int main(int argc, char **argv){
         // Wraps up all ImGUI elements and compiles everything into a ImDrawData struct
         ImGui::Render();
 
-        // needs the be called to register events like key presses
-        if(SDL_PollEvent(&event)){
-            
-            window.pollEvents(event);
-
-            // allows for interaction with the ImGui window created
-            ImGui_ImplSDL2_ProcessEvent(&event);            
-        }
-
         // renders the objects to the screen without this wont display
         // NOTE: THE ORDER IN WHICH YOU RENDER CAN BE SEEN AS "LAYERS"
         player4.Render();
         player.Render();
         player2.Render();
         player3.Render();
+
+        // needs the be called to register events like key presses
+        if(SDL_PollEvent(&event)){
+            
+            window.pollEvents(event);
+
+            // allows for interaction with the ImGui window created
+            ImGui_ImplSDL2_ProcessEvent(&event);
+
+            // Movement function
+            player3.Movement(event); 
+                       
+        }
 
         // Draws IMGUI to the renderer to be ready to be presented on window by getting ImDrawData struct
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), Window::renderer);

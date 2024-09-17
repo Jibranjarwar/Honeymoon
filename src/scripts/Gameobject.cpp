@@ -36,6 +36,24 @@ void GameObject::Render(){
     }
 }
 
+// Movement for GameObject just to test game loop at the moment and rendering (can be updated later)
+void GameObject::Movement(SDL_Event &event){
+    switch(event.key.keysym.sym){
+        case SDLK_d:
+            _x += 10;
+            break;
+        case SDLK_a:
+            _x -= 10;
+            break;
+        case SDLK_w:
+            _y -= 10;
+            break;
+        case SDLK_s:
+            _y += 10;
+            break; 
+    }
+}
+
 SDL_Texture* GameObject::Texture(const std::string filename){
     
     // Loads PNG or JPG from existing file
