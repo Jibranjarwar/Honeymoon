@@ -1,4 +1,4 @@
-#include <gameobject.h>
+#include "gameobject.h"
 #include <iostream>
 
 int GameObject::_current_id = 0;

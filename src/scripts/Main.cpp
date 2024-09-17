@@ -1,6 +1,6 @@
 #include <SDL2/SDL.h>
-#include <window.h>
-#include <gameobject.h>
+#include "window.h"
+#include "gameobject.h"
 #include <iostream>
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
