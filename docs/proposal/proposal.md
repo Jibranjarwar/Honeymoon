@@ -1,95 +1,86 @@
 # School of Computing &mdash; Year 4 Project Proposal Form
 
-> Edit (then commit and push) this document to complete your proposal form.
-> Make use of figures / diagrams where appropriate.
->
-> Do not rename this file.
-
 ## SECTION A
 
 |                     |                   |
 |---------------------|-------------------|
-|Project Title:       | xxxxxx            |
-|Student 1 Name:      | xxxxxx            |
-|Student 1 ID:        | xxxxxx            |
-|Student 2 Name:      | xxxxxx            |
-|Student 2 ID:        | xxxxxx            |
-|Project Supervisor:  | xxxxxx            |
-
-> Ensure that the Supervisor formally agrees to supervise your project; this is only recognised once the
-> Supervisor assigns herself/himself via the project Dashboard.
->
-> Project proposals without an assigned
-> Supervisor will not be accepted for presentation to the Approval Panel.
+|Project Title:       | HoneyMoon Engine            |
+|Student 1 Name:      | Ivan Shvydchenko            |
+|Student 1 ID:        | 21317061           |
+|Student 2 Name:      | Jibran Jarwar            |
+|Student 2 ID:        | 21353811            |
+|Project Supervisor:  | Renaat Verbrugger            |
 
 ## SECTION B
 
-> Guidance: This document is expected to be approximately 3 pages in length, but it can exceed this page limit.
-> It is also permissible to carry forward content from this proposal to your later documents (e.g. functional
-> specification) as appropriate.
->
-> Your proposal must include *at least* the following sections.
-
-
 ### Introduction
 
-> Describe the general area covered by the project.
+This Project revolves around making a 2D Game Engine called HoneyMoon Engine. The 2D Game Engine provides a way for developers to create their own games using the Lua programming language and provide them with tools to be able to render objects, cameras, physics and among other things.
 
 ### Outline
 
-> Outline the proposed project.
+The HoneyMoon Engine will be able to be run as an executable on the user's local machine. As a 2D game engine it will provide the aforementioned physics, camera control, movement, native scripting and design elements. Our Game Engine serves as an introduction to the world of game development. Game engines such as unity are filled with an overwhelming amount of features. Our main focus for this game engine will be integrating Lua for Native scripting so developers have an easier time coding simpler code while we do the heavy lifting in C++, everything else will be tools for the game engine to function how its suppose to.
 
 ### Background
 
-> Where did the ideas come from?
+The Idea behind HoneyMoon Engine was inspired by other game engines which include: Unity, GameMaker Studio, Godot, RPG maker. Both of us also enjoy playing games and have a passion for game developement which is why we took the interest in wanting to learn and create our own architecture for a game engine to better understand the development behind it all.
 
 ### Achievements
 
-> What functions will the project provide? Who will the users be?
+
+**Ranked in terms of importance**
+1. Be able to create scripts in Lua which are processed by C++ in which the game Engine will be written in.
+2. Render multiple Objects.
+3. Have collision between Objects.
+4. Tree Structure for Multiple Game Objects under one Game Object.
+5.  Working Cameras.
+6. Some Physics support.
+7. Some Animation support.
+
+	**Users**:
+  
+    - The Users will be game developers who are comfortable coding in Lua or who would like to learn Lua while creating a game for imersive learning. 
+    - Users who want an introduction to the basics of a using a game engine and game development.
+
 
 ### Justification
 
-> Why/when/where/how will it be useful?
+As mentioned above, game engines such as Unity are filled with an enormous amount of customization and utilities. This makes it extremely difficult to use as learning unity is a skill in itself. Our game engine, while simpler, provides a far less intimidating barrier to entry while also providing a base layer of game design (base layer meaning key functionalities).  As well as this we play games and want to understand what goes into making them. We also think that it is a great way to improve upon our OO Design because of the different classes we will be creating for easy use for the developers creating the games in Lua while we would be doing the heavy lifting when creating the game engine.
 
 ### Programming language(s)
 
-> List the proposed language(s) to be used.
+- C++
+- Lua
+- Javascript
+
 
 ### Programming tools / Tech stack
 
-> Describe the compiler, database, web server, etc., and any other software tools you plan to use.
+- SDL for rendering and handling window events
+- ImGUI for Game Engine UI
+- MINGW32 for compiling C++ code
+- Visual Studio Code as the IDE
+- Git for Version Control
+- LuaCpp API for integrating Lua with C++
+- Jira for tracking tickets
+
 
 ### Hardware
 
-> Describe any non-standard hardware components which will be required.
+- Modern Computer or Laptop
 
 ### Learning Challenges
 
-> List the main new things (technologies, languages, tools, etc) that you will have to learn.
+- Learning to use C++ and Lua
+- The architecture behind Game Engines
+- Creating a Makefile
+- Writing a pipeline for continous integration
+- Better Understanding of Tree Structures
+- Better Understanding of OO Design
+- Learning our tech stack
+
 
 ### Breakdown of work
 
-> Clearly identify who will undertake which parts of the project.
->
-> It must be clear from the explanation of this breakdown of work both that each student is responsible for
-> separate, clearly-defined tasks, and that those responsibilities substantially cover all of the work required
-> for the project.
-
-#### Student 1
-
-> *Student 1 should complete this section.*
-
-#### Student 2
-
-> *Student 2 should complete this section.*
-
-## Example
-
-> Example: Here's how you can include images in markdown documents...
-
-<!-- Basically, just use HTML! -->
-
-<p align="center">
-  <img src="./res/cat.png" width="300px">
-</p>
+Our Team will collaborate closely throughtout this project by holding weekly meetings. We will follow agile practises to manage the workload in the most efficient and effective way possible. We will be using Jira as our tracking system where we can priorties and manage tasks that we will be spliting between each other. As work progresses the work can be split by coding the different classes needed to work for example the Game Object class and the Camera Object class, we will also leave comments for each other while implementing these functionalities in case the other picks up a certain class that needs some function implemented that the other can't do in that moment.
 
