@@ -13,7 +13,9 @@ public:
     ~GameObject();
 
     // Renderer
-    void Render();
+    void Render(int gridMinX = 0, int gridMinY = 0, int gridMaxX = 0, int gridMaxY = 0);
+
+    void UpdatePos(int new_x, int new_y);
 
     // Movement
     void Movement(SDL_Event &event);
@@ -24,13 +26,15 @@ public:
     // inline function which returns id
     inline int GetID() const { return _id; }
 
+public:
+    int _x, _y;
+    int _width, _height;
+    int _original_w, _original_h;
+
 // private members
 private:
     static int _current_id;
     int _id;
-    int _width;
-    int _height;
-    int _x, _y;
     int _r, _g, _b;
     int _a = 255;
     SDL_Rect _dest_rect;

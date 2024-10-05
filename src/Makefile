@@ -1,5 +1,5 @@
 
-SOURCES = Main.cpp Window.cpp Gameobject.cpp
+SOURCES = Main.cpp Window.cpp Gameobject.cpp Gamescreen.cpp
 SRC_DIR = scripts/
 
 SRC_FILES = $(addprefix $(SRC_DIR), $(SOURCES))

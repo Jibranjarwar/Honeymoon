@@ -1,7 +1,9 @@
 #include <SDL2/SDL.h>
 #include "window.h"
+#include "gamescreen.h"
 #include "gameobject.h"
 #include <iostream>
+#include <string>
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
@@ -19,9 +21,11 @@ int main(int argc, char **argv){
     ImGui_ImplSDLRenderer2_Init(Window::renderer);
 
     // creates gameObject types 
-    GameObject player(Window::renderer, 100, 100, 500, 200, 107, 55, 200, 255);
+    GameObject player(Window::renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
     GameObject player2(Window::renderer, 100, 100, 200, 200, 55, 55, 200, 255);
     GameObject player3(Window::renderer, 100, 100, 200, 400, 55, 55, 200, 255);
+    GameScreen* gameScreen = new GameScreen();
+    
 
     // creates game Object with Texture or in game development terms "sprite"
     GameObject player4(Window::renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", 500, 500, 100, 100);
@@ -58,9 +62,28 @@ int main(int argc, char **argv){
         // renders the objects to the screen without this wont display
         // NOTE: THE ORDER IN WHICH YOU RENDER CAN BE SEEN AS "LAYERS"
         player4.Render();
-        player.Render();
         player2.Render();
         player3.Render();
+
+        // draws graph
+        gameScreen->DrawGraph(window.window);
+
+        // EVERYTHING UP TO PLAYER RENDERER IS NEEDED SINCE RIGHT NOW WE RENDER IN MAIN.CPP
+        // AND NEED TO EDGES TO PASS
+        int width, height;
+        SDL_GetWindowSize(window.window, &width, &height);
+
+        // sets colour to white for the lines
+        SDL_SetRenderDrawColor(Window::renderer, 255, 255, 255, 255);
+
+        // rounds to the next 10th e.g 453 -> 460 or e.g 337 -> 340
+        int temp_offset_height = (int)(height / 3.5);
+        int offset_height_rounded = 10 - (temp_offset_height % 10);
+        int offset_height = temp_offset_height + offset_height_rounded;
+
+        int offset_width = (int)(width / 1.25);
+        
+        player.Render(width - offset_width, 0, width, height - offset_height);
 
         // needs the be called to register events like key presses
         if(SDL_PollEvent(&event)){
@@ -71,9 +94,16 @@ int main(int argc, char **argv){
             ImGui_ImplSDL2_ProcessEvent(&event);
 
             // Movement function
-            player3.Movement(event); 
-                       
-        }
+            player3.Movement(event);
+            
+            // calls Zoom In and Out Function for GameScreen
+            gameScreen->ZoomInAndOut(event, &player);
+            
+            // Checks the drag for gameObject 
+            gameScreen->InitalDragState(event, &player);
+        }    
+        
+        gameScreen->ScreenOffset();
 
         // Draws IMGUI to the renderer to be ready to be presented on window by getting ImDrawData struct
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), Window::renderer);
