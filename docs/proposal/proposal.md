@@ -84,3 +84,5 @@ As mentioned above, game engines such as Unity are filled with an enormous amoun
 
 Our Team will collaborate closely throughtout this project by holding weekly meetings. We will follow agile practises to manage the workload in the most efficient and effective way possible. We will be using Jira as our tracking system where we can priorties and manage tasks that we will be spliting between each other. As work progresses the work can be split by coding the different classes needed to work for example the Game Object class and the Camera Object class, we will also leave comments for each other while implementing these functionalities in case the other picks up a certain class that needs some function implemented that the other can't do in that moment.
 
+## Sample mock wireframe: UI example 
+<img src="./res/honeymoon_mock.png">
