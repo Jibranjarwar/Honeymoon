@@ -92,7 +92,7 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
             
             */
             // this is the maths part for the diagram above
-            new_rect.h = _height - ((_y + _height + 10) - gridMaxY);
+            new_rect.h = _height - ((_y + _height) - gridMaxY);
 
             /* more math for cutting textures with not just pure colour.
             since _dest_rect fits the texture too size we need to actually get the original size of texture
@@ -109,7 +109,7 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
         SDL_RenderFillRect(_objRenderer, &_dest_rect);
     }else{
         // change this back to id = 0 if needed right now its 6 because doesnt exist
-        if(_id == 0 && (_x < gridMinX || _y + _height + 10 > gridMaxY)){
+        if(_id == 0 && (_x < gridMinX || _y + _height > gridMaxY)){
             SDL_RenderCopyEx(_objRenderer, _objTexture, &_src_rect , &new_rect, 0, nullptr , SDL_FLIP_NONE);
         }else{
             SDL_RenderCopy(_objRenderer, _objTexture, nullptr, &_dest_rect);

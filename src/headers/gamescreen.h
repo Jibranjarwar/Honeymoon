@@ -32,5 +32,6 @@ public:
     int prev_drag_window_position_x, prev_drag_window_position_y;
     int window_x, window_y;
     int screen_x, screen_y;
+    int width_difference = 0, height_difference = 0;
 
 };

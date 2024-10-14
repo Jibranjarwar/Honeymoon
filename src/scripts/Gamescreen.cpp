@@ -14,17 +14,28 @@ void GameScreen::DrawGraph(SDL_Window *window){
     temp_offset_height = (int)(window_height / 3.5);
     offset_height_rounded = 10 - (temp_offset_height % 10);
     offset_height = temp_offset_height + offset_height_rounded;
+    //offset_height = (int)(window_height / 2);
 
     offset_width = (int)(window_width / 1.25);
 
     // creates grid 
-    for(int w = window_width - offset_width; w < window_width; w += 10 + mouse_wheel_y){
-        for(int h = 0; h < window_height - offset_height; h += 10 + mouse_wheel_y){
+    for(int w = window_width - offset_width; w <= window_width; w += 10 + mouse_wheel_y){
+        for(int h = 0; h <= window_height - offset_height; h += 10 + mouse_wheel_y){
     
             SDL_RenderDrawLine(Window::renderer, w, h, window_width, h);
             SDL_RenderDrawLine(Window::renderer, w, h, w, offset_height);
+            width_difference = w;
+            height_difference = h;
         }    
     }
+
+    if(width_difference < window_width && height_difference < window_height){
+        
+        for(int w = window_width - offset_width; w <= window_width; w += 10 + mouse_wheel_y){
+            SDL_RenderDrawLine(Window::renderer, w, height_difference, w, window_height - offset_height);
+        }
+    }
+    SDL_RenderDrawLine(Window::renderer, (window_width - offset_width), (window_height - offset_height), window_width, (window_height - offset_height));
 }
 
 bool GameScreen::Zoomed(SDL_Event event){
