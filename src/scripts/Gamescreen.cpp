@@ -27,9 +27,10 @@ void GameScreen::DrawGraph(SDL_Window *window){
             width_difference = w;
             height_difference = h;
         }    
-    }
+    } 
 
-    if(width_difference < window_width && height_difference < window_height){
+    // Edge case so that we finish up the graph with whatever remaining amount there is so its not a 10*10 pixel square intially like the rest
+    if(height_difference < window_height){
         
         for(int w = window_width - offset_width; w <= window_width; w += 10 + mouse_wheel_y){
             SDL_RenderDrawLine(Window::renderer, w, height_difference, w, window_height - offset_height);
