@@ -109,6 +109,9 @@ void GameScreen::InitalDragState(SDL_Event event, GameObject *player){
                 std::cout << "should print once" << std::endl;
                 prev_drag_window_position_x = screen_x;
                 prev_drag_window_position_y = screen_y;
+
+                inital_drag_window_x = prev_drag_window_position_x;
+                inital_drag_window_y = prev_drag_window_position_y;
             }
         }
     }
@@ -117,11 +120,11 @@ void GameScreen::InitalDragState(SDL_Event event, GameObject *player){
 }
 
 void GameScreen::DragScreen(Uint32 mouseState, GameObject *player){
-
+    
     // if left mouse button is held down and moved
-    if(mouseState & SDL_BUTTON(SDL_BUTTON_LEFT)){
-        //std::cout << "left" << std::endl;
-        
+    if(mouseState && SDL_BUTTON(SDL_BUTTON_LEFT)){
+        //std::cout << "left" << std::endl;       
+        wasPressed = true;
         // updates drag position and takes it away from intial drag start position to get total offset to be moved
         
         current_window_position_x = screen_x - prev_drag_window_position_x;
@@ -130,14 +133,29 @@ void GameScreen::DragScreen(Uint32 mouseState, GameObject *player){
         player->_x += current_window_position_x;
         player->_y += current_window_position_y;
 
+        //std::cout << "x: " << player->_x << std::endl;
+        //std::cout << "y: " << player->_y << std::endl;
+
         prev_drag_window_position_x = screen_x;
         prev_drag_window_position_y = screen_y;
 
     }
+    
+    // If mouseButton was let go and wasPressed is true means we were dragging
+    if(!(mouseState) && wasPressed){
+        wasPressed = false;
+
+        // changes the co-ordinates so when we drag the origin co-ordinates change with the drag
+        difference_x += inital_drag_window_x - screen_x;
+        difference_y += inital_drag_window_y - screen_y;
+    }
 }
 
 void GameScreen::ScreenOffset(){
-    // sets offset so that where grid starts is 0,0
-    screen_x = window_x - (window_width - offset_width);
-    screen_y = window_y - (window_height - offset_height - 10);
+    // sets offset so that where grid starts is 0,0 and adds difference of whatever the drag is intially being 0
+    screen_x = window_x - (window_width - offset_width) + difference_x;
+    screen_y = window_y - (window_height - offset_height) + difference_y;
+
+    //std::cout << "screen x cords: " << screen_x << std::endl;
+    //std::cout << "screen y cords: " << screen_y << std::endl;
 }

@@ -32,6 +32,8 @@ public:
     int prev_drag_window_position_x, prev_drag_window_position_y;
     int window_x, window_y;
     int screen_x, screen_y;
+    int inital_drag_window_x, inital_drag_window_y;
+    int difference_x = 0, difference_y = 0;
     int width_difference = 0, height_difference = 0;
-
+    bool wasPressed = false;
 };

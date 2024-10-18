@@ -70,7 +70,7 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
             _src_rect.x = texture_width - (new_rect.w * aspectRatio_x);
         }
 
-        if(_y + _height + 10 > gridMaxY){        
+        if(_y + _height > gridMaxY){        
             //std::cout << "gone beyond bottom of grid side" << std::endl;
             //std::cout << "y cord:" << std::to_string(_y) << std::endl;
 
