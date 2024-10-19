@@ -70,6 +70,27 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
             _src_rect.x = texture_width - (new_rect.w * aspectRatio_x);
         }
 
+        // everything here is same logic as for gridMaxY just switched around for X
+        if(_x + _width > gridMaxX){
+            //std::cout << "went past right part" << std::endl;
+
+            new_rect.w = _width - ((_x + _width) - gridMaxX);
+
+            float aspectRatio_x = static_cast<float>(texture_width / (float)_width);
+            _src_rect.x = -1 * (texture_width - (new_rect.w * aspectRatio_x));
+        }
+
+        // everything here is same logic as for gridMinX just switched around for Y
+        if(_y < gridMinY){
+            //std::cout << "went past top part" << std::endl;
+                       
+            new_rect.y = gridMinY;
+            new_rect.h = _height - (gridMinY - _y);
+
+            float aspectRatio_y = static_cast<float>(texture_height / (float)_height);
+            _src_rect.y = texture_height - (new_rect.h * aspectRatio_y);
+        }
+
         if(_y + _height > gridMaxY){        
             //std::cout << "gone beyond bottom of grid side" << std::endl;
             //std::cout << "y cord:" << std::to_string(_y) << std::endl;
@@ -109,8 +130,14 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
         SDL_RenderFillRect(_objRenderer, &_dest_rect);
     }else{
         // change this back to id = 0 if needed right now its 6 because doesnt exist
-        if(_id == 0 && (_x < gridMinX || _y + _height > gridMaxY)){
-            SDL_RenderCopyEx(_objRenderer, _objTexture, &_src_rect , &new_rect, 0, nullptr , SDL_FLIP_NONE);
+        if(_id == 0 && (_x < gridMinX || _x + _width > gridMaxX || _y < gridMinY || _y + _height > gridMaxY)){
+            
+            // checks wether the game object is within the gamescreen or not and if not then dont call function to save performance 
+            if(new_rect.w > 0 && new_rect.h > 0){
+                SDL_RenderCopyEx(_objRenderer, _objTexture, &_src_rect , &new_rect, 0, nullptr , SDL_FLIP_NONE);
+            }else{
+                std::cout << "gone off screen" << std::endl;
+            }
         }else{
             SDL_RenderCopy(_objRenderer, _objTexture, nullptr, &_dest_rect);
         }
