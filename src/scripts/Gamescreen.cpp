@@ -51,7 +51,7 @@ bool GameScreen::Zoomed(SDL_Event event){
     return false;
 }
 
-void GameScreen::ZoomInAndOut(SDL_Event event, GameObject* player){
+void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array){
 
     if(Zoomed(event)){
         // changes value of zoom but never goes lower than -3 because then we need to draw to many lines and program crashes
@@ -80,23 +80,29 @@ void GameScreen::ZoomInAndOut(SDL_Event event, GameObject* player){
             }
 
             // CALL FUNCTION HERE
-            player->_width = player->_original_w * zoomfactor;
-            player->_height = player->_original_h * zoomfactor; 
+            /*
+            for(int i = 0; i < array.size(); i++){
+                array[i]._width = array[i]._original_w * zoomfactor;
+                array[i]._height = array[i]._original_h * zoomfactor;
+            }
+            */
+            array[0]._width = array[0]._original_w * zoomfactor;
+            array[0]._height = array[0]._original_h * zoomfactor; 
         
         }else{
             // if values go below < 0 then we just use preset scales since we only go max of -3
 
             float scales[3] = {0.8, 0.6, 0.3};
             // CALL FUNCTION HERE
-            player->_width = player->_original_w * scales[-1 * (mouse_wheel_y + 1)];
-            player->_height = player->_original_h * scales[-1 * (mouse_wheel_y + 1)];
+            //player->_width = player->_original_w * scales[-1 * (mouse_wheel_y + 1)];
+            //player->_height = player->_original_h * scales[-1 * (mouse_wheel_y + 1)];
         }
 
         std::cout << "mouse wheel y: " << mouse_wheel_y << std::endl;
     }
 }
 
-void GameScreen::InitalDragState(SDL_Event event, GameObject *player){
+void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array){
     
     Uint32 mouseState = SDL_GetMouseState(&window_x, &window_y);
     
@@ -116,10 +122,10 @@ void GameScreen::InitalDragState(SDL_Event event, GameObject *player){
         }
     }
 
-    DragScreen(mouseState, player);
+    DragScreen(mouseState, array);
 }
 
-void GameScreen::DragScreen(Uint32 mouseState, GameObject *player){
+void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array){
     
     // if left mouse button is held down and moved
     if(mouseState && SDL_BUTTON(SDL_BUTTON_LEFT)){
@@ -130,11 +136,17 @@ void GameScreen::DragScreen(Uint32 mouseState, GameObject *player){
         current_window_position_x = screen_x - prev_drag_window_position_x;
         current_window_position_y = screen_y - prev_drag_window_position_y;
         
-        player->_x += current_window_position_x;
-        player->_y += current_window_position_y;
 
-        //std::cout << "x: " << player->_x << std::endl;
-        //std::cout << "y: " << player->_y << std::endl;
+        for(int i = 0; i < array.size(); i++){
+            //std::cout << array[i].GetID() << std::endl;
+            array[i]._x += current_window_position_x;
+            array[i]._y += current_window_position_y;
+        }
+        //player->_x += current_window_position_x;
+        //player->_y += current_window_position_y;
+
+        //std::cout << "x: " << array[0]._x << std::endl;
+        //std::cout << "y: " << array[0]._y << std::endl;
 
         prev_drag_window_position_x = screen_x;
         prev_drag_window_position_y = screen_y;

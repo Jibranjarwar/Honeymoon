@@ -34,31 +34,33 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
 
     SDL_QueryTexture(_objTexture, nullptr, nullptr, &texture_width, &texture_height);
 
-    if(_id == 0){
 
-        // set size of src_rect to texture size so we keep orignal aspect ratio of _dest_rect
+    // set size of src_rect to texture size so we keep orignal aspect ratio of _dest_rect
+    if(!((_y + _height > gridMaxY && _y < gridMinY) || (_x + _width > gridMaxX && _x < gridMinX))){
         _src_rect.w = texture_width;
         _src_rect.h = texture_height;
-        // this is for X axis only
-        if(_x < gridMinX){
-            //std::cout << "gone beyond left grid side" << std::endl;
-            //std::cout << "x cord:" << std::to_string(_x) << std::endl;
-            //std::cout << "the width: " << _width - (gridMinX - _x) << std::endl;
+    }
+    // this is for X axis only
+    if(_x < gridMinX){
+        //std::cout << "gone beyond left grid side" << std::endl;
+        //std::cout << "x cord:" << std::to_string(_x) << std::endl;
+        //std::cout << "the width: " << _width - (gridMinX - _x) << std::endl;
 
-            /*create new rectangle which takes away from the old rectangle to get the cut size needed to draw from the side so
-            
-            all of this is old rect
-            
-            ======================
-            =        =           =
-            =  part  =  new rect =
-            =  that  =           =
-            =  cuts  =           =
-            ======================
-            
-            */
-            
-            // this is the maths part for the diagram above
+        /*create new rectangle which takes away from the old rectangle to get the cut size needed to draw from the side so
+        
+        all of this is old rect
+        
+        ======================
+        =        =           =
+        =  part  =  new rect =
+        =  that  =           =
+        =  cuts  =           =
+        ======================
+        
+        */
+        
+        // this is the maths part for the diagram above
+        if(_x + _width <= gridMaxX){
             new_rect.x = gridMinX;
             new_rect.w = _width - (gridMinX - _x);
             
@@ -69,21 +71,24 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
             float aspectRatio_x = static_cast<float>(texture_width / (float)_width);
             _src_rect.x = texture_width - (new_rect.w * aspectRatio_x);
         }
+    }
 
-        // everything here is same logic as for gridMaxY just switched around for X
-        if(_x + _width > gridMaxX){
-            //std::cout << "went past right part" << std::endl;
-
+    // everything here is same logic as for gridMaxY just switched around for X
+    if(_x + _width > gridMaxX){
+        //std::cout << "went past right part" << std::endl;
+        if(_x >= gridMinX){
             new_rect.w = _width - ((_x + _width) - gridMaxX);
 
             float aspectRatio_x = static_cast<float>(texture_width / (float)_width);
             _src_rect.x = -1 * (texture_width - (new_rect.w * aspectRatio_x));
         }
+    }
 
-        // everything here is same logic as for gridMinX just switched around for Y
-        if(_y < gridMinY){
-            //std::cout << "went past top part" << std::endl;
-                       
+    // everything here is same logic as for gridMinX just switched around for Y
+    if(_y < gridMinY){
+        //std::cout << "went past top part" << std::endl;
+        if(_y + _height < gridMaxY){
+                
             new_rect.y = gridMinY;
             new_rect.h = _height - (gridMinY - _y);
 
@@ -91,30 +96,33 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
             _src_rect.y = texture_height - (new_rect.h * aspectRatio_y);
         }
 
-        if(_y + _height > gridMaxY){        
-            //std::cout << "gone beyond bottom of grid side" << std::endl;
-            //std::cout << "y cord:" << std::to_string(_y) << std::endl;
+        //std::cout << "new rect height: " << _src_rect.h << std::endl;
+    }
+
+    if(_y + _height > gridMaxY){        
+        //std::cout << "gone beyond bottom of grid side" << std::endl;
+        //std::cout << "y cord:" << std::to_string(_y) << std::endl;
 
 
-            /*create new rectangle which takes away from the old rectangle to get the cut size needed to draw from the bottom so
-            
-            all of this is old rect
-            
-            ======================
-            =                    =
-            =     new rect       =
-            =                    =
-            =                    =
-            =                    =
-            ======================
-            =  part that gets    =
-            =      cut           =
-            ======================
-            
-            */
-            // this is the maths part for the diagram above
+        /*create new rectangle which takes away from the old rectangle to get the cut size needed to draw from the bottom so
+        
+        all of this is old rect
+        
+        ======================
+        =                    =
+        =     new rect       =
+        =                    =
+        =                    =
+        =                    =
+        ======================
+        =  part that gets    =
+        =      cut           =
+        ======================
+        
+        */
+        // this is the maths part for the diagram above
+        if(_y >= gridMinY){
             new_rect.h = _height - ((_y + _height) - gridMaxY);
-
             /* more math for cutting textures with not just pure colour.
             since _dest_rect fits the texture too size we need to actually get the original size of texture
             so we _src_rect doesnt change in size and keeps same aspect ratio that dest_rect gave and basically
@@ -124,19 +132,56 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
         }
     }
 
+    if(_y + _height > gridMaxY && _y < gridMinY){
+        // this shoyld be the logic if the top and bottom are touching
+        new_rect.y = gridMinY;
+        new_rect.h = gridMaxY;
+        float aspectRatio_y = static_cast<float>(texture_height / (float)_height);
+        
+        // keep the texture_width so that we dont stretch
+        if(!(_x + _width > gridMaxX && _x < gridMinX)){
+            _src_rect.w = texture_width;
+        }
+
+        // the cut size is basically the difference between gridMinY and _y but since gridMinY is 0 we just use _y as the distance
+        // value and multiply it by -1 since its in the minus range
+        _src_rect.y = (-1 * _y) * aspectRatio_y;
+
+        // this logic is hard to explain in words so that its short so theres a example.png that gives the general gist
+        _src_rect.h = texture_height - (((gridMinY - _y) + (_y + _height - gridMaxY)) * aspectRatio_y);
+    }
+
+    if(_x + _width > gridMaxX && _x < gridMinX){
+        new_rect.x = gridMinX;
+        
+        // we cant just set it as gridMaxX as above we did with gridMaxY since the value isnt 0 
+        // since we dont use the full window screen for the gameScreen but like 2/3 of it
+        new_rect.w = gridMaxX - gridMinX;
+        float aspectRatio_x = static_cast<float>(texture_width / (float)_width);
+
+        if(!(_y + _height > gridMaxY && _y < gridMinY)){
+            _src_rect.h = texture_height;
+        }
+        
+        _src_rect.x = (gridMinX - _x) * aspectRatio_x;
+
+        _src_rect.w = texture_width - (((gridMinX - _x) + (_x + _width - gridMaxX)) * aspectRatio_x);
+    }
+
+
     // checks if we created a Texture in constructor or not and depending on which is the way we render the object
     if(!_objTexture){    
         SDL_SetRenderDrawColor(_objRenderer, _r, _g, _b, _a);
         SDL_RenderFillRect(_objRenderer, &_dest_rect);
     }else{
         // change this back to id = 0 if needed right now its 6 because doesnt exist
-        if(_id == 0 && (_x < gridMinX || _x + _width > gridMaxX || _y < gridMinY || _y + _height > gridMaxY)){
+        if(_x < gridMinX || _x + _width > gridMaxX || _y < gridMinY || _y + _height > gridMaxY){
             
             // checks wether the game object is within the gamescreen or not and if not then dont call function to save performance 
             if(new_rect.w > 0 && new_rect.h > 0){
                 SDL_RenderCopyEx(_objRenderer, _objTexture, &_src_rect , &new_rect, 0, nullptr , SDL_FLIP_NONE);
             }else{
-                std::cout << "gone off screen" << std::endl;
+                //std::cout << "gone off screen" << std::endl;
             }
         }else{
             SDL_RenderCopy(_objRenderer, _objTexture, nullptr, &_dest_rect);

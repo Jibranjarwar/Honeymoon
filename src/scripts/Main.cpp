@@ -4,6 +4,7 @@
 #include "gameobject.h"
 #include <iostream>
 #include <string>
+#include <vector> 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
@@ -23,9 +24,13 @@ int main(int argc, char **argv){
     // creates gameObject types 
     GameObject player(Window::renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
     GameObject player2(Window::renderer, 100, 100, 200, 200, 55, 55, 200, 255);
-    GameObject player3(Window::renderer, 100, 100, 200, 400, 55, 55, 200, 255);
+    GameObject player3(Window::renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 400);
     GameScreen* gameScreen = new GameScreen();
     
+    std::vector<GameObject> gameObjects;
+
+    gameObjects.push_back(player);
+    gameObjects.push_back(player3);
 
     // creates game Object with Texture or in game development terms "sprite"
     GameObject player4(Window::renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", 500, 500, 100, 100);
@@ -61,9 +66,10 @@ int main(int argc, char **argv){
 
         // renders the objects to the screen without this wont display
         // NOTE: THE ORDER IN WHICH YOU RENDER CAN BE SEEN AS "LAYERS"
-        player4.Render();
-        player2.Render();
-        player3.Render();
+        //player4.Render();
+        //player2.Render();
+        // using the vector to render this object currently
+        //player3.Render();
 
         // draws graph
         gameScreen->DrawGraph(window.window);
@@ -83,7 +89,14 @@ int main(int argc, char **argv){
 
         int offset_width = (int)(width / 1.25);
         
-        player.Render(width - offset_width, 0, width, height - offset_height);
+        //player.Render(width - offset_width, 0, width, height - offset_height);
+        
+        for(int i = 0; i < gameObjects.size(); i++){
+            gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
+        }
+        
+        // This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
+        //gameObjects[0].Render(width - offset_width, 0, width, height - offset_height);
 
         // needs the be called to register events like key presses
         if(SDL_PollEvent(&event)){
@@ -97,10 +110,10 @@ int main(int argc, char **argv){
             player3.Movement(event);
             
             // calls Zoom In and Out Function for GameScreen
-            gameScreen->ZoomInAndOut(event, &player);
+            gameScreen->ZoomInAndOut(event, gameObjects);
             
             // Checks the drag for gameObject 
-            gameScreen->InitalDragState(event, &player);
+            gameScreen->InitalDragState(event, gameObjects);
         }    
         
         gameScreen->ScreenOffset();

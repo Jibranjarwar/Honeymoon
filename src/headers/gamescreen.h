@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include "gameobject.h"
+#include <vector>
 
 class GameScreen{
 
@@ -10,11 +11,11 @@ public:
     
     bool Zoomed(SDL_Event event);
     
-    void ZoomInAndOut(SDL_Event event, GameObject* player);
+    void ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array);
     
-    void InitalDragState(SDL_Event event, GameObject *player);
+    void InitalDragState(SDL_Event event, std::vector<GameObject>& array);
     
-    void DragScreen(Uint32 mouseState, GameObject *player);
+    void DragScreen(Uint32 mouseState, std::vector<GameObject>& array);
     
     void ScreenOffset();
 
