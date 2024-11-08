@@ -14,14 +14,40 @@ _id = _current_id++;
 GameObject::GameObject(SDL_Renderer* renderer, std::string filename, int width, int height, int x, int y):
 _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _id = _current_id++;
-    _objTexture = Texture(filename);
+    _objTexture = Texture(filename, renderer=renderer);
+    //_previewTexture = Texture(filename, renderer=renderer);
+    _filename = filename;
     _original_w = width;
     _original_h = height;
+    _original_x = x;
+    _original_y = y;
 }
 
 // Destructor
 GameObject::~GameObject(){
 
+}
+/*SDL_Rect new_dest_rect = { _x, _y, _width, _height};
+    /*SDL_Texture* preview_texture = Texture(_filename, preview_renderer);
+    SDL_RenderCopy(preview_renderer, preview_texture, nullptr, &new_dest_rect);
+    SDL_SetRenderDrawColor(preview_renderer, _r, _g, _b, _a);
+    SDL_RenderFillRect(preview_renderer, &new_dest_rect);
+*/
+
+void GameObject::RenderPreview(SDL_Renderer* preview_renderer, int offset_x, int offset_y){
+    SDL_Rect new_dest_rect = { _x - offset_x, _y + offset_y, _width, _height};
+    //SDL_Texture* preview_texture = Texture(_filename, preview_renderer);
+    
+    // THIS WAS THE ISSUE WITH SECOND WINDOW DOWN PERFORMANCE BECAUSE FOR SOME
+    // GOD KNOWS REASON I THOUGHT IT WOULD BE A GOOD IDEA TO LOAD A NEW TEXTURE EACH TIME
+    // WE RENDER THE OBJECT WHEN IN THEORY IS THE WORST THING YOU CAN DO SO THIS IF STATEMENT
+    // FIXED IT
+    if(_previewTexture == nullptr){
+        _previewTexture = Texture(_filename, preview_renderer);
+    }
+    SDL_RenderCopy(preview_renderer, _previewTexture, nullptr, &new_dest_rect);
+    //SDL_SetRenderDrawColor(preview_renderer, _r, _g, _b, _a);
+    //SDL_RenderFillRect(preview_renderer, &new_dest_rect);
 }
 
 // Creates a Layer for the GameObject and saves it too renderer
@@ -213,14 +239,13 @@ void GameObject::UpdatePos(int new_x, int new_y){
     _y -= new_y;
 }
 
-SDL_Texture* GameObject::Texture(const std::string filename){
+SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* renderer = nullptr){
     
     // Loads PNG or JPG from existing file
     SDL_Surface* tempSurface = IMG_Load(filename.c_str());
     
     // Adds PNG or JPG on too texture from the surface
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(_objRenderer, tempSurface);
-    
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, tempSurface);
     // Frees the Surface from memory to prevent memory leak
     SDL_FreeSurface(tempSurface);
     

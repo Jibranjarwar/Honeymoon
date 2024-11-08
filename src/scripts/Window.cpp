@@ -3,9 +3,6 @@
 #include <iostream>
 
 // Gives value too static window value
-SDL_Window* Window::window = nullptr;
-
-SDL_Renderer* Window::renderer = nullptr;
 
 // Constructor
 Window::Window(const std::string &title, int width, int height) : _title(title), _width(width), _height(height)
@@ -17,8 +14,6 @@ Window::Window(const std::string &title, int width, int height) : _title(title),
 Window::~Window(){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    IMG_Quit();
-    SDL_Quit();
 }
 
 bool Window::init(){

@@ -13,31 +13,40 @@ int main(int argc, char **argv){
     
     // created a window object
     Window window("GAME ENGINE", 800, 640);
+    Window previewWindow("PREVIEW", 800, 640);
+    SDL_HideWindow(previewWindow.window);
     
     // initialize and setup for ImGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    ImGui_ImplSDL2_InitForSDLRenderer(Window::window, Window::renderer);
-    ImGui_ImplSDLRenderer2_Init(Window::renderer);
+    ImGui_ImplSDL2_InitForSDLRenderer(window.window, window.renderer);
+    ImGui_ImplSDLRenderer2_Init(window.renderer);
 
     // creates gameObject types 
-    GameObject player(Window::renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
-    GameObject player2(Window::renderer, 100, 100, 200, 200, 55, 55, 200, 255);
-    GameObject player3(Window::renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 400);
-    GameScreen* gameScreen = new GameScreen();
+    GameObject player(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
+    GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
+    GameObject player3(window.renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 400);
+    GameScreen* gameScreen = new GameScreen(window.renderer);
     
     std::vector<GameObject> gameObjects;
 
     gameObjects.push_back(player);
     gameObjects.push_back(player3);
 
+    // creates new vector with gameObjects
+    std::vector<GameObject> gameObjectsCopy = gameObjects;
     // creates game Object with Texture or in game development terms "sprite"
-    GameObject player4(Window::renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", 500, 500, 100, 100);
+    GameObject player4(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", 500, 500, 100, 100);
     
 
     // creates a SDL event pointer
     SDL_Event event;
+
+    bool isPressed = false;
+    int width, height;
+    int previousWidth = 0, previousHeight = 0;
+    int offset_width, offset_height;
     
     /*
     makes sure that the id's are static and being incremented each time new object of type
@@ -57,8 +66,19 @@ int main(int argc, char **argv){
         ImGui::NewFrame();
 
         // Creates new ImGUI window for testing atm
-        ImGui::Begin("Tester");
-        ImGui::SetWindowSize(ImVec2(100,100));
+        ImGui::Begin("Controller");
+        ImGui::SetWindowSize(ImVec2(200,100));
+        if(!isPressed){
+            if(ImGui::Button("Preview")){
+                isPressed = !isPressed;
+                std::cout << isPressed << std::endl;
+            }
+        }else{
+            if(ImGui::Button("Stop")){
+                isPressed = !isPressed;
+                std::cout << isPressed << std::endl;
+            }
+        }
         ImGui::End();
 
         // Wraps up all ImGUI elements and compiles everything into a ImDrawData struct
@@ -76,25 +96,29 @@ int main(int argc, char **argv){
 
         // EVERYTHING UP TO PLAYER RENDERER IS NEEDED SINCE RIGHT NOW WE RENDER IN MAIN.CPP
         // AND NEED TO EDGES TO PASS
-        int width, height;
         SDL_GetWindowSize(window.window, &width, &height);
 
         // sets colour to white for the lines
-        SDL_SetRenderDrawColor(Window::renderer, 255, 255, 255, 255);
+        //SDL_SetRenderDrawColor(window.renderer, 255, 255, 255, 255);
 
         // rounds to the next 10th e.g 453 -> 460 or e.g 337 -> 340
-        int temp_offset_height = (int)(height / 3.5);
-        int offset_height_rounded = 10 - (temp_offset_height % 10);
-        int offset_height = temp_offset_height + offset_height_rounded;
+        if(previousWidth != width && previousHeight != height){
+            int temp_offset_height = (int)(height / 3.5);
+            int offset_height_rounded = 10 - (temp_offset_height % 10);
+            offset_height = temp_offset_height + offset_height_rounded;
 
-        int offset_width = (int)(width / 1.25);
+            offset_width = (int)(width / 1.25);
+        }
         
         //player.Render(width - offset_width, 0, width, height - offset_height);
+
+        //player2.RenderPreview(window.renderer, 200, 200);
         
         for(int i = 0; i < gameObjects.size(); i++){
             gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
+            
         }
-        
+
         // This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
         //gameObjects[0].Render(width - offset_width, 0, width, height - offset_height);
 
@@ -106,8 +130,14 @@ int main(int argc, char **argv){
             // allows for interaction with the ImGui window created
             ImGui_ImplSDL2_ProcessEvent(&event);
 
-            // Movement function
-            player3.Movement(event);
+            if (event.type == SDL_KEYDOWN) {
+
+                // Movement function
+                //player3.Movement(event);
+                //player2.Movement(event);
+                gameObjects[0].Movement(event);
+                gameObjectsCopy[0].Movement(event);
+            }
             
             // calls Zoom In and Out Function for GameScreen
             gameScreen->ZoomInAndOut(event, gameObjects);
@@ -119,17 +149,30 @@ int main(int argc, char **argv){
         gameScreen->ScreenOffset();
 
         // Draws IMGUI to the renderer to be ready to be presented on window by getting ImDrawData struct
-        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), Window::renderer);
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), window.renderer);
         
         // displays whole window with all the rendering
         window.createDisplay();
+
+        if(isPressed){
+            SDL_ShowWindow(previewWindow.window);
+            
+            for(int i = 0; i < gameObjectsCopy.size(); i++){
+                gameObjectsCopy[i].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
+            }
+            //gameObjects[1].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
+            previewWindow.createDisplay();
+        }else{
+            SDL_HideWindow(previewWindow.window);
+        }
     }
 
     // Destroys ImGUI elements
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-    
+    IMG_Quit();
+    SDL_Quit();
     return 0;
 
 }

@@ -23,8 +23,9 @@ private:
 
 // public members
 public:
-    static SDL_Window* window;
-    static SDL_Renderer* renderer;
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    bool _closed = false;
 
 
 // private members
@@ -32,6 +33,4 @@ private:
     std::string _title;
     int _width = 640;
     int _height = 640;
-
-    bool _closed = false;
 };
