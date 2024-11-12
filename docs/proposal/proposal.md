@@ -86,3 +86,7 @@ Our Team will collaborate closely throughtout this project by holding weekly mee
 
 ## Sample mock wireframe: UI example 
 <img src="./res/honeymoon_mock.png">
+
+## Planned Schedule for 4th Year Project
+<img src="./res/schedule.png">
+
