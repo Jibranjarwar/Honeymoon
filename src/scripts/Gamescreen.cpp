@@ -2,13 +2,16 @@
 #include "window.h"
 #include <iostream>
 
+GameScreen::GameScreen(SDL_Renderer* renderer): renderer(renderer){
+}
+
 void GameScreen::DrawGraph(SDL_Window *window){
     
     // gets the window width and height and assigns it
     SDL_GetWindowSize(window, &window_width, &window_height);
 
     // sets colour to white for the lines
-    SDL_SetRenderDrawColor(Window::renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
     // rounds to the next 10th e.g 453 -> 460 or e.g 337 -> 340
     temp_offset_height = (int)(window_height / 3.5);
@@ -18,14 +21,17 @@ void GameScreen::DrawGraph(SDL_Window *window){
 
     offset_width = (int)(window_width / 1.25);
 
-    // creates grid 
+    // creates grid
+    count = 0;
+
     for(int w = window_width - offset_width; w <= window_width; w += 10 + mouse_wheel_y){
         for(int h = 0; h <= window_height - offset_height; h += 10 + mouse_wheel_y){
     
-            SDL_RenderDrawLine(Window::renderer, w, h, window_width, h);
-            SDL_RenderDrawLine(Window::renderer, w, h, w, offset_height);
+            SDL_RenderDrawLine(renderer, w, h, window_width, h);
+            SDL_RenderDrawLine(renderer, w, h, w, offset_height);
             width_difference = w;
             height_difference = h;
+            count++;
         }    
     } 
 
@@ -33,10 +39,12 @@ void GameScreen::DrawGraph(SDL_Window *window){
     if(height_difference < window_height){
         
         for(int w = window_width - offset_width; w <= window_width; w += 10 + mouse_wheel_y){
-            SDL_RenderDrawLine(Window::renderer, w, height_difference, w, window_height - offset_height);
+            SDL_RenderDrawLine(renderer, w, height_difference, w, window_height - offset_height);
         }
     }
-    SDL_RenderDrawLine(Window::renderer, (window_width - offset_width), (window_height - offset_height), window_width, (window_height - offset_height));
+
+    //std::cout << "amount: " << count << std::endl;
+    SDL_RenderDrawLine(renderer, (window_width - offset_width), (window_height - offset_height), window_width, (window_height - offset_height));
 }
 
 bool GameScreen::Zoomed(SDL_Event event){
@@ -51,7 +59,7 @@ bool GameScreen::Zoomed(SDL_Event event){
     return false;
 }
 
-void GameScreen::ZoomInAndOut(SDL_Event event, GameObject* player){
+void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array){
 
     if(Zoomed(event)){
         // changes value of zoom but never goes lower than -3 because then we need to draw to many lines and program crashes
@@ -62,6 +70,14 @@ void GameScreen::ZoomInAndOut(SDL_Event event, GameObject* player){
                 mouse_wheel_max = mouse_wheel_y;
             }
         }
+
+        SDL_GetMouseState(&window_x, &window_y);
+        
+        float reference_point_x = window_x - (window_width - offset_width);
+        float reference_point_y = window_y + offset_height;
+
+        std::cout << "ref x: " << reference_point_x << std::endl;
+        std::cout << "ref y: " << reference_point_y << std::endl;
 
         /* 
         This if statement is after assignment so that when we zoom out for the first time it registers it unlike
@@ -79,24 +95,50 @@ void GameScreen::ZoomInAndOut(SDL_Event event, GameObject* player){
                 mouse_wheel_max = mouse_wheel_y;
             }
 
+            std::cout << "original x: " << array[1]._original_x << std::endl;
+            std::cout << "original y: " << array[1]._original_y << std::endl;
+
             // CALL FUNCTION HERE
-            player->_width = player->_original_w * zoomfactor;
-            player->_height = player->_original_h * zoomfactor; 
+            for (int i = 0; i < array.size(); i++) {
+                // Scale object size based on zoomfactor
+                array[i]._width = array[i]._original_w * zoomfactor;
+                array[i]._height = array[i]._original_h * zoomfactor;
+
+                // Calculate distance from reference point using original position
+                float dx = array[i]._original_x - difference_x - reference_point_x;
+                float dy = array[i]._original_y - difference_y - reference_point_y;
+
+                std::cout << "dx: " << dx << std::endl;
+                std::cout << "dy: " << dy << std::endl; 
+
+                // Scale distance based on zoom factor and update position
+                array[i]._x = reference_point_x + dx * zoomfactor;
+                array[i]._y = reference_point_y + dy * zoomfactor;
+            }
+
+            std::cout << "x: " << array[1]._x << std::endl;
+            std::cout << "y: " << array[1]._y << std::endl;
+            /*for(int i = 0; i < array.size(); i++){
+                array[i]._width = array[i]._original_w * zoomfactor;
+                array[i]._height = array[i]._original_h * zoomfactor;
+            }*/
+            //array[0]._width = array[0]._original_w * zoomfactor;
+            //array[0]._height = array[0]._original_h * zoomfactor; 
         
         }else{
             // if values go below < 0 then we just use preset scales since we only go max of -3
 
             float scales[3] = {0.8, 0.6, 0.3};
             // CALL FUNCTION HERE
-            player->_width = player->_original_w * scales[-1 * (mouse_wheel_y + 1)];
-            player->_height = player->_original_h * scales[-1 * (mouse_wheel_y + 1)];
+            //player->_width = player->_original_w * scales[-1 * (mouse_wheel_y + 1)];
+            //player->_height = player->_original_h * scales[-1 * (mouse_wheel_y + 1)];
         }
 
         std::cout << "mouse wheel y: " << mouse_wheel_y << std::endl;
     }
 }
 
-void GameScreen::InitalDragState(SDL_Event event, GameObject *player){
+void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array){
     
     Uint32 mouseState = SDL_GetMouseState(&window_x, &window_y);
     
@@ -116,10 +158,10 @@ void GameScreen::InitalDragState(SDL_Event event, GameObject *player){
         }
     }
 
-    DragScreen(mouseState, player);
+    DragScreen(mouseState, array);
 }
 
-void GameScreen::DragScreen(Uint32 mouseState, GameObject *player){
+void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array){
     
     // if left mouse button is held down and moved
     if(mouseState && SDL_BUTTON(SDL_BUTTON_LEFT)){
@@ -130,11 +172,17 @@ void GameScreen::DragScreen(Uint32 mouseState, GameObject *player){
         current_window_position_x = screen_x - prev_drag_window_position_x;
         current_window_position_y = screen_y - prev_drag_window_position_y;
         
-        player->_x += current_window_position_x;
-        player->_y += current_window_position_y;
 
-        //std::cout << "x: " << player->_x << std::endl;
-        //std::cout << "y: " << player->_y << std::endl;
+        for(int i = 0; i < array.size(); i++){
+            //std::cout << array[i].GetID() << std::endl;
+            array[i]._x += current_window_position_x;
+            array[i]._y += current_window_position_y;
+        }
+        //player->_x += current_window_position_x;
+        //player->_y += current_window_position_y;
+
+        //std::cout << "x: " << array[0]._x << std::endl;
+        //std::cout << "y: " << array[0]._y << std::endl;
 
         prev_drag_window_position_x = screen_x;
         prev_drag_window_position_y = screen_y;
@@ -153,9 +201,15 @@ void GameScreen::DragScreen(Uint32 mouseState, GameObject *player){
 
 void GameScreen::ScreenOffset(){
     // sets offset so that where grid starts is 0,0 and adds difference of whatever the drag is intially being 0
+    // NOTE: THIS WILL BE USED FOR THE DRAG 
     screen_x = window_x - (window_width - offset_width) + difference_x;
     screen_y = window_y - (window_height - offset_height) + difference_y;
 
-    //std::cout << "screen x cords: " << screen_x << std::endl;
-    //std::cout << "screen y cords: " << screen_y << std::endl;
+    float zoom_offset_x = offset_width / zoomfactor;
+    float zoom_offset_y = (window_height - offset_height) / zoomfactor;
+
+    //std::cout << "screen x cords: " << zoom_offset_x << std::endl;
+    //std::cout << "screen y cords: " << zoom_offset_y << std::endl;
+    //std::cout << "range [" << min_x << " , " << max_x << "]" << std::endl;
+    //std::cout << "screen y cords: " << zoom_offset_y << std::endl;
 }
