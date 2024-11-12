@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include "filemanager.h"
 
 int main(int argc, char **argv){
     
@@ -59,7 +60,21 @@ int main(int argc, char **argv){
 
     
     while(!window.isClosed()){        
-            
+        
+        SDL_GetWindowSize(window.window, &width, &height);
+
+        // sets colour to white for the lines
+        //SDL_SetRenderDrawColor(window.renderer, 255, 255, 255, 255);
+
+        // rounds to the next 10th e.g 453 -> 460 or e.g 337 -> 340
+        if(previousWidth != width && previousHeight != height){
+            int temp_offset_height = (int)(height / 3.5);
+            int offset_height_rounded = 10 - (temp_offset_height % 10);
+            offset_height = temp_offset_height + offset_height_rounded;
+
+            offset_width = (int)(width / 1.25);
+        }
+
         // All these start the ImGUI frame
         ImGui_ImplSDLRenderer2_NewFrame();
         ImGui_ImplSDL2_NewFrame();
@@ -81,6 +96,8 @@ int main(int argc, char **argv){
         }
         ImGui::End();
 
+        Initialize(width - offset_width, height - offset_height, offset_width, offset_height);
+
         // Wraps up all ImGUI elements and compiles everything into a ImDrawData struct
         ImGui::Render();
 
@@ -96,19 +113,6 @@ int main(int argc, char **argv){
 
         // EVERYTHING UP TO PLAYER RENDERER IS NEEDED SINCE RIGHT NOW WE RENDER IN MAIN.CPP
         // AND NEED TO EDGES TO PASS
-        SDL_GetWindowSize(window.window, &width, &height);
-
-        // sets colour to white for the lines
-        //SDL_SetRenderDrawColor(window.renderer, 255, 255, 255, 255);
-
-        // rounds to the next 10th e.g 453 -> 460 or e.g 337 -> 340
-        if(previousWidth != width && previousHeight != height){
-            int temp_offset_height = (int)(height / 3.5);
-            int offset_height_rounded = 10 - (temp_offset_height % 10);
-            offset_height = temp_offset_height + offset_height_rounded;
-
-            offset_width = (int)(width / 1.25);
-        }
         
         //player.Render(width - offset_width, 0, width, height - offset_height);
 
