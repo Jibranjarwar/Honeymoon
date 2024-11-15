@@ -1,11 +1,21 @@
 #include "filemanager.h"
 #include <iostream>
+#include <algorithm>
+#include <windows.h>
 
 std::vector<std::pair<std::string, int>> directories;
 TreeNode* directory_tree;
+std::vector<std::filesystem::path> selectedFiles;
+std::string current_pressed_dir;
+SDL_Texture* file_image = nullptr;
 
+void OpenFileWithDefaultProgram(const std::string& filePath){
+    
+    // Opens file with users default program NOTE: THIS WORKS FOR WINDOWS NOT TO SURE BOUT LINUX
+    ShellExecute(0, "open", filePath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+}
 
-void Initialize(int x, int y, int width, int height){
+void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
     static ImVec2 lastPosition = ImVec2(-1, -1);
     ImVec2 wantedPosition(x, y);
     
@@ -14,7 +24,7 @@ void Initialize(int x, int y, int width, int height){
         ImGui::SetNextWindowPos(wantedPosition);
         lastPosition = wantedPosition;
     }
-    ImGui::Begin("File Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
+    ImGui::Begin("File Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
     ImGui::SetWindowSize(ImVec2(width, height));
     
     // Sidebar width
@@ -59,6 +69,49 @@ void Initialize(int x, int y, int width, int height){
     RenderTreeNode(directory_tree);
 
     ImGui::EndChild();
+
+    if(file_image == nullptr){
+        file_image = LoadIconTexure("C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\file.png", renderer);
+    }
+
+    ImGui::SameLine();  // This positions the following text on the same horizontal line as the child
+    ImGui::BeginGroup();
+    ImGui::Text("Directory: %s", current_pressed_dir.c_str());
+
+    // List all files in the selected directory
+    const int filesPerRow = 4;
+    const float columnWidth = 100.0f;
+
+    // Start the column layout with a fixed column width
+    ImGui::Columns(filesPerRow, nullptr, false);
+    
+    for (const auto& file : selectedFiles) {
+        ImGui::BeginGroup();
+        ImGui::Image((void*)file_image, ImVec2(50, 75));
+
+        // If Image is clicked then we open the file with whatever default program or a program the user chooses
+        if(ImGui::IsItemClicked()){
+            OpenFileWithDefaultProgram(file.string());
+        }
+        
+        // Prevent text from overflowing into other columns
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + columnWidth);
+        
+        ImGui::Text("%s", file.filename().string().c_str());
+        
+        // Restore text wrapping after the file name
+        ImGui::PopTextWrapPos();
+
+        ImGui::EndGroup();
+        
+        // Move to next column
+        ImGui::NextColumn();
+    }
+    
+    // End the column layout and the group
+    ImGui::Columns(1);
+
+    ImGui::EndGroup();
 
     //AddFiles(directory_tree, absolutePath.string());
     ImGui::End();
@@ -160,14 +213,22 @@ TreeNode* CreateTree(std::vector<std::pair<std::string, int>>& directories, std:
         //std::cout << currentPath << std::endl;
         
         // loop too check all files within currentPath and add them too the current node (basically adding files into correct directories)
-        // NOTE BUG: THIS STUMPS PERFORMANCE NEED TO HAVE SOME KINDA CONDITION WHERE IT ONLY EXECUTES WHEN A NEW FILE GETS ADDED 
-        for(const auto& entry : std::filesystem::directory_iterator(currentPath)){
+        for(const auto& entry : std::filesystem::directory_iterator(currentPath, std::filesystem::directory_options::skip_permission_denied)){
             
             //std::cout << entry.path() << std::endl;
-
-            if(entry.is_regular_file()){
-                //std::cout << "is file lol" << std::endl;
-                currentNode->files.push_back(entry.path().string());
+            
+            // checks wether file already exists within vector if so skip
+            if (std::find(currentNode->files.begin(), currentNode->files.end(), entry.path().string()) == currentNode->files.end()){
+                
+                //ISSUE: is_regular_file() is what seems to be messing with the performance
+                //FIX: I avoided this by checking if entry has an extension which means its a file but some edgecase for this is that
+                //     not all files have extensions so could end up with some issues but in our case we need extensions for images, scripts etc
+                
+                // checks wether there is a file extensions which is faster than is_regular_file()
+                if (entry.path().has_extension()){
+                    //std::cout << "is file lol" << std::endl;
+                    currentNode->files.push_back(entry.path().string());
+                }
             }
         }
         
@@ -196,10 +257,14 @@ void RenderTreeNode(TreeNode* root) {
         
         // Print message when text is clicked, but not when the arrow is clicked
         std::cout << "This is " << root->dirName << std::endl;
+        current_pressed_dir = root->dirName;
         
+        selectedFiles.clear();
         // prints files in directory that we click
         for (const auto& file : root->files){
             std::cout << file << std::endl;
+            std::filesystem::path filePath(file);
+            selectedFiles.push_back(filePath);
         }
     }
     // still no clue with what to do for this yet
@@ -216,6 +281,20 @@ void RenderTreeNode(TreeNode* root) {
         ImGui::TreePop();
     }
 }
+
+SDL_Texture* LoadIconTexure(std::string filename, SDL_Renderer* renderer){
+
+    // Loads PNG or JPG from existing file
+    SDL_Surface* tempSurface = IMG_Load(filename.c_str());
+    
+    // Adds PNG or JPG on too texture from the surface
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, tempSurface);
+    // Frees the Surface from memory to prevent memory leak
+    SDL_FreeSurface(tempSurface);
+    
+    return texture;
+}
+
 
 /*void AddFiles(TreeNode * root, std::string rootPath){
     

@@ -96,7 +96,7 @@ int main(int argc, char **argv){
         }
         ImGui::End();
 
-        Initialize(width - offset_width, height - offset_height, offset_width, offset_height);
+        Initialize(width - offset_width, height - offset_height, offset_width, offset_height, window.renderer);
 
         // Wraps up all ImGUI elements and compiles everything into a ImDrawData struct
         ImGui::Render();
