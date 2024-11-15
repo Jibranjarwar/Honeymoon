@@ -89,6 +89,17 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
         ImGui::BeginGroup();
         ImGui::Image((void*)file_image, ImVec2(50, 75));
 
+        if(ImGui::IsItemHovered()){
+            // Get the top-left corner of the image
+            ImVec2 min = ImGui::GetItemRectMin();  
+            
+            // Get the bottom-right corner of the image
+            ImVec2 max = ImGui::GetItemRectMax();  
+            
+            // Get the window's draw list and draw the rectangle
+            ImGui::GetWindowDrawList()->AddRect(min, max, IM_COL32(39, 119, 245, 255), 5.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+        }
+
         // If Image is clicked then we open the file with whatever default program or a program the user chooses
         if(ImGui::IsItemClicked()){
             OpenFileWithDefaultProgram(file.string());
