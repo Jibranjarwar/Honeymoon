@@ -213,3 +213,18 @@ void GameScreen::ScreenOffset(){
     //std::cout << "range [" << min_x << " , " << max_x << "]" << std::endl;
     //std::cout << "screen y cords: " << zoom_offset_y << std::endl;
 }
+
+void GameScreen::Setter(json data){
+    
+    current_window_position_x = data["gameScreen"]["current_window_position_x"];
+    current_window_position_y = data["gameScreen"]["current_window_position_y"];
+    difference_x = data["gameScreen"]["difference_x"];
+    difference_y = data["gameScreen"]["difference_y"];
+    height_difference = data["gameScreen"]["height_difference"];
+    mouse_wheel_max = data["gameScreen"]["mouse_wheel_max"];
+    mouse_wheel_y = data["gameScreen"]["mouse_wheel_y"];
+    viewport_offset_x = data["gameScreen"]["viewport_offset_x"];
+    viewport_offset_y = data["gameScreen"]["viewport_offset_y"];
+    width_difference = data["gameScreen"]["width_difference"];
+    zoomfactor = data["gameScreen"]["zoomfactor"];
+}

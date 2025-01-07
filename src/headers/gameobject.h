@@ -3,11 +3,15 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <string>
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 class GameObject{
 
 // public func
 public:
+    GameObject();
     GameObject(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a);
     GameObject(SDL_Renderer* renderer, std::string filename, int width, int height, int x, int y);
     ~GameObject();
@@ -35,17 +39,19 @@ public:
     // inline function which returns id
     inline int GetID() const { return _id; }
 
+    void Setter();
+
 public:
     int _x, _y;
     int _width, _height;
     int _original_w, _original_h;
     int _original_x, _original_y;
+    int _id;
     std::string _filename;
 
 // private members
 private:
     static int _current_id;
-    int _id;
     int _r, _g, _b;
     int _a = 255;
     SDL_Rect _dest_rect;

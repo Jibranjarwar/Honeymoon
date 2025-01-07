@@ -3,6 +3,9 @@
 #include <SDL2/SDL.h>
 #include "gameobject.h"
 #include <vector>
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 class GameScreen{
 
@@ -31,6 +34,8 @@ public:
 
         Vector2(float x = 0, float y = 0) : x(x), y(y) {}
     };
+
+    void Setter(json data);
 
 
 

@@ -9,6 +9,11 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
 #include "filemanager.h"
+#include "serilization.h"
+#include <filesystem>
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 int main(int argc, char **argv){
     
@@ -24,27 +29,52 @@ int main(int argc, char **argv){
     ImGui_ImplSDL2_InitForSDLRenderer(window.window, window.renderer);
     ImGui_ImplSDLRenderer2_Init(window.renderer);
 
-    // creates gameObject types 
-    GameObject player(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
-    GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
-    GameObject player3(window.renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 400);
+    GameObject player;
+    GameObject player3;
+
     GameScreen* gameScreen = new GameScreen(window.renderer);
+
+    // creates gameObject types
+    if(!(std::filesystem::exists("data.json"))){
+        //std::cout << "yes it does" << std::endl;
+    
+        player = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
+        //GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
+        player3 = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 400);
+        
+    }
+    else{
+
+        json load_data = reader_tester();
+
+        player = GameObject(window.renderer, load_data["gameObjects"][0]["filename"], load_data["gameObjects"][0]["size"]["width"], load_data["gameObjects"][0]["size"]["height"], load_data["gameObjects"][0]["position"]["x"], load_data["gameObjects"][0]["position"]["y"]);
+        //GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
+        player3 = GameObject(window.renderer, load_data["gameObjects"][1]["filename"], load_data["gameObjects"][1]["size"]["width"], load_data["gameObjects"][1]["size"]["height"], load_data["gameObjects"][1]["position"]["x"], load_data["gameObjects"][1]["position"]["y"]);
+
+        gameScreen->Setter(load_data);
+    }
     
     std::vector<GameObject> gameObjects;
 
     gameObjects.push_back(player);
     gameObjects.push_back(player3);
 
+    // calls serilization cpp 
+
     // creates new vector with gameObjects
     std::vector<GameObject> gameObjectsCopy = gameObjects;
     // creates game Object with Texture or in game development terms "sprite"
     GameObject player4(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", 500, 500, 100, 100);
+
+    //tester(gameObjects);
+    //reader_tester();
     
 
     // creates a SDL event pointer
     SDL_Event event;
 
     bool isPressed = false;
+    bool save = false;
     int width, height;
     int previousWidth = 0, previousHeight = 0;
     int offset_width, offset_height;
@@ -54,7 +84,7 @@ int main(int argc, char **argv){
     GameObject class is created
     */
     std::cout << "object id: " << player.GetID() << std::endl;
-    std::cout << "object2 id: " << player2.GetID() << std::endl;   
+    //std::cout << "object2 id: " << player2.GetID() << std::endl;   
     std::cout << "object3 id: " << player3.GetID() << std::endl;
     std::cout << "object4 id: " << player4.GetID() << std::endl; 
 
@@ -94,8 +124,15 @@ int main(int argc, char **argv){
                 std::cout << isPressed << std::endl;
             }
         }
+
+        if(!save){
+            if(ImGui::Button("Save")){
+                tester(gameObjects, gameScreen);
+            }
+        }
         ImGui::End();
 
+        // calls file manager cpp
         Initialize(width - offset_width, height - offset_height, offset_width, offset_height, window.renderer);
 
         // Wraps up all ImGUI elements and compiles everything into a ImDrawData struct
