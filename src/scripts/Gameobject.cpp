@@ -1,9 +1,15 @@
 #include "gameobject.h"
+#include "serilization.h"
 #include <iostream>
 
 int GameObject::_current_id = 0;
 
 // Constructor
+
+GameObject::GameObject(){
+    _id = -1;
+}
+
 GameObject::GameObject(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a):
 _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y), _r(r), _g(g), _b(b), _a(a)
 {
@@ -21,6 +27,8 @@ _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _original_h = height;
     _original_x = x;
     _original_y = y;
+
+    Setter();
 }
 
 // Destructor
@@ -35,7 +43,8 @@ GameObject::~GameObject(){
 */
 
 void GameObject::RenderPreview(SDL_Renderer* preview_renderer, int offset_x, int offset_y){
-    SDL_Rect new_dest_rect = { _x - offset_x, _y + offset_y, _width, _height};
+    SDL_Rect new_dest_rect = { _x, _y, _width, _height};
+    std::cout << _width << std::endl;
     //SDL_Texture* preview_texture = Texture(_filename, preview_renderer);
     
     // THIS WAS THE ISSUE WITH SECOND WINDOW DOWN PERFORMANCE BECAUSE FOR SOME
@@ -250,4 +259,10 @@ SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* rende
     SDL_FreeSurface(tempSurface);
     
     return texture;
+}
+
+// TO DO: NEED TO FIX DATA SERILIZATION SO CAN STORE AND FETCH ORIGINAL VALUES
+void GameObject::Setter(){
+    json something = findGameObject(_id);
+    std::cout << "id: " << _id << " " << something.dump(4) << std::endl;
 }

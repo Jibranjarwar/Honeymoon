@@ -1,0 +1,18 @@
+{
+    "gameObjects": [
+        {
+            "name": "gameObject1",
+            "position": {
+                "x": 100,
+                "y": 200
+            }
+        },
+        {
+            "name": "gameObject2",
+            "position": {
+                "x": 300,
+                "y": 400
+            }
+        }
+    ]
+}
