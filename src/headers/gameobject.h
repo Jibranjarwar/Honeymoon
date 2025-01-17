@@ -41,6 +41,14 @@ public:
 
     void Setter();
 
+    bool operator==(const GameObject& other) const {
+        return _id == other._id;
+    }
+
+    bool operator!=(const GameObject& other) const {
+        return !(*this == other);
+    }
+
 public:
     int _x, _y;
     int _width, _height;
@@ -48,13 +56,13 @@ public:
     int _original_x, _original_y;
     int _id;
     std::string _filename;
+    SDL_Rect _dest_rect;
 
 // private members
 private:
     static int _current_id;
     int _r, _g, _b;
     int _a = 255;
-    SDL_Rect _dest_rect;
     SDL_Renderer* _objRenderer;
     SDL_Texture* _objTexture = nullptr;
     SDL_Texture* _previewTexture = nullptr;

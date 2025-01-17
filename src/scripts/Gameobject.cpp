@@ -7,6 +7,7 @@ int GameObject::_current_id = 0;
 // Constructor
 
 GameObject::GameObject(){
+    _id = -1;
 }
 
 GameObject::GameObject(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a):
@@ -42,7 +43,8 @@ GameObject::~GameObject(){
 */
 
 void GameObject::RenderPreview(SDL_Renderer* preview_renderer, int offset_x, int offset_y){
-    SDL_Rect new_dest_rect = { _x - offset_x, _y + offset_y, _width, _height};
+    SDL_Rect new_dest_rect = { _x, _y, _width, _height};
+    std::cout << _width << std::endl;
     //SDL_Texture* preview_texture = Texture(_filename, preview_renderer);
     
     // THIS WAS THE ISSUE WITH SECOND WINDOW DOWN PERFORMANCE BECAUSE FOR SOME

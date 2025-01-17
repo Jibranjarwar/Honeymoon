@@ -10,8 +10,10 @@
 #include "imgui_impl_sdlrenderer2.h"
 #include "filemanager.h"
 #include "serilization.h"
+#include "camera.h"
 #include <filesystem>
 #include "json.hpp"
+#include <unordered_map>
 
 using json = nlohmann::json;
 
@@ -29,8 +31,12 @@ int main(int argc, char **argv){
     ImGui_ImplSDL2_InitForSDLRenderer(window.window, window.renderer);
     ImGui_ImplSDLRenderer2_Init(window.renderer);
 
+
+    //create empty gameObjects since we assign in the if statement and couldnt access them outside without initialising them first
     GameObject player;
     GameObject player3;
+
+    Camera gameCamera(window.renderer, 250, 200, 400, 300, 0, 0, 0, 255);
 
     GameScreen* gameScreen = new GameScreen(window.renderer);
 
@@ -56,13 +62,18 @@ int main(int argc, char **argv){
     
     std::vector<GameObject> gameObjects;
 
+    GameObject defaultObject;
+
     gameObjects.push_back(player);
     gameObjects.push_back(player3);
 
     // calls serilization cpp 
 
     // creates new vector with gameObjects
-    std::vector<GameObject> gameObjectsCopy = gameObjects;
+    //std::vector<GameObject> gameObjectsCopy;
+
+    std::unordered_map<int, GameObject> gameObjectsCopy;
+
     // creates game Object with Texture or in game development terms "sprite"
     GameObject player4(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", 500, 500, 100, 100);
 
@@ -156,9 +167,27 @@ int main(int argc, char **argv){
         //player2.RenderPreview(window.renderer, 200, 200);
         
         for(int i = 0; i < gameObjects.size(); i++){
+            // ISSUE: A DANGLING POINTER WHEN BLUE LOCK IMAGE SHOWS BEFORE AZULA BUT WORKS FINE IF AZULA SHOWS FIRST THEN BLUE LOCK
+            // FIXED: CHANGED DEFAULT GAMEOBJECT POINTER TO ASSIGN -1 SO WE DONT ERASE FROM DICTIONARY LIKE BEFORE 
+            
+            // Checks whether gameObject is in Camera
+            if(gameCamera.Game_Camera_Objects(gameObjects[i])){
+                
+                // Checks if ID already exists in Dictionary OR if the value for the key is -1 we also change it
+                if((gameObjectsCopy.find(gameObjects[i].GetID()) == gameObjectsCopy.end()) || gameObjectsCopy[gameObjects[i].GetID()].GetID() == -1){
+                    gameObjectsCopy[gameObjects[i].GetID()] = GameObject(gameObjects[i]);
+                }
+            }
+            // Checks if gameObject is not in Camera
+            else if(!gameCamera.Game_Camera_Objects(gameObjects[i])){
+                // instead of removing we now just assign default empty GameObject if we need to de-reference object
+                gameObjectsCopy[gameObjects[i].GetID()] = GameObject();
+            }
             gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
             
         }
+
+        gameCamera.Camera_Render(3);
 
         // This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
         //gameObjects[0].Render(width - offset_width, 0, width, height - offset_height);
@@ -198,8 +227,19 @@ int main(int argc, char **argv){
         if(isPressed){
             SDL_ShowWindow(previewWindow.window);
             
+            //std::cout << gameObjectsCopy.size() << std::endl;
             for(int i = 0; i < gameObjectsCopy.size(); i++){
-                gameObjectsCopy[i].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
+                
+                //std::cout << "ID: " << gameObjectsCopy[i].GetID() << std::endl;
+                // makes sure that gameObjectCopy value ID doesnt equal too -1 which is what defaultObject has as an ID also
+                
+                // ISSUE: WITH THE RESIZE FUNCTION IT GETS CALLED EVERY FRAME SO KEEPS EXPANDING AND BREAKS
+                if(gameObjectsCopy[i] != defaultObject){
+                    //std::cout << "ID: " << gameObjectsCopy[i].GetID() << std::endl;
+                    gameCamera.Resize(gameObjectsCopy[i], width, height);
+                    std::cout << "width after resize: " << gameObjectsCopy[i]._width << std::endl;
+                    gameObjectsCopy[i].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
+                }
             }
             //gameObjects[1].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
             previewWindow.createDisplay();
