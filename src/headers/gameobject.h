@@ -14,6 +14,7 @@ public:
     GameObject();
     GameObject(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a);
     GameObject(SDL_Renderer* renderer, std::string filename, int width, int height, int x, int y);
+    GameObject(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y);
     ~GameObject();
 
     void RenderPreview(SDL_Renderer* preview_renderer, int offset_x, int offset_y);
@@ -56,7 +57,9 @@ public:
     int _original_x, _original_y;
     int _id;
     std::string _filename;
+    std::string _name;
     SDL_Rect _dest_rect;
+    
 
 // private members
 private:

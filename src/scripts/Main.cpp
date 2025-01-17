@@ -17,8 +17,8 @@
 
 
 struct GameObjectUI {
-    std::string name;
-    std::vector<std::string> children;
+    GameObject name;
+    std::vector<GameObject> children; 
 };
 
 
@@ -37,6 +37,7 @@ int main(int argc, char **argv){
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplSDL2_InitForSDLRenderer(window.window, window.renderer);
     ImGui_ImplSDLRenderer2_Init(window.renderer);
+    //GameObject(window.renderer, "C:\Users\shvdi\Pictures\Azula.png", 100, 100, 0, 0);
 
 
     //create empty gameObjects since we assign in the if statement and couldnt access them outside without initialising them first
@@ -113,7 +114,20 @@ int main(int argc, char **argv){
     std::cout << "object4 id: " << player4.GetID() << std::endl; 
 
     
-    while(!window.isClosed()){        
+    while(!window.isClosed()){
+        SDL_GetWindowSize(window.window, &width, &height);
+
+        // sets colour to white for the lines
+        //SDL_SetRenderDrawColor(window.renderer, 255, 255, 255, 255);
+
+        // rounds to the next 10th e.g 453 -> 460 or e.g 337 -> 340
+        if(previousWidth != width && previousHeight != height){
+            int temp_offset_height = (int)(height / 3.5);
+            int offset_height_rounded = 10 - (temp_offset_height % 10);
+            offset_height = temp_offset_height + offset_height_rounded;
+
+            offset_width = (int)(width / 1.25);
+        }
             
         // All these start the ImGUI frame
         ImGui_ImplSDLRenderer2_NewFrame();
@@ -124,25 +138,25 @@ int main(int argc, char **argv){
         if (ImGui::BeginMainMenuBar()) {
             // Project Name menu
             if (ImGui::BeginMenu("Project Name")) {
-                ImGui::MenuItem("New Project");   // Placeholder item
-                ImGui::MenuItem("Load Project");  // Placeholder item
-                ImGui::MenuItem("Save Project");  // Placeholder item
+                ImGui::MenuItem("New Project");   
+                ImGui::MenuItem("Load Project");  
+                ImGui::MenuItem("Save Project");  
                 ImGui::EndMenu();
             }
 
             // Project menu
             if (ImGui::BeginMenu("Project")) {
-                ImGui::MenuItem("Build");        // Placeholder item
-                ImGui::MenuItem("Run");          // Placeholder item
-                ImGui::MenuItem("Settings");     // Placeholder item
+                ImGui::MenuItem("Build");        
+                ImGui::MenuItem("Run");          
+                ImGui::MenuItem("Settings");     
                 ImGui::EndMenu();
             }
 
             // Options menu
             if (ImGui::BeginMenu("Options")) {
-                ImGui::MenuItem("Preferences");   // Placeholder item
-                ImGui::MenuItem("Help");          // Placeholder item
-                ImGui::MenuItem("About");         // Placeholder item
+                ImGui::MenuItem("Preferences");   
+                ImGui::MenuItem("Help");          
+                ImGui::MenuItem("About");         
                 ImGui::EndMenu();
             }
 
@@ -160,7 +174,8 @@ int main(int argc, char **argv){
         ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
         if (ImGui::Button("Add GameObject") && strlen(gameObjectName) > 0) {
             // Add a new GameObject to the list
-            gameObjectsUI.push_back({gameObjectName, {}});
+            GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", gameObjectName, 100, 100, 500, 500);
+            gameObjectsUI.push_back({new_object, {}});//change struct to gameobject, be able to define gameobject with default parameters,
             strcpy(gameObjectName, ""); // Clear input field
         }
 
@@ -169,19 +184,20 @@ int main(int argc, char **argv){
             ImGui::PushID(i); // Ensure unique ID for each item
 
             // Tree node for each GameObject
-            if (ImGui::TreeNode(gameObjectsUI[i].name.c_str())) {
+            if (ImGui::TreeNode(gameObjectsUI[i].name._name.c_str())) {
                 
                 // Input for new child object name
                 ImGui::InputText("Child Name", childObjectName, IM_ARRAYSIZE(childObjectName));
                 if (ImGui::Button("Add Child") && strlen(childObjectName) > 0) {
                     // Add a new child to the current GameObject
-                    gameObjectsUI[i].children.push_back(childObjectName);
+                    GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", gameObjectName, 100, 100, 700, 500);
+                    gameObjectsUI[i].children.push_back(new_object);
                     strcpy(childObjectName, ""); // Clear input field
                 }
 
                 // List children
                 for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j) {
-                    ImGui::Text("- %s", gameObjectsUI[i].children[j].c_str());
+                    ImGui::Text("- %s", gameObjectsUI[i].children[j]._name.c_str());
                     
                     ImGui::SameLine();
                     if (ImGui::Button("Remove")) {
@@ -252,6 +268,12 @@ int main(int argc, char **argv){
             }
             gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
             
+        }
+
+        for(int i = 0; i < gameObjectsUI.size(); i++){
+
+            gameObjectsUI[i].name.Render(width - offset_width, 0, width, height - offset_height);
+
         }
 
         gameCamera.Camera_Render(3);
