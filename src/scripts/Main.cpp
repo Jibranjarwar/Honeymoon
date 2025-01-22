@@ -15,7 +15,7 @@
 #include "json.hpp"
 #include <unordered_map>
 
-
+//gameobject 
 struct GameObjectUI {
     GameObject name;
     std::vector<GameObject> children; 
@@ -37,7 +37,6 @@ int main(int argc, char **argv){
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplSDL2_InitForSDLRenderer(window.window, window.renderer);
     ImGui_ImplSDLRenderer2_Init(window.renderer);
-    //GameObject(window.renderer, "C:\Users\shvdi\Pictures\Azula.png", 100, 100, 0, 0);
 
 
     //create empty gameObjects since we assign in the if statement and couldnt access them outside without initialising them first
@@ -174,50 +173,60 @@ int main(int argc, char **argv){
         ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
         if (ImGui::Button("Add GameObject") && strlen(gameObjectName) > 0) {
             // Add a new GameObject to the list
-            GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", gameObjectName, 100, 100, 500, 500);
+            GameObject new_object = GameObject(window.renderer, "C:\\Users\\jjlov\\Downloads\\aasdsad.png", gameObjectName, 300, 300, 400, 400);
             gameObjectsUI.push_back({new_object, {}});//change struct to gameobject, be able to define gameobject with default parameters,
             strcpy(gameObjectName, ""); // Clear input field
         }
 
-        // Display each GameObject with its children
-        for (size_t i = 0; i < gameObjectsUI.size(); ++i) {
-            ImGui::PushID(i); // Ensure unique ID for each item
+        for (size_t i = 0; i < gameObjectsUI.size(); ++i)
+        {
+            ImGui::PushID(i); // Unique ID for each GameObject
 
             // Tree node for each GameObject
-            if (ImGui::TreeNode(gameObjectsUI[i].name._name.c_str())) {
-                
+            if (ImGui::TreeNode(gameObjectsUI[i].name._name.c_str()))
+            {
+
                 // Input for new child object name
                 ImGui::InputText("Child Name", childObjectName, IM_ARRAYSIZE(childObjectName));
-                if (ImGui::Button("Add Child") && strlen(childObjectName) > 0) {
+                if (ImGui::Button("Add Child") && strlen(childObjectName) > 0)
+                {
                     // Add a new child to the current GameObject
-                    GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", gameObjectName, 100, 100, 700, 500);
+                    GameObject new_object = GameObject(window.renderer, "C:\\Users\\jjlov\\Pictures\\Screenshots\\A.png", childObjectName, 300, 300, 400, 100);
                     gameObjectsUI[i].children.push_back(new_object);
                     strcpy(childObjectName, ""); // Clear input field
                 }
 
                 // List children
-                for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j) {
+                for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j)
+                {
+                    ImGui::PushID(j); // Unique ID for each child
                     ImGui::Text("- %s", gameObjectsUI[i].children[j]._name.c_str());
-                    
+
                     ImGui::SameLine();
-                    if (ImGui::Button("Remove")) {
+                    if (ImGui::Button("Remove"))
+                    {
                         // Remove child from list
                         gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
+                        ImGui::PopID(); // Remove the current child ID before breaking
                         break;
                     }
+
+                    ImGui::PopID(); // Remove the current child ID
                 }
 
                 // Button to remove the GameObject itself
-                if (ImGui::Button("Remove GameObject")) {
+                if (ImGui::Button("Remove GameObject"))
+                {
                     gameObjectsUI.erase(gameObjectsUI.begin() + i);
                     ImGui::TreePop(); // Close the tree node before deleting
-                    ImGui::PopID();
-                    break; // Restart the loop after removal
+                    ImGui::PopID();   // Remove the current GameObject ID
+                    break;            // Restart the loop after removal
                 }
 
                 ImGui::TreePop(); // Close the tree node
             }
-            ImGui::PopID();
+
+            ImGui::PopID(); // Remove the current GameObject ID
         }
 
         if(!save){
@@ -273,6 +282,11 @@ int main(int argc, char **argv){
         for(int i = 0; i < gameObjectsUI.size(); i++){
 
             gameObjectsUI[i].name.Render(width - offset_width, 0, width, height - offset_height);
+            if(gameObjectsUI[i].children.size() > 0){
+                for(int j = 0; j < gameObjectsUI[i].children.size(); j++){
+                    gameObjectsUI[i].children[j].Render(width - offset_width, 0, width, height - offset_height);
+                }
+            }
 
         }
 
