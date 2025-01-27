@@ -36,7 +36,11 @@ int main(int argc, char **argv){
     GameObject player;
     GameObject player3;
 
-    Camera gameCamera(window.renderer, 250, 200, 400, 300, 0, 0, 0, 255);
+    Camera gameCamera(window.renderer, 400, 400, 200, 220, 0, 0, 0, 255);
+
+    std::vector<Camera> cameraObjects;
+
+    cameraObjects.push_back(gameCamera);
 
     GameScreen* gameScreen = new GameScreen(window.renderer);
 
@@ -46,7 +50,7 @@ int main(int argc, char **argv){
     
         player = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
         //GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
-        player3 = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 400);
+        player3 = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 300);
         
     }
     else{
@@ -87,8 +91,10 @@ int main(int argc, char **argv){
     bool isPressed = false;
     bool save = false;
     int width, height;
+    int preview_width, preview_height;
     int previousWidth = 0, previousHeight = 0;
     int offset_width, offset_height;
+    int window_x, window_y;
     
     /*
     makes sure that the id's are static and being incremented each time new object of type
@@ -103,6 +109,7 @@ int main(int argc, char **argv){
     while(!window.isClosed()){        
         
         SDL_GetWindowSize(window.window, &width, &height);
+        SDL_GetWindowSize(previewWindow.window, &preview_width, &preview_height);
 
         // sets colour to white for the lines
         //SDL_SetRenderDrawColor(window.renderer, 255, 255, 255, 255);
@@ -171,7 +178,7 @@ int main(int argc, char **argv){
             // FIXED: CHANGED DEFAULT GAMEOBJECT POINTER TO ASSIGN -1 SO WE DONT ERASE FROM DICTIONARY LIKE BEFORE 
             
             // Checks whether gameObject is in Camera
-            if(gameCamera.Game_Camera_Objects(gameObjects[i])){
+            if(cameraObjects[0].Game_Camera_Objects(gameObjects[i])){
                 
                 // Checks if ID already exists in Dictionary OR if the value for the key is -1 we also change it
                 if((gameObjectsCopy.find(gameObjects[i].GetID()) == gameObjectsCopy.end()) || gameObjectsCopy[gameObjects[i].GetID()].GetID() == -1){
@@ -179,7 +186,7 @@ int main(int argc, char **argv){
                 }
             }
             // Checks if gameObject is not in Camera
-            else if(!gameCamera.Game_Camera_Objects(gameObjects[i])){
+            else if(!cameraObjects[0].Game_Camera_Objects(gameObjects[i])){
                 // instead of removing we now just assign default empty GameObject if we need to de-reference object
                 gameObjectsCopy[gameObjects[i].GetID()] = GameObject();
             }
@@ -187,7 +194,7 @@ int main(int argc, char **argv){
             
         }
 
-        gameCamera.Camera_Render(3);
+        cameraObjects[0].Camera_Render(3, width - offset_width, 0, width, height - offset_height);
 
         // This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
         //gameObjects[0].Render(width - offset_width, 0, width, height - offset_height);
@@ -212,8 +219,9 @@ int main(int argc, char **argv){
             // calls Zoom In and Out Function for GameScreen
             gameScreen->ZoomInAndOut(event, gameObjects);
             
-            // Checks the drag for gameObject 
-            gameScreen->InitalDragState(event, gameObjects);
+            // Checks the drag for gameObject
+            gameScreen->InitalDragState(event, gameObjects, cameraObjects);
+            
         }    
         
         gameScreen->ScreenOffset();
@@ -236,7 +244,7 @@ int main(int argc, char **argv){
                 // ISSUE: WITH THE RESIZE FUNCTION IT GETS CALLED EVERY FRAME SO KEEPS EXPANDING AND BREAKS
                 if(gameObjectsCopy[i] != defaultObject){
                     //std::cout << "ID: " << gameObjectsCopy[i].GetID() << std::endl;
-                    gameCamera.Resize(gameObjectsCopy[i], width, height);
+                    cameraObjects[0].Resize(gameObjectsCopy[i], preview_width, preview_height);
                     std::cout << "width after resize: " << gameObjectsCopy[i]._width << std::endl;
                     gameObjectsCopy[i].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
                 }

@@ -138,7 +138,8 @@ void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array){
     }
 }
 
-void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array){
+//template <typename T>
+void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array, std::vector<Camera>& other_array){
     
     Uint32 mouseState = SDL_GetMouseState(&window_x, &window_y);
     
@@ -158,10 +159,10 @@ void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array
         }
     }
 
-    DragScreen(mouseState, array);
+    DragScreen(mouseState, array, other_array);
 }
 
-void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array){
+void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array, std::vector<Camera>& other_array){
     
     // if left mouse button is held down and moved
     if(mouseState && SDL_BUTTON(SDL_BUTTON_LEFT)){
@@ -177,6 +178,11 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array){
             //std::cout << array[i].GetID() << std::endl;
             array[i]._x += current_window_position_x;
             array[i]._y += current_window_position_y;
+        }
+        for(int i = 0; i < other_array.size(); i++){
+            //std::cout << array[i].GetID() << std::endl;
+            other_array[i]._x += current_window_position_x;
+            other_array[i]._y += current_window_position_y;
         }
         //player->_x += current_window_position_x;
         //player->_y += current_window_position_y;
