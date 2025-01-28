@@ -29,8 +29,21 @@ _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _original_y = y;
 
     Setter();
-}
+}//copy paste add attribute std::string name, new attribute name, 
+GameObject::GameObject(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y):
+_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
+    _id = _current_id++;
+    _objTexture = Texture(filename, renderer=renderer);
+    //_previewTexture = Texture(filename, renderer=renderer);
+    _filename = filename;
+    _name = name; 
+    _original_w = width;
+    _original_h = height;
+    _original_x = x;
+    _original_y = y;
 
+    Setter();
+}
 // Destructor
 GameObject::~GameObject(){
 

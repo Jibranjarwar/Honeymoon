@@ -3,8 +3,8 @@
 #include "gamescreen.h"
 #include "gameobject.h"
 #include <iostream>
+#include <vector>
 #include <string>
-#include <vector> 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
@@ -15,6 +15,13 @@
 #include "json.hpp"
 #include <unordered_map>
 
+//gameobject 
+struct GameObjectUI {
+    GameObject name;
+    std::vector<GameObject> children; 
+};
+
+
 using json = nlohmann::json;
 
 int main(int argc, char **argv){
@@ -23,7 +30,7 @@ int main(int argc, char **argv){
     Window window("GAME ENGINE", 800, 640);
     Window previewWindow("PREVIEW", 800, 640);
     SDL_HideWindow(previewWindow.window);
-    
+
     // initialize and setup for ImGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -64,8 +71,14 @@ int main(int argc, char **argv){
         gameScreen->Setter(load_data);
     }
     
+    // list to hold all GameObjects in the UI
+    std::vector<GameObjectUI> gameObjectsUI;
     std::vector<GameObject> gameObjects;
 
+    
+    // for adding new GameObject and child names
+    static char gameObjectName[32] = "";
+    static char childObjectName[32] = "";
     GameObject defaultObject;
 
     gameObjects.push_back(player);
@@ -106,8 +119,7 @@ int main(int argc, char **argv){
     std::cout << "object4 id: " << player4.GetID() << std::endl; 
 
     
-    while(!window.isClosed()){        
-        
+    while(!window.isClosed()){
         SDL_GetWindowSize(window.window, &width, &height);
         SDL_GetWindowSize(previewWindow.window, &preview_width, &preview_height);
 
@@ -122,25 +134,106 @@ int main(int argc, char **argv){
 
             offset_width = (int)(width / 1.25);
         }
-
+            
         // All these start the ImGUI frame
         ImGui_ImplSDLRenderer2_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        // Creates new ImGUI window for testing atm
-        ImGui::Begin("Controller");
-        ImGui::SetWindowSize(ImVec2(200,100));
-        if(!isPressed){
-            if(ImGui::Button("Preview")){
-                isPressed = !isPressed;
-                std::cout << isPressed << std::endl;
+         // Creates the top menu bar
+        if (ImGui::BeginMainMenuBar()) {
+            // Project Name menu
+            if (ImGui::BeginMenu("Project Name")) {
+                ImGui::MenuItem("New Project");   
+                ImGui::MenuItem("Load Project");  
+                ImGui::MenuItem("Save Project");  
+                ImGui::EndMenu();
             }
-        }else{
-            if(ImGui::Button("Stop")){
-                isPressed = !isPressed;
-                std::cout << isPressed << std::endl;
+
+            // Project menu
+            if (ImGui::BeginMenu("Project")) {
+                ImGui::MenuItem("Build");        
+                ImGui::MenuItem("Run");          
+                ImGui::MenuItem("Settings");     
+                ImGui::EndMenu();
             }
+
+            // Options menu
+            if (ImGui::BeginMenu("Options")) {
+                ImGui::MenuItem("Preferences");   
+                ImGui::MenuItem("Help");          
+                ImGui::MenuItem("About");         
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMainMenuBar();
+        }
+
+        // Sidebar for managing GameObjects and ChildObjects
+        ImGui::Begin("GameObject Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::SetWindowSize(ImVec2(250, 500)); // Adjust size as needed
+        ImGui::SetWindowPos(ImVec2(0, 20));
+
+        ImGui::Text("GameObjects");
+        
+        // Input for new GameObject name
+        ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
+        if (ImGui::Button("Add GameObject") && strlen(gameObjectName) > 0) {
+            // Add a new GameObject to the list
+            GameObject new_object = GameObject(window.renderer, "C:\\Users\\jjlov\\Downloads\\aasdsad.png", gameObjectName, 300, 300, 400, 400);
+            gameObjectsUI.push_back({new_object, {}});//change struct to gameobject, be able to define gameobject with default parameters,
+            strcpy(gameObjectName, ""); // Clear input field
+        }
+
+        for (size_t i = 0; i < gameObjectsUI.size(); ++i)
+        {
+            ImGui::PushID(i); // Unique ID for each GameObject
+
+            // Tree node for each GameObject
+            if (ImGui::TreeNode(gameObjectsUI[i].name._name.c_str()))
+            {
+
+                // Input for new child object name
+                ImGui::InputText("Child Name", childObjectName, IM_ARRAYSIZE(childObjectName));
+                if (ImGui::Button("Add Child") && strlen(childObjectName) > 0)
+                {
+                    // Add a new child to the current GameObject
+                    GameObject new_object = GameObject(window.renderer, "C:\\Users\\jjlov\\Pictures\\Screenshots\\A.png", childObjectName, 300, 300, 400, 100);
+                    gameObjectsUI[i].children.push_back(new_object);
+                    strcpy(childObjectName, ""); // Clear input field
+                }
+
+                // List children
+                for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j)
+                {
+                    ImGui::PushID(j); // Unique ID for each child
+                    ImGui::Text("- %s", gameObjectsUI[i].children[j]._name.c_str());
+
+                    ImGui::SameLine();
+                    if (ImGui::Button("Remove"))
+                    {
+                        // Remove child from list
+                        gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
+                        ImGui::PopID(); // Remove the current child ID before breaking
+                        break;
+                    }
+
+                    ImGui::PopID(); // Remove the current child ID
+                }
+
+                // Button to remove the GameObject itself
+                if (ImGui::Button("Remove GameObject"))
+                {
+                    gameObjectsUI.erase(gameObjectsUI.begin() + i);
+                    ImGui::TreePop(); // Close the tree node before deleting
+                    ImGui::PopID();   // Remove the current GameObject ID
+                    break;            // Restart the loop after removal
+                }
+
+                ImGui::TreePop(); // Close the tree node
+            }
+
+            ImGui::PopID(); // Remove the current GameObject ID
         }
 
         if(!save){
@@ -158,18 +251,17 @@ int main(int argc, char **argv){
 
         // renders the objects to the screen without this wont display
         // NOTE: THE ORDER IN WHICH YOU RENDER CAN BE SEEN AS "LAYERS"
-        //player4.Render();
-        //player2.Render();
-        // using the vector to render this object currently
-        //player3.Render();
+        player4.Render();
+       // player2.Render();
+        player3.Render();
 
         // draws graph
         gameScreen->DrawGraph(window.window);
 
         // EVERYTHING UP TO PLAYER RENDERER IS NEEDED SINCE RIGHT NOW WE RENDER IN MAIN.CPP
         // AND NEED TO EDGES TO PASS
-        
-        //player.Render(width - offset_width, 0, width, height - offset_height);
+        int width, height;
+        SDL_GetWindowSize(window.window, &width, &height);
 
         //player2.RenderPreview(window.renderer, 200, 200);
         
@@ -194,6 +286,16 @@ int main(int argc, char **argv){
             
         }
 
+        for(int i = 0; i < gameObjectsUI.size(); i++){
+
+            gameObjectsUI[i].name.Render(width - offset_width, 0, width, height - offset_height);
+            if(gameObjectsUI[i].children.size() > 0){
+                for(int j = 0; j < gameObjectsUI[i].children.size(); j++){
+                    gameObjectsUI[i].children[j].Render(width - offset_width, 0, width, height - offset_height);
+                }
+            }
+
+        }
         cameraObjects[0].Camera_Render(3, width - offset_width, 0, width, height - offset_height);
 
         // This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
@@ -207,14 +309,8 @@ int main(int argc, char **argv){
             // allows for interaction with the ImGui window created
             ImGui_ImplSDL2_ProcessEvent(&event);
 
-            if (event.type == SDL_KEYDOWN) {
-
-                // Movement function
-                //player3.Movement(event);
-                //player2.Movement(event);
-                gameObjects[0].Movement(event);
-                gameObjectsCopy[0].Movement(event);
-            }
+            // Movement function
+            player3.Movement(event);
             
             // calls Zoom In and Out Function for GameScreen
             gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
@@ -260,8 +356,7 @@ int main(int argc, char **argv){
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-    IMG_Quit();
-    SDL_Quit();
+    
     return 0;
 
 }
