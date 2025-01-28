@@ -1,31 +1,52 @@
 #include "camera.h"
 #include <iostream>
+#include <cmath>
 
 Camera::Camera(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a):
-_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y), _r(r), _g(g), _b(b), _a(a){
+_objRenderer(renderer), _width(width), _original_w(width), _height(height), _original_h(height), _x(x), _original_x(x), _y(y), _original_y(y), _r(r), _g(g), _b(b), _a(a){
 }
 
-void Camera::Camera_Render(int thickness){
-    _dest_rect = {_width, _height, _x, _y};
+void Camera::Camera_Render(int thickness, int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
+    
+    int value_y;
+    
+    _dest_rect = {_x, _y, _width, _height};
+    SDL_Rect display_rect = _dest_rect;
 
     // Fills colour of borders
     SDL_SetRenderDrawColor(_objRenderer, _r, _g, _b, _a);
 
-    // Top border
-    SDL_Rect top = { _dest_rect.x, _dest_rect.y, _dest_rect.w, thickness };
-    SDL_RenderFillRect(_objRenderer, &top);
+    // CUTS RIGHT SIDE OF EDGE: LOOK AT gameObject.cpp for more info on logic
+    if(_x < gridMinX){
+        display_rect.x = gridMinX;
+        display_rect.w = _width - (gridMinX - _x);
+    }
 
-    // Bottom border
-    SDL_Rect bottom = { _dest_rect.x, _dest_rect.y + _dest_rect.h - thickness, _dest_rect.w, thickness };
-    SDL_RenderFillRect(_objRenderer, &bottom);
+    if(_x + _width > gridMinX && _y < gridMaxY){
 
-    // Left border
-    SDL_Rect left = { _dest_rect.x, _dest_rect.y, thickness, _dest_rect.h };
-    SDL_RenderFillRect(_objRenderer, &left);
+        // Top border
+        SDL_Rect top = { display_rect.x, display_rect.y, display_rect.w, thickness};
+        SDL_RenderFillRect(_objRenderer, &top);
 
-    // Right border
-    SDL_Rect right = { _dest_rect.x + _dest_rect.w - thickness, _dest_rect.y, thickness, _dest_rect.h };
-    SDL_RenderFillRect(_objRenderer, &right);
+        // Bottom border
+        // CUTS BOTTOM SIDE OF EDGE: LOOK AT gameObject.cpp for more info on logic
+        if(_y + _height > gridMaxY){
+            display_rect.h = _height - ((_y + _height) - gridMaxY);
+        }else{
+            SDL_Rect bottom = { display_rect.x, display_rect.y + display_rect.h - thickness, display_rect.w, thickness };
+            SDL_RenderFillRect(_objRenderer, &bottom);
+        }
+
+        // Left border
+        if(_x > gridMinX){
+            SDL_Rect left = { display_rect.x, display_rect.y, thickness, display_rect.h};
+            SDL_RenderFillRect(_objRenderer, &left);
+        }
+
+        // Right border
+        SDL_Rect right = { display_rect.w + display_rect.x - thickness, display_rect.y, thickness, display_rect.h};
+        SDL_RenderFillRect(_objRenderer, &right);
+    }
 }
 
 bool Camera::Game_Camera_Objects(GameObject object){
@@ -37,23 +58,49 @@ bool Camera::Game_Camera_Objects(GameObject object){
 void Camera::Resize(GameObject& object, int window_width, int window_height){
     // NEED TO CHANGE THE POSITIONS BASED ON DISTANCE AND SIZE
     // TO DO: Get Aspect ratio between gameObject and camera sizes
+    
     // ISSUE: KEEPS EXPANDING INFINITLY BECAUSE OF THE LOOP IN MAIN
-
-    // change window height aND Width might work?
-    //std::cout << "RAHAHAHAH";
+    
+    // ISSUE: SOMETHING WITH THE TEXTURE IS MESSY NEEDS TO BE SIZED SO IT DOESNT LOOK STRETCHED
+    // FIXED: THINK THE STRETCH IS OKAY NOW SINCE IT DEPENDS ON THE ASPECT RATIO OF THE PREVIEW WINDOW
+    
     float aspectRatio_height = static_cast<float>(_height / (float)object._original_h);
     float aspectRatio_width = static_cast<float>(_width / (float)object._original_w);
-    int distance_y = _y - object._original_y;
-    int distance_x = _x - object._original_x;
-    float aspectRatio_x = static_cast<float>(_height / (float)distance_y);
-    float aspectRatio_y = static_cast<float>(_width / (float)distance_x);
+    /*int distance_y = object._original_y - _y;
+    int distance_x = object._original_x - _x;
+    float aspectRatio_y = static_cast<float>(_height / (float)distance_y);
+    float aspectRatio_x = static_cast<float>(_width / (float)distance_x);*/
+
+    // gets the distance between object point and centre of game Camera in terms of width
+    int distance_x = object._original_x - (_original_x + static_cast<int>(_width / 2));
+    
+    // ratio between the preview window and the width of the camera
+    float aspectRatio_x = static_cast<float>(window_width) / _width;
+    
+    // the new point for x on the preview window
+    int new_x = static_cast<int>(window_width / 2) + (distance_x * aspectRatio_x);
+
+    // gets the distance between object point and centre of game Camera in terms of height
+    int distance_y = object._original_y - (_original_y + static_cast<int>(_height / 2));
+    
+    // ratio between the preview window and the height of the camera
+    float aspectRatio_y = static_cast<float>(window_height) / _height;
+    
+    // the new point for y on the preview window
+    int new_y = static_cast<int>(window_height / 2) + (distance_y * aspectRatio_y);
 
     //object._width = static_cast<int>(window_width / aspectRatio_width);
     int width_difference = static_cast<int>(window_width / aspectRatio_width);
-    std::cout << "x difference: " << aspectRatio_x << " and y difference: " << aspectRatio_y << std::endl;
-    //object._width = width_difference;
-    //object._height = static_cast<int>(window_height / aspectRatio_height);
+    
+    std::cout << "distance x: " << distance_x << " and distance y: " << distance_y << std::endl;
+    std::cout << "aspectRatio x: " << aspectRatio_x << " and aspectRatio y: " << aspectRatio_y << std::endl;
+    std::cout << "new x: " << new_x << " and new y: " << new_y << std::endl;
+    
+    object._width = width_difference;
+    object._height = static_cast<int>(window_height / aspectRatio_height);
     //object._x = static_cast<int>(window_width / aspectRatio_x);
     //object._y = static_cast<int>(window_height / aspectRatio_y);
+    object._x = new_x;
+    object._y = new_y;
 
 }

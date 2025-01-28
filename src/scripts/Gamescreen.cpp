@@ -59,7 +59,7 @@ bool GameScreen::Zoomed(SDL_Event event){
     return false;
 }
 
-void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array){
+void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array, std::vector<Camera>& cameras){
 
     if(Zoomed(event)){
         // changes value of zoom but never goes lower than -3 because then we need to draw to many lines and program crashes
@@ -104,7 +104,7 @@ void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array){
                 array[i]._width = array[i]._original_w * zoomfactor;
                 array[i]._height = array[i]._original_h * zoomfactor;
 
-                // Calculate distance from reference point using original position
+                // Calculate distance from reference using original values
                 float dx = array[i]._original_x - difference_x - reference_point_x;
                 float dy = array[i]._original_y - difference_y - reference_point_y;
 
@@ -124,7 +124,22 @@ void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array){
             }*/
             //array[0]._width = array[0]._original_w * zoomfactor;
             //array[0]._height = array[0]._original_h * zoomfactor; 
-        
+            
+            for (int i = 0; i < cameras.size(); i++) {
+                // Scale camera size based on zoom factor
+                cameras[i]._width = cameras[i]._original_w * zoomfactor;
+                cameras[i]._height = cameras[i]._original_h * zoomfactor;
+
+                // Calculates the distance from reference using original values
+                float dx = cameras[i]._original_x - difference_x - reference_point_x;
+                float dy = cameras[i]._original_y - difference_y - reference_point_y;
+
+                std::cout << "Camera dx: " << dx << ", dy: " << dy << std::endl;
+
+                // Scale distance based on zoom factor and update position
+                cameras[i]._x = reference_point_x + dx * zoomfactor;
+                cameras[i]._y = reference_point_y + dy * zoomfactor;
+            }
         }else{
             // if values go below < 0 then we just use preset scales since we only go max of -3
 
@@ -138,7 +153,8 @@ void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array){
     }
 }
 
-void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array){
+//template <typename T>
+void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array, std::vector<Camera>& other_array){
     
     Uint32 mouseState = SDL_GetMouseState(&window_x, &window_y);
     
@@ -158,10 +174,10 @@ void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array
         }
     }
 
-    DragScreen(mouseState, array);
+    DragScreen(mouseState, array, other_array);
 }
 
-void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array){
+void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array, std::vector<Camera>& other_array){
     
     // if left mouse button is held down and moved
     if(mouseState && SDL_BUTTON(SDL_BUTTON_LEFT)){
@@ -177,6 +193,11 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array){
             //std::cout << array[i].GetID() << std::endl;
             array[i]._x += current_window_position_x;
             array[i]._y += current_window_position_y;
+        }
+        for(int i = 0; i < other_array.size(); i++){
+            //std::cout << array[i].GetID() << std::endl;
+            other_array[i]._x += current_window_position_x;
+            other_array[i]._y += current_window_position_y;
         }
         //player->_x += current_window_position_x;
         //player->_y += current_window_position_y;
