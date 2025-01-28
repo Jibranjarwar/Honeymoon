@@ -217,7 +217,7 @@ int main(int argc, char **argv){
             }
             
             // calls Zoom In and Out Function for GameScreen
-            gameScreen->ZoomInAndOut(event, gameObjects);
+            gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
             
             // Checks the drag for gameObject
             gameScreen->InitalDragState(event, gameObjects, cameraObjects);

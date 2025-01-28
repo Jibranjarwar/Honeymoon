@@ -15,6 +15,7 @@ public:
     SDL_Renderer* _objRenderer;
     int _x, _y;
     int _original_x, _original_y;
+    int _original_w, _original_h;
     int _width, _height;
     int _r, _g, _b, _a;
 };

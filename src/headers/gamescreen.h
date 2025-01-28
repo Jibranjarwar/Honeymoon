@@ -20,7 +20,7 @@ public:
     
     bool Zoomed(SDL_Event event);
     
-    void ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array);
+    void ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array,  std::vector<Camera>& cameras);
     
     // TO DO: MAKE THIS SO THAT IT CAN TAKE GAMEOBJECT AND CAMERA CLASSES
     // ISSUE: DOESNT LET ME USE TYPENAME T CAUSE OF SOME REASION BUT ALLOWS IT FOR DRAGSTATE
