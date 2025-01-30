@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include "gameobject.h"
+#include "camera.h"
 #include <vector>
 #include "json.hpp"
 
@@ -15,16 +16,20 @@ public:
 
     ~GameScreen();
 
-
     void DrawGraph(SDL_Window *window);
     
     bool Zoomed(SDL_Event event);
     
-    void ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array);
+    void ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array,  std::vector<Camera>& cameras);
     
-    void InitalDragState(SDL_Event event, std::vector<GameObject>& array);
-    
-    void DragScreen(Uint32 mouseState, std::vector<GameObject>& array);
+    // TO DO: MAKE THIS SO THAT IT CAN TAKE GAMEOBJECT AND CAMERA CLASSES
+    // ISSUE: DOESNT LET ME USE TYPENAME T CAUSE OF SOME REASION BUT ALLOWS IT FOR DRAGSTATE
+    // DONE: FIXED ISSUE WITH TYPENAME T BUT ONLY ONE FUNCTION WAS BEEN CALLED SO INSTEAD JUST ADDED ANOTHER PARAMETER
+    //       FOR CAMERA OBJECT ARRAY.
+
+    void InitalDragState(SDL_Event event, std::vector<GameObject>& array, std::vector<Camera>& other_array);
+
+    void DragScreen(Uint32 mouseState, std::vector<GameObject>& array, std::vector<Camera>& other_array);
     
     void ScreenOffset();
 

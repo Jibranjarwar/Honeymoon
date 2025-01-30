@@ -44,7 +44,11 @@ int main(int argc, char **argv){
     GameObject player;
     GameObject player3;
 
-    Camera gameCamera(window.renderer, 250, 200, 400, 300, 0, 0, 0, 255);
+    Camera gameCamera(window.renderer, 400, 400, 200, 220, 0, 0, 0, 255);
+
+    std::vector<Camera> cameraObjects;
+
+    cameraObjects.push_back(gameCamera);
 
     GameScreen* gameScreen = new GameScreen(window.renderer);
 
@@ -54,7 +58,7 @@ int main(int argc, char **argv){
     
         player = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
         //GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
-        player3 = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 400);
+        player3 = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 300);
         
     }
     else{
@@ -103,8 +107,10 @@ int main(int argc, char **argv){
     bool isPressed = false;
     bool save = false;
     int width, height;
+    int preview_width, preview_height;
     int previousWidth = 0, previousHeight = 0;
     int offset_width, offset_height;
+    int window_x, window_y;
     
     /*
     makes sure that the id's are static and being incremented each time new object of type
@@ -121,6 +127,7 @@ int main(int argc, char **argv){
     
     while(!window.isClosed()){
         SDL_GetWindowSize(window.window, &width, &height);
+        SDL_GetWindowSize(previewWindow.window, &preview_width, &preview_height);
 
         // sets colour to white for the lines
         //SDL_SetRenderDrawColor(window.renderer, 255, 255, 255, 255);
@@ -151,8 +158,16 @@ int main(int argc, char **argv){
 
             // Project menu
             if (ImGui::BeginMenu("Project")) {
-                ImGui::MenuItem("Build");        
-                ImGui::MenuItem("Run");          
+                ImGui::MenuItem("Build");
+                if(!isPressed){
+                    if(ImGui::MenuItem("Run")){
+                        isPressed = !isPressed;
+                    }
+                }else{
+                    if(ImGui::MenuItem("Stop")){
+                        isPressed = !isPressed;
+                    }
+                }          
                 ImGui::MenuItem("Settings");     
                 ImGui::EndMenu();
             }
@@ -169,16 +184,26 @@ int main(int argc, char **argv){
         }
 
         // Sidebar for managing GameObjects and ChildObjects
-        ImGui::Begin("GameObject Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-        ImGui::SetWindowSize(ImVec2(250, 500)); // Adjust size as needed
-        ImGui::SetWindowPos(ImVec2(0, 20));
+        ImGui::Begin("GameObject Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+        ImGui::SetWindowSize(ImVec2(width - offset_width, height)); // Adjust size as needed
+        ImGui::SetWindowPos(ImVec2(0, 18));
 
         ImGui::Text("GameObjects");
 
           // If user clicks a GameObject, set it as selected
         
+        // sets input text size so we can see "new gameObject" always
+        ImGui::SetNextItemWidth(width - offset_width - 115);
         // Input for new GameObject name
-        static int gameObjectCounter = 1;
+        //static int gameObjectCounter = 1;
+        ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
+        if (ImGui::Button("Add GameObject") && strlen(gameObjectName) > 0) {
+            // Add a new GameObject to the list
+            GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", gameObjectName, 300, 300, 400, 400);
+            gameObjectsUI.push_back({new_object, {}});//change struct to gameobject, be able to define gameobject with default parameters,
+            gameObjects.push_back(new_object);
+            strcpy(gameObjectName, ""); // Clear input field
+        }
 
         ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
 
@@ -241,13 +266,18 @@ int main(int argc, char **argv){
             if (ImGui::TreeNode("##TreeNode", gameObjectsUI[i].name._name.c_str()))
             {
 
+                
+                // sets input text size so we can see "Child Name" always
+                ImGui::SetNextItemWidth(width - offset_width - 110);
+                
                 // Input for new child object name
                 ImGui::InputText("Child Name", childObjectName, IM_ARRAYSIZE(childObjectName));
                 if (ImGui::Button("Add Child") && strlen(childObjectName) > 0)
                 {
                     // Add a new child to the current GameObject
-                    GameObject new_object = GameObject(window.renderer, "C:\\Users\\jjlov\\Pictures\\Screenshots\\A.png", childObjectName, 300, 300, 400, 100);
+                    GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\shadow.png", childObjectName, 300, 300, 400, 100);
                     gameObjectsUI[i].children.push_back(new_object);
+                    gameObjects.push_back(new_object);
                     strcpy(childObjectName, ""); // Clear input field
                 }
 
@@ -260,6 +290,17 @@ int main(int argc, char **argv){
                     ImGui::SameLine();
                     if (ImGui::Button("Remove"))
                     {
+                        // Remove from gameObjects vector by matching the ID using a lambda function
+                        // where find_if returns a pointer to gameObject
+                        auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
+                            [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
+
+                        if (it != gameObjects.end())
+                        {
+                            gameObjects.erase(it); // Remove the GameObject from the vector
+                            gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                        }
+                        
                         // Remove child from list
                         gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
                         ImGui::PopID(); // Remove the current child ID before breaking
@@ -280,6 +321,32 @@ int main(int argc, char **argv){
                         {
                             usedGameObjectIndices.erase(std::stoi(numPart));
                         }
+                    // Remove from gameObjects vector by matching the ID using a lambda function
+                    // where find_if returns a pointer to gameObject
+                    auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
+                        [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].name.GetID(); });
+
+                    if (it != gameObjects.end())
+                    {
+                        gameObjects.erase(it); // Remove the GameObject from the vector
+                        gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                    }
+                    
+                    // loop through children if not empty so we delete everything related to a gameObject since they
+                    // are its children
+                    if(gameObjectsUI[i].children.size() > 0){
+                        for(int j = 0; j < gameObjectsUI[i].children.size(); j++){
+                            auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
+                                [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
+
+                            if (it != gameObjects.end())
+                            {
+                                gameObjects.erase(it); // Remove the GameObject from the vector
+                                gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                            }
+                        }
+                        // clears children vector so its back to being empty
+                        gameObjectsUI[i].children.clear();
                     }
                     gameObjectsUI.erase(gameObjectsUI.begin() + i);
                     ImGui::TreePop(); // Close the tree node before deleting
@@ -509,7 +576,7 @@ int main(int argc, char **argv){
             // FIXED: CHANGED DEFAULT GAMEOBJECT POINTER TO ASSIGN -1 SO WE DONT ERASE FROM DICTIONARY LIKE BEFORE 
             
             // Checks whether gameObject is in Camera
-            if(gameCamera.Game_Camera_Objects(gameObjects[i])){
+            if(cameraObjects[0].Game_Camera_Objects(gameObjects[i])){
                 
                 // Checks if ID already exists in Dictionary OR if the value for the key is -1 we also change it
                 if((gameObjectsCopy.find(gameObjects[i].GetID()) == gameObjectsCopy.end()) || gameObjectsCopy[gameObjects[i].GetID()].GetID() == -1){
@@ -517,26 +584,14 @@ int main(int argc, char **argv){
                 }
             }
             // Checks if gameObject is not in Camera
-            else if(!gameCamera.Game_Camera_Objects(gameObjects[i])){
+            else if(!cameraObjects[0].Game_Camera_Objects(gameObjects[i])){
                 // instead of removing we now just assign default empty GameObject if we need to de-reference object
                 gameObjectsCopy[gameObjects[i].GetID()] = GameObject();
             }
             gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
             
         }
-
-        for(int i = 0; i < gameObjectsUI.size(); i++){
-
-            gameObjectsUI[i].name.Render(width - offset_width, 0, width, height - offset_height);
-            if(gameObjectsUI[i].children.size() > 0){
-                for(int j = 0; j < gameObjectsUI[i].children.size(); j++){
-                    gameObjectsUI[i].children[j].Render(width - offset_width, 0, width, height - offset_height);
-                }
-            }
-
-        }
-
-        gameCamera.Camera_Render(3);
+        cameraObjects[0].Camera_Render(3, width - offset_width, 0, width, height - offset_height);
 
         // This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
         //gameObjects[0].Render(width - offset_width, 0, width, height - offset_height);
@@ -553,10 +608,11 @@ int main(int argc, char **argv){
             player3.Movement(event);
             
             // calls Zoom In and Out Function for GameScreen
-            gameScreen->ZoomInAndOut(event, gameObjects);
+            gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
             
-            // Checks the drag for gameObject 
-            gameScreen->InitalDragState(event, gameObjects);
+            // Checks the drag for gameObject
+            gameScreen->InitalDragState(event, gameObjects, cameraObjects);
+            
         }    
         
         gameScreen->ScreenOffset();
@@ -579,7 +635,7 @@ int main(int argc, char **argv){
                 // ISSUE: WITH THE RESIZE FUNCTION IT GETS CALLED EVERY FRAME SO KEEPS EXPANDING AND BREAKS
                 if(gameObjectsCopy[i] != defaultObject){
                     //std::cout << "ID: " << gameObjectsCopy[i].GetID() << std::endl;
-                    gameCamera.Resize(gameObjectsCopy[i], width, height);
+                    cameraObjects[0].Resize(gameObjectsCopy[i], preview_width, preview_height);
                     std::cout << "width after resize: " << gameObjectsCopy[i]._width << std::endl;
                     gameObjectsCopy[i].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
                 }
@@ -595,7 +651,8 @@ int main(int argc, char **argv){
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-    
+    IMG_Quit();
+    SDL_Quit();
     return 0;
 
 }
