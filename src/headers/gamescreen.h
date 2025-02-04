@@ -61,7 +61,7 @@ public:
     int window_x, window_y;
     int screen_x, screen_y;
     int inital_drag_window_x, inital_drag_window_y;
-    int difference_x = 0, difference_y = 0;
+    static int difference_x, difference_y;
     int width_difference = 0, height_difference = 0;
     bool wasPressed = false;
     int count;

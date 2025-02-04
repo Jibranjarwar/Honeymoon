@@ -2,6 +2,9 @@
 #include "window.h"
 #include <iostream>
 
+int GameScreen::difference_x = 0;
+int GameScreen::difference_y = 0;
+
 GameScreen::GameScreen(SDL_Renderer* renderer): renderer(renderer){
 }
 
@@ -229,8 +232,8 @@ void GameScreen::ScreenOffset(){
     float zoom_offset_x = offset_width / zoomfactor;
     float zoom_offset_y = (window_height - offset_height) / zoomfactor;
 
-    //std::cout << "screen x cords: " << zoom_offset_x << std::endl;
-    //std::cout << "screen y cords: " << zoom_offset_y << std::endl;
+    //std::cout << "screen x cords: " << screen_x << std::endl;
+    //std::cout << "screen y cords: " << screen_y << std::endl;
     //std::cout << "range [" << min_x << " , " << max_x << "]" << std::endl;
     //std::cout << "screen y cords: " << zoom_offset_y << std::endl;
 }

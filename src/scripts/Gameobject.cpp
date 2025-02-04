@@ -1,6 +1,7 @@
 #include "gameobject.h"
 #include "serilization.h"
 #include <iostream>
+#include "gamescreen.h"
 
 int GameObject::_current_id = 0;
 
@@ -10,16 +11,19 @@ GameObject::GameObject(){
     _id = -1;
 }
 
+// NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a):
-_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y), _r(r), _g(g), _b(b), _a(a)
+_objRenderer(renderer), _width(width), _height(height), _x(x + GameScreen::difference_x), _y(y + GameScreen::difference_y), _r(r), _g(g), _b(b), _a(a)
 {
 _id = _current_id++;
 }
 
 // Another Optional Constructor
+// NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, std::string filename, int width, int height, int x, int y):
-_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
+_objRenderer(renderer), _width(width), _height(height), _x(x + GameScreen::difference_x), _y(y + GameScreen::difference_y){
     _id = _current_id++;
+    std::cout << "screen: " << GameScreen::difference_x << std::endl;
     _objTexture = Texture(filename, renderer=renderer);
     //_previewTexture = Texture(filename, renderer=renderer);
     _filename = filename;
@@ -29,11 +33,14 @@ _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _original_y = y;
 
     Setter();
-}//copy paste add attribute std::string name, new attribute name, 
+}
+//copy paste add attribute std::string name, new attribute name
+//NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y):
-_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
+_objRenderer(renderer), _width(width), _height(height), _x(x - GameScreen::difference_x), _y(y - GameScreen::difference_y){
     _id = _current_id++;
     _objTexture = Texture(filename, renderer=renderer);
+    std::cout << "screen: " << GameScreen::difference_x << std::endl;
     //_previewTexture = Texture(filename, renderer=renderer);
     _filename = filename;
     _name = name; 

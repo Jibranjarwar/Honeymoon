@@ -235,8 +235,9 @@ int main(int argc, char **argv){
 
                         if (it != gameObjects.end())
                         {
-                            gameObjects.erase(it); // Remove the GameObject from the vector
                             gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                            gameObjects.erase(it); // Remove the GameObject from the vector
+                            
                         }
                         
                         // Remove child from list
@@ -258,8 +259,9 @@ int main(int argc, char **argv){
 
                     if (it != gameObjects.end())
                     {
-                        gameObjects.erase(it); // Remove the GameObject from the vector
                         gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                        gameObjects.erase(it); // Remove the GameObject from the vector
+                        
                     }
                     
                     // loop through children if not empty so we delete everything related to a gameObject since they
@@ -271,8 +273,8 @@ int main(int argc, char **argv){
 
                             if (it != gameObjects.end())
                             {
-                                gameObjects.erase(it); // Remove the GameObject from the vector
                                 gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                                gameObjects.erase(it); // Remove the GameObject from the vector                               
                             }
                         }
                         // clears children vector so its back to being empty
@@ -354,12 +356,16 @@ int main(int argc, char **argv){
 
             // Movement function
             player3.Movement(event);
+
+            // prevents gameObjects from spawning in wrong areas once preview is on and user switches back to editor
+            if(!isPressed){
             
-            // calls Zoom In and Out Function for GameScreen
-            gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
+                // calls Zoom In and Out Function for GameScreen
+                gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
             
-            // Checks the drag for gameObject
-            gameScreen->InitalDragState(event, gameObjects, cameraObjects);
+                // Checks the drag for gameObject
+                gameScreen->InitalDragState(event, gameObjects, cameraObjects);
+            }
             
         }    
         
