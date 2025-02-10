@@ -177,7 +177,7 @@ void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array
     DragScreen(mouseState, array, other_array);
 }
 
-void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array, std::vector<Camera>& other_array){
+void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array,std::vector<Camera>& other_array){
     
     // if left mouse button is held down and moved
     if(mouseState && SDL_BUTTON(SDL_BUTTON_LEFT)){
@@ -198,6 +198,14 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array, s
             //std::cout << array[i].GetID() << std::endl;
             other_array[i]._x += current_window_position_x;
             other_array[i]._y += current_window_position_y;
+        }
+        // Ensure selectedGameObject updates correctly
+        // If a game object is selected, update its position directly
+        if (selectedGameObject) {
+            selectedGameObject->UpdatePos(
+                selectedGameObject->getX() + current_window_position_x,
+                selectedGameObject->getY() + current_window_position_y
+            );
         }
         //player->_x += current_window_position_x;
         //player->_y += current_window_position_y;

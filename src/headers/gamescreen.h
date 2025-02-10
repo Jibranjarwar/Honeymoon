@@ -10,6 +10,13 @@ using json = nlohmann::json;
 
 class GameScreen{
 
+private:
+    GameObject* selectedGameObject = nullptr;
+
+public:
+    void SetSelectedGameObject(GameObject* obj) { selectedGameObject = obj; }
+    GameObject* GetSelectedGameObject() { return selectedGameObject; }
+
 public:
 
     GameScreen(SDL_Renderer* renderer);

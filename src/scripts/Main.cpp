@@ -15,7 +15,8 @@
 #include "json.hpp"
 #include <unordered_map>
 #include <set>
-
+//UPDATE X Y WHEN MOVING
+//GAMEOBJECT NUMBERING
 //gameobject 
 struct GameObjectUI {
     GameObject name;
@@ -196,14 +197,14 @@ int main(int argc, char **argv){
         ImGui::SetNextItemWidth(width - offset_width - 115);
         // Input for new GameObject name
         //static int gameObjectCounter = 1;
-        ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
+       /* ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
         if (ImGui::Button("Add GameObject") && strlen(gameObjectName) > 0) {
             // Add a new GameObject to the list
             GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", gameObjectName, 300, 300, 400, 400);
             gameObjectsUI.push_back({new_object, {}});//change struct to gameobject, be able to define gameobject with default parameters,
             gameObjects.push_back(new_object);
             strcpy(gameObjectName, ""); // Clear input field
-        }
+        }*/
 
         ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
 
@@ -244,6 +245,7 @@ int main(int argc, char **argv){
             // Create the new GameObject
             GameObject new_object = GameObject(window.renderer, "C:\\Users\\jjlov\\Downloads\\aasdsad.png", name, 300, 300, 400, 400);
             gameObjectsUI.push_back({new_object, {}});
+            gameObjects.push_back(new_object);
 
             // Clear the input field
             strcpy(gameObjectName, "");
@@ -255,110 +257,115 @@ int main(int argc, char **argv){
             // Check if this GameObject is selected
             bool isSelected = (selectedGameObject == &gameObjectsUI[i].name);
 
-            // Render the selectable item
             if (ImGui::Selectable((gameObjectsUI[i].name._name + "##" + std::to_string(i)).c_str(), isSelected))
             {
-                // Set selectedGameObject on click
-                selectedGameObject = &gameObjectsUI[i].name;
+                selectedGameObject = &gameObjectsUI[i].name; // Keep selection from UI list
+                std::cout << "Selected GameObject: " << selectedGameObject->_name << std::endl;
+
             }
 
-            // Tree node for each GameObject
-            if (ImGui::TreeNode("##TreeNode", gameObjectsUI[i].name._name.c_str()))
-            {
-
-                
-                // sets input text size so we can see "Child Name" always
-                ImGui::SetNextItemWidth(width - offset_width - 110);
-                
-                // Input for new child object name
-                ImGui::InputText("Child Name", childObjectName, IM_ARRAYSIZE(childObjectName));
-                if (ImGui::Button("Add Child") && strlen(childObjectName) > 0)
+                // Tree node for each GameObject
+                if (ImGui::TreeNode("##TreeNode", gameObjectsUI[i].name._name.c_str()))
                 {
-                    // Add a new child to the current GameObject
-                    GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\shadow.png", childObjectName, 300, 300, 400, 100);
-                    gameObjectsUI[i].children.push_back(new_object);
-                    gameObjects.push_back(new_object);
-                    strcpy(childObjectName, ""); // Clear input field
-                }
 
-                // List children
-                for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j)
-                {
-                    ImGui::PushID(j); // Unique ID for each child
-                    ImGui::Text("- %s", gameObjectsUI[i].children[j]._name.c_str());
+                    // sets input text size so we can see "Child Name" always
+                    ImGui::SetNextItemWidth(width - offset_width - 110);
 
-                    ImGui::SameLine();
-                    if (ImGui::Button("Remove"))
+                    // Input for new child object name
+                    ImGui::InputText("Child Name", childObjectName, IM_ARRAYSIZE(childObjectName));
+                    if (ImGui::Button("Add Child") && strlen(childObjectName) > 0)
                     {
-                        // Remove from gameObjects vector by matching the ID using a lambda function
-                        // where find_if returns a pointer to gameObject
-                        auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
-                            [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
-
-                        if (it != gameObjects.end())
-                        {
-                            gameObjects.erase(it); // Remove the GameObject from the vector
-                            gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
-                        }
-                        
-                        // Remove child from list
-                        gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
-                        ImGui::PopID(); // Remove the current child ID before breaking
-                        break;
+                        // Add a new child to the current GameObject
+                        GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\shadow.png", childObjectName, 300, 300, 400, 100);
+                        gameObjectsUI[i].children.push_back(new_object);
+                        gameObjects.push_back(new_object);
+                        strcpy(childObjectName, ""); // Clear input field
                     }
 
-                    ImGui::PopID(); // Remove the current child ID
-                }
-
-                // Button to remove the GameObject itself
-                if (ImGui::Button("Remove GameObject"))
-                {
-                    std::string removedName = gameObjectsUI[i].name._name;
-                    if (removedName.rfind("GameObject", 0) == 0)
+                    // List children
+                    for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j)
                     {
-                        std::string numPart = removedName.substr(10);
-                        if (!numPart.empty() && std::all_of(numPart.begin(), numPart.end(), ::isdigit))
+                        ImGui::PushID(j); // Unique ID for each child
+                        ImGui::Text("- %s", gameObjectsUI[i].children[j]._name.c_str());
+
+                        ImGui::SameLine();
+                        if (ImGui::Button("Remove"))
                         {
-                            usedGameObjectIndices.erase(std::stoi(numPart));
-                        }
-                    // Remove from gameObjects vector by matching the ID using a lambda function
-                    // where find_if returns a pointer to gameObject
-                    auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
-                        [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].name.GetID(); });
-
-                    if (it != gameObjects.end())
-                    {
-                        gameObjects.erase(it); // Remove the GameObject from the vector
-                        gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
-                    }
-                    
-                    // loop through children if not empty so we delete everything related to a gameObject since they
-                    // are its children
-                    if(gameObjectsUI[i].children.size() > 0){
-                        for(int j = 0; j < gameObjectsUI[i].children.size(); j++){
-                            auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
-                                [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
+                            // Remove from gameObjects vector by matching the ID using a lambda function
+                            // where find_if returns a pointer to gameObject
+                            auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
+                                                   [&](const GameObject &obj)
+                                                   { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
 
                             if (it != gameObjects.end())
                             {
-                                gameObjects.erase(it); // Remove the GameObject from the vector
+                                gameObjects.erase(it);              // Remove the GameObject from the vector
                                 gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
                             }
+
+                            // Remove child from list
+                            gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
+                            ImGui::PopID(); // Remove the current child ID before breaking
+                            break;
                         }
-                        // clears children vector so its back to being empty
-                        gameObjectsUI[i].children.clear();
+
+                        ImGui::PopID(); // Remove the current child ID
                     }
-                    gameObjectsUI.erase(gameObjectsUI.begin() + i);
-                    ImGui::TreePop(); // Close the tree node before deleting
-                    ImGui::PopID();   // Remove the current GameObject ID
-                    break;            // Restart the loop after removal
+
+                    // Button to remove the GameObject itself
+                    if (ImGui::Button("Remove GameObject"))
+                    {
+                        std::string removedName = gameObjectsUI[i].name._name;
+                        if (removedName.rfind("GameObject", 0) == 0)
+                        {
+                            std::string numPart = removedName.substr(10);
+                            if (!numPart.empty() && std::all_of(numPart.begin(), numPart.end(), ::isdigit))
+                            {
+                                usedGameObjectIndices.erase(std::stoi(numPart));
+                            }
+                        }
+                        // Remove from gameObjects vector by matching the ID using a lambda function
+                        // where find_if returns a pointer to gameObject
+                        auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
+                                               [&](const GameObject &obj)
+                                               { return obj.GetID() == gameObjectsUI[i].name.GetID(); });
+
+                        if (it != gameObjects.end())
+                        {
+                            gameObjects.erase(it);              // Remove the GameObject from the vector
+                            gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                        }
+
+                        // loop through children if not empty so we delete everything related to a gameObject since they
+                        // are its children
+                        if (gameObjectsUI[i].children.size() > 0)
+                        {
+                            for (int j = 0; j < gameObjectsUI[i].children.size(); j++)
+                            {
+                                auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
+                                                       [&](const GameObject &obj)
+                                                       { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
+
+                                if (it != gameObjects.end())
+                                {
+                                    gameObjects.erase(it);              // Remove the GameObject from the vector
+                                    gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                                }
+                            }
+                            // clears children vector so its back to being empty
+                            gameObjectsUI[i].children.clear();
+                        }
+                        gameObjectsUI.erase(gameObjectsUI.begin() + i);
+                        ImGui::TreePop(); // Close the tree node before deleting
+                        ImGui::PopID();   // Remove the current GameObject ID
+                        break;            // Restart the loop after removal
+                    }
+
+                    ImGui::TreePop(); // Close the tree node
                 }
 
-                ImGui::TreePop(); // Close the tree node
+                ImGui::PopID(); // Remove the current GameObject ID
             }
-
-            ImGui::PopID(); // Remove the current GameObject ID
-        }
 
         if(!save){
             if(ImGui::Button("Save")){
@@ -369,7 +376,6 @@ int main(int argc, char **argv){
 
         if (selectedGameObject != nullptr)
         {
-            // Ensure the selected GameObject still exists
             bool exists = false;
             for (const auto &obj : gameObjectsUI)
             {
@@ -385,11 +391,10 @@ int main(int argc, char **argv){
             {
                 selectedGameObject = nullptr;
             }
-            else
-            {
+            else            {
+
                 // Begin the right-hand properties menu
                 ImGui::Begin("GameObject Properties", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
-
                 // Set size and position for right-side alignment
                 ImGui::SetWindowSize(ImVec2(250, height - 20));
                 ImGui::SetWindowPos(ImVec2(width - 250, 20));
@@ -507,48 +512,48 @@ int main(int argc, char **argv){
                         break;
                     }
                 }
-
                 ImGui::Text("Parent Position");
-                static int newX = selectedGameObject->getX();
-                static int newY = selectedGameObject->getY();
 
-                // Input fields for modifying X and Y coordinates
-                ImGui::InputInt("X Position", &newX);
-                ImGui::InputInt("Y Position", &newY);
+                // Continuously update X/Y fields during dragging
+                int new_x = selectedGameObject->getX();
+                int new_y = selectedGameObject->getY();
 
-                if (ImGui::Button("Update Position"))
+                // Add drag controls for X and Y
+                if (ImGui::DragInt("X Position", &new_x))
                 {
-                    // Calculate position difference
-                    int deltaX = newX - selectedGameObject->getX();
-                    int deltaY = newY - selectedGameObject->getY();
-
-                    // Apply difference to selected GameObject
-                    selectedGameObject->_x += deltaX;
-                    selectedGameObject->_y += deltaY;
-
-                    // Apply the same difference to child objects
-                    for (auto &obj : gameObjectsUI)
+                    for (auto &obj : gameObjects)
                     {
-                        if (&obj.name == selectedGameObject)
+                        if (obj.GetID() == selectedGameObject->GetID())
                         {
-                            for (auto &child : obj.children)
-                            {
-                                child._x += deltaX;
-                                child._y += deltaY;
-                            }
+                            obj.UpdatePos(new_x, obj.getY());
+                            selectedGameObject->UpdatePos(new_x, obj.getY());
                         }
                     }
                 }
-                // Add a Close Button
-                if (ImGui::Button("Close"))
-                {
-                    selectedGameObject = nullptr; // Deselect the GameObject and close the popup
-                }
 
-                ImGui::End();
-            }
+                if (ImGui::DragInt("Y Position", &new_y))
+                {
+                    for (auto &obj : gameObjects)
+                    {
+                        if (obj.GetID() == selectedGameObject->GetID())
+                        {
+                            obj.UpdatePos(obj.getX(), new_y);
+                            selectedGameObject->UpdatePos(obj.getX(), new_y);
+                        }
+                    }
+                }
+                    
+                    // Add a Close Button
+                    if (ImGui::Button("Close"))
+                    {
+                        selectedGameObject = nullptr; // Deselect the GameObject and close the popup
+                    }
+
+                    ImGui::End();
+                }
         }
 
+        
         // calls file manager cpp
         Initialize(width - offset_width, height - offset_height, offset_width, offset_height, window.renderer);
 
@@ -589,7 +594,6 @@ int main(int argc, char **argv){
                 gameObjectsCopy[gameObjects[i].GetID()] = GameObject();
             }
             gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
-            
         }
         cameraObjects[0].Camera_Render(3, width - offset_width, 0, width, height - offset_height);
 

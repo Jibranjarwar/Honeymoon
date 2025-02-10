@@ -256,9 +256,10 @@ void GameObject::Movement(SDL_Event &event){
 }
 
 void GameObject::UpdatePos(int new_x, int new_y){
-    _x -= new_x;
-    std::cout << _x << std::endl;
-    _y -= new_y;
+    std::cout << "UpdatePos() called! Setting X=" << new_x << ", Y=" << new_y << std::endl;
+    _x = new_x;
+    //std::cout << _x << std::endl;
+    _y = new_y;
 }
 
 SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* renderer = nullptr){
