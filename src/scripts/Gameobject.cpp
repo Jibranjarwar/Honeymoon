@@ -41,7 +41,8 @@ _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _original_h = height;
     _original_x = x;
     _original_y = y;
-
+    _screen_x = x;
+    _screen_y = y;
     Setter();
 }
 // Destructor
@@ -255,11 +256,12 @@ void GameObject::Movement(SDL_Event &event){
     }
 }
 
-void GameObject::UpdatePos(int new_x, int new_y){
-    std::cout << "UpdatePos() called! Setting X=" << new_x << ", Y=" << new_y << std::endl;
-    _x = new_x;
-    //std::cout << _x << std::endl;
-    _y = new_y;
+void GameObject::UpdatePosX(int diff_x){
+    _x += diff_x;
+}
+
+void GameObject::UpdatePosY(int diff_y){
+    _y += diff_y;
 }
 
 SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* renderer = nullptr){

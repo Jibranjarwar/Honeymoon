@@ -15,8 +15,9 @@
 #include "json.hpp"
 #include <unordered_map>
 #include <set>
-//UPDATE X Y WHEN MOVING
-//GAMEOBJECT NUMBERING
+//DEAFULT CHILDERN NAME
+//CHILD STICKS WITH PARENT,
+//CHILD PROPERTIES
 //gameobject 
 struct GameObjectUI {
     GameObject name;
@@ -27,6 +28,11 @@ struct GameObjectUI {
 using json = nlohmann::json;
 
 int main(int argc, char **argv){
+
+    GameObject* matched_gameobject;
+    bool stopDrag = false;
+    int prev_screen_x = 0;
+    int prev_screen_y = 0;
     
     // created a window object
     Window window("GAME ENGINE", 800, 640);
@@ -207,6 +213,7 @@ int main(int argc, char **argv){
         }*/
 
         ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
+        //no same names, index if same ADD
 
         if (ImGui::Button("Add GameObject"))
         {
@@ -391,13 +398,16 @@ int main(int argc, char **argv){
             {
                 selectedGameObject = nullptr;
             }
-            else            {
+            else{
 
                 // Begin the right-hand properties menu
                 ImGui::Begin("GameObject Properties", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
                 // Set size and position for right-side alignment
                 ImGui::SetWindowSize(ImVec2(250, height - 20));
                 ImGui::SetWindowPos(ImVec2(width - 250, 20));
+                if (!ImGui::IsWindowFocused()) {
+                    stopDrag = false;  // Stop dragging if the window is unselected
+                }
 
                 // Display selected GameObject name
                 ImGui::Text("Selected GameObject: %s", selectedGameObject->_name.c_str());
@@ -462,33 +472,6 @@ int main(int argc, char **argv){
                     }
                 }
 
-               /* if (ImGui::Button("Update Name"))
-                {
-                    // Step 1: Remove old index if the current name is a default GameObject name
-                    if (selectedGameObject->_name.rfind("GameObject", 0) == 0) // Starts with "GameObject"
-                    {
-                        std::string numPart = selectedGameObject->_name.substr(10); // Extract number part
-                        if (!numPart.empty() && std::all_of(numPart.begin(), numPart.end(), ::isdigit))
-                        {
-                            int oldIndex = std::stoi(numPart);
-                            usedGameObjectIndices.erase(oldIndex); // Free the index
-                        }
-                    }
-
-                    // Step 2: If the name is empty, find the lowest available index
-                    if (selectedGameObject->_name.empty())
-                    {
-                        int newIndex = 1;
-                        while (usedGameObjectIndices.count(newIndex))
-                        {
-                            newIndex++; // Find the first free number
-                        }
-
-                        // Assign new name and mark index as used
-                        selectedGameObject->_name = "GameObject" + std::to_string(newIndex);
-                        usedGameObjectIndices.insert(newIndex);
-                    }
-                }*/
                 // Display and edit children
                 ImGui::Text("Children:");
                 for (size_t i = 0; i < gameObjectsUI.size(); ++i)
@@ -512,36 +495,45 @@ int main(int argc, char **argv){
                         break;
                     }
                 }
+
                 ImGui::Text("Parent Position");
 
                 // Continuously update X/Y fields during dragging
                 int new_x = selectedGameObject->getX();
                 int new_y = selectedGameObject->getY();
+                for (auto &obj : gameObjects)
+                    {
+                        if (obj.GetID() == selectedGameObject->GetID())
+                        {
+                            matched_gameobject = &obj;
+                        }
+                    }
+                prev_screen_x = matched_gameobject->_screen_x;
+                prev_screen_y = matched_gameobject->_screen_y;
 
                 // Add drag controls for X and Y
-                if (ImGui::DragInt("X Position", &new_x))
+                if (ImGui::DragInt("X Position", &matched_gameobject->_screen_x,1.0f, -1000, 1000))
                 {
-                    for (auto &obj : gameObjects)
-                    {
-                        if (obj.GetID() == selectedGameObject->GetID())
-                        {
-                            obj.UpdatePos(new_x, obj.getY());
-                            selectedGameObject->UpdatePos(new_x, obj.getY());
-                        }
-                    }
+                    stopDrag = true;
+                    int diff_x = (prev_screen_x - matched_gameobject->_screen_x) * -1;
+                    matched_gameobject->UpdatePosX(diff_x);
                 }
 
-                if (ImGui::DragInt("Y Position", &new_y))
+                if (ImGui::DragInt("Y Position", &matched_gameobject->_screen_y,1.0f, -1000, 1000))
                 {
-                    for (auto &obj : gameObjects)
-                    {
-                        if (obj.GetID() == selectedGameObject->GetID())
-                        {
-                            obj.UpdatePos(obj.getX(), new_y);
-                            selectedGameObject->UpdatePos(obj.getX(), new_y);
-                        }
-                    }
+                    stopDrag = true;
+                    int diff_y = (prev_screen_y - matched_gameobject->_screen_y) * -1;
+                    matched_gameobject->UpdatePosY(diff_y);
                 }
+
+                /*for (auto &obj : gameObjects)
+                {
+                    if (obj.GetID() == selectedGameObject->GetID())
+                    {
+                        obj.UpdatePos(obj.getY(), new_y);
+                        selectedGameObject->UpdatePos(obj.getY(), new_y);
+                    }
+                }*/
                     
                     // Add a Close Button
                     if (ImGui::Button("Close"))
@@ -610,13 +602,13 @@ int main(int argc, char **argv){
 
             // Movement function
             player3.Movement(event);
+            if (!stopDrag){
+                // calls Zoom In and Out Function for GameScreen
+                gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
             
-            // calls Zoom In and Out Function for GameScreen
-            gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
-            
-            // Checks the drag for gameObject
-            gameScreen->InitalDragState(event, gameObjects, cameraObjects);
-            
+                // Checks the drag for gameObject
+                gameScreen->InitalDragState(event, gameObjects, cameraObjects);
+            }
         }    
         
         gameScreen->ScreenOffset();
