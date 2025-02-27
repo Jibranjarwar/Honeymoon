@@ -250,7 +250,7 @@ int main(int argc, char **argv){
             }
 
             // Create the new GameObject
-            GameObject new_object = GameObject(window.renderer, "C:\\Users\\jjlov\\Downloads\\aasdsad.png", name, 300, 300, 400, 400);
+            GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", name, 300, 300, 400, 400);
             gameObjectsUI.push_back({new_object, {}});
             gameObjects.push_back(new_object);
 
@@ -403,8 +403,8 @@ int main(int argc, char **argv){
                 // Begin the right-hand properties menu
                 ImGui::Begin("GameObject Properties", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
                 // Set size and position for right-side alignment
-                ImGui::SetWindowSize(ImVec2(250, height - 20));
-                ImGui::SetWindowPos(ImVec2(width - 250, 20));
+                ImGui::SetWindowSize(ImVec2(250, height - offset_height - 18));
+                ImGui::SetWindowPos(ImVec2(width - 250, 18));
                 if (!ImGui::IsWindowFocused()) {
                     stopDrag = false;  // Stop dragging if the window is unselected
                 }
@@ -512,18 +512,50 @@ int main(int argc, char **argv){
                 prev_screen_y = matched_gameobject->_screen_y;
 
                 // Add drag controls for X and Y
-                if (ImGui::DragInt("X Position", &matched_gameobject->_screen_x,1.0f, -1000, 1000))
+                if (ImGui::DragInt("X Position", &matched_gameobject->_screen_x, 1.0f))
                 {
                     stopDrag = true;
                     int diff_x = (prev_screen_x - matched_gameobject->_screen_x) * -1;
                     matched_gameobject->UpdatePosX(diff_x);
                 }
 
-                if (ImGui::DragInt("Y Position", &matched_gameobject->_screen_y,1.0f, -1000, 1000))
+                if (ImGui::DragInt("Y Position", &matched_gameobject->_screen_y, 1.0f))
                 {
                     stopDrag = true;
-                    int diff_y = (prev_screen_y - matched_gameobject->_screen_y) * -1;
+                    int diff_y = (prev_screen_y - matched_gameobject->_screen_y);
                     matched_gameobject->UpdatePosY(diff_y);
+                }
+
+                ImGui::Text("Parent Size");
+                if (ImGui::DragInt("Width", &matched_gameobject->_width, 1.0f))
+                {
+                    stopDrag = true;
+                }
+
+                if (ImGui::DragInt("Height", &matched_gameobject->_height, 1.0f))
+                {
+                    stopDrag = true;
+                }
+
+
+                ImGui::Text("Texture:");
+                ImTextureID obj_image = (ImTextureID)matched_gameobject->_objTexture;
+                ImGui::Image(obj_image, ImVec2(200, 200));
+                if(ImGui::Button("Select Image")){
+                    std::string newTexture = SelectImageFile();
+                    
+                    // this changes all instances that contain the old texture to the new texture including the previewGameObjects in gameObjectsCopy
+                    matched_gameobject->_objTexture = matched_gameobject->Texture(newTexture, window.renderer);
+                    matched_gameobject->_previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
+                    
+                    // iterates through gameObjectsCopy using a lambda function to find key-value pair for the gameObject we are looking for
+                    auto it = std::find_if(gameObjectsCopy.begin(), gameObjectsCopy.end(),
+                                                       [&](const auto &pair)
+                                                       { return pair.second.GetID() == matched_gameobject->GetID();});
+                    
+                    it->second._objTexture = matched_gameobject->Texture(newTexture, window.renderer);
+                    it->second._previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
+                    std::cout << "new Texture: " << newTexture << std::endl;
                 }
 
                 /*for (auto &obj : gameObjects)

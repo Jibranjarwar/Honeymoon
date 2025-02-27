@@ -62,6 +62,8 @@ public:
     std::string _filename;
     std::string _name;
     SDL_Rect _dest_rect;
+    SDL_Texture* _objTexture = nullptr;
+    SDL_Texture* _previewTexture = nullptr;
     
 
 // private members
@@ -69,7 +71,5 @@ private:
     static int _current_id;
     int _r, _g, _b;
     int _a = 255;
-    SDL_Renderer* _objRenderer;
-    SDL_Texture* _objTexture = nullptr;
-    SDL_Texture* _previewTexture = nullptr;
+    SDL_Renderer* _objRenderer;   
 };
