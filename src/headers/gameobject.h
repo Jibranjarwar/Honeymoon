@@ -21,7 +21,9 @@ public:
 
     void Render(int gridMinX = 0, int gridMinY = 0, int gridMaxX = 0, int gridMaxY = 0);
 
-    void UpdatePos(int new_x, int new_y);
+    void UpdatePosX(int diff_x);
+
+    void UpdatePosY(int diff_y);
 
     inline int getX() const { return _x; }
 
@@ -52,6 +54,7 @@ public:
 
 public:
     int _x, _y;
+    int _screen_x, _screen_y;
     int _width, _height;
     int _original_w, _original_h;
     int _original_x, _original_y;
@@ -59,6 +62,8 @@ public:
     std::string _filename;
     std::string _name;
     SDL_Rect _dest_rect;
+    SDL_Texture* _objTexture = nullptr;
+    SDL_Texture* _previewTexture = nullptr;
     
 
 // private members
@@ -66,7 +71,5 @@ private:
     static int _current_id;
     int _r, _g, _b;
     int _a = 255;
-    SDL_Renderer* _objRenderer;
-    SDL_Texture* _objTexture = nullptr;
-    SDL_Texture* _previewTexture = nullptr;
+    SDL_Renderer* _objRenderer;   
 };

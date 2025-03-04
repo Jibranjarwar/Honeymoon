@@ -15,7 +15,10 @@
 #include <filesystem>
 #include "json.hpp"
 #include <unordered_map>
-
+#include <set>
+//DEAFULT CHILDERN NAME
+//CHILD STICKS WITH PARENT,
+//CHILD PROPERTIES
 //gameobject 
 struct GameObjectUI {
     GameObject name;
@@ -26,6 +29,11 @@ struct GameObjectUI {
 using json = nlohmann::json;
 
 int main(int argc, char **argv){
+
+    GameObject* matched_gameobject;
+    bool stopDrag = false;
+    int prev_screen_x = 0;
+    int prev_screen_y = 0;
     
     // created a window object
     Window window("GAME ENGINE", 800, 640);
@@ -76,6 +84,8 @@ int main(int argc, char **argv){
     // list to hold all GameObjects in the UI
     std::vector<GameObjectUI> gameObjectsUI;
     std::vector<GameObject> gameObjects;
+    std::set<int> usedGameObjectIndices;
+
 
     
     // for adding new GameObject and child names
@@ -119,6 +129,9 @@ int main(int argc, char **argv){
     //std::cout << "object2 id: " << player2.GetID() << std::endl;   
     std::cout << "object3 id: " << player3.GetID() << std::endl;
     std::cout << "object4 id: " << player4.GetID() << std::endl; 
+    GameObject* selectedGameObject = nullptr;
+
+
 
     
     while(!window.isClosed()){
@@ -185,75 +198,142 @@ int main(int argc, char **argv){
         ImGui::SetWindowPos(ImVec2(0, 18));
 
         ImGui::Text("GameObjects");
+
+          // If user clicks a GameObject, set it as selected
         
         // sets input text size so we can see "new gameObject" always
         ImGui::SetNextItemWidth(width - offset_width - 115);
         // Input for new GameObject name
-        ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
+        //static int gameObjectCounter = 1;
+       /* ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
         if (ImGui::Button("Add GameObject") && strlen(gameObjectName) > 0) {
             // Add a new GameObject to the list
             GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", gameObjectName, 300, 300, 400, 400);
             gameObjectsUI.push_back({new_object, {}});//change struct to gameobject, be able to define gameobject with default parameters,
             gameObjects.push_back(new_object);
             strcpy(gameObjectName, ""); // Clear input field
-        }
+        }*/
 
+        ImGui::InputText("New GameObject", gameObjectName, IM_ARRAYSIZE(gameObjectName));
+        //no same names, index if same ADD
+
+        if (ImGui::Button("Add GameObject"))
+        {
+            std::string name = gameObjectName;
+
+            // Assign a default name if the field is empty
+            if (name.empty())
+            {
+                int newIndex = 1;
+                while (usedGameObjectIndices.count(newIndex))
+                {
+                    newIndex++;
+                }
+                usedGameObjectIndices.insert(newIndex);
+                name = "GameObject" + std::to_string(newIndex);
+            }
+            else
+            {
+                // Ensure no duplicate indices for names starting with "GameObject"
+                if (name.rfind("GameObject", 0) == 0)
+                {
+                    std::string numPart = name.substr(10); // Extract the number
+                    if (!numPart.empty() && std::all_of(numPart.begin(), numPart.end(), ::isdigit))
+                    {
+                        int index = std::stoi(numPart);
+
+                        // Add the index to the set if not already present
+                        if (!usedGameObjectIndices.count(index))
+                        {
+                            usedGameObjectIndices.insert(index);
+                        }
+                    }
+                }
+            }
+
+            // Create the new GameObject
+            GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", name, 300, 300, 400, 400);
+            gameObjectsUI.push_back({new_object, {}});
+            gameObjects.push_back(new_object);
+
+            // Clear the input field
+            strcpy(gameObjectName, "");
+        }
         for (size_t i = 0; i < gameObjectsUI.size(); ++i)
         {
             ImGui::PushID(i); // Unique ID for each GameObject
 
-            // Tree node for each GameObject
-            if (ImGui::TreeNode(gameObjectsUI[i].name._name.c_str()))
+            // Check if this GameObject is selected
+            bool isSelected = (selectedGameObject == &gameObjectsUI[i].name);
+
+            if (ImGui::Selectable((gameObjectsUI[i].name._name + "##" + std::to_string(i)).c_str(), isSelected))
             {
+                selectedGameObject = &gameObjectsUI[i].name; // Keep selection from UI list
+                std::cout << "Selected GameObject: " << selectedGameObject->_name << std::endl;
 
-                
-                // sets input text size so we can see "Child Name" always
-                ImGui::SetNextItemWidth(width - offset_width - 110);
-                
-                // Input for new child object name
-                ImGui::InputText("Child Name", childObjectName, IM_ARRAYSIZE(childObjectName));
-                if (ImGui::Button("Add Child") && strlen(childObjectName) > 0)
+            }
+
+                // Tree node for each GameObject
+                if (ImGui::TreeNode("##TreeNode", gameObjectsUI[i].name._name.c_str()))
                 {
-                    // Add a new child to the current GameObject
-                    GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\shadow.png", childObjectName, 300, 300, 400, 100);
-                    gameObjectsUI[i].children.push_back(new_object);
-                    gameObjects.push_back(new_object);
-                    strcpy(childObjectName, ""); // Clear input field
-                }
 
-                // List children
-                for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j)
-                {
-                    ImGui::PushID(j); // Unique ID for each child
-                    ImGui::Text("- %s", gameObjectsUI[i].children[j]._name.c_str());
+                    // sets input text size so we can see "Child Name" always
+                    ImGui::SetNextItemWidth(width - offset_width - 110);
 
-                    ImGui::SameLine();
-                    if (ImGui::Button("Remove"))
+                    // Input for new child object name
+                    ImGui::InputText("Child Name", childObjectName, IM_ARRAYSIZE(childObjectName));
+                    if (ImGui::Button("Add Child") && strlen(childObjectName) > 0)
                     {
-                        // Remove from gameObjects vector by matching the ID using a lambda function
-                        // where find_if returns a pointer to gameObject
-                        auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
-                            [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
-
-                        if (it != gameObjects.end())
-                        {
-                            gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
-                            gameObjects.erase(it); // Remove the GameObject from the vector
-                            
-                        }
-                        
-                        // Remove child from list
-                        gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
-                        ImGui::PopID(); // Remove the current child ID before breaking
-                        break;
+                        // Add a new child to the current GameObject
+                        GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\shadow.png", childObjectName, 300, 300, 400, 100);
+                        gameObjectsUI[i].children.push_back(new_object);
+                        gameObjects.push_back(new_object);
+                        strcpy(childObjectName, ""); // Clear input field
                     }
 
-                    ImGui::PopID(); // Remove the current child ID
-                }
+                    // List children
+                    for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j)
+                    {
+                        ImGui::PushID(j); // Unique ID for each child
+                        ImGui::Text("- %s", gameObjectsUI[i].children[j]._name.c_str());
+
+                        ImGui::SameLine();
+                        
+                        if (ImGui::Button("Remove"))
+                        {
+                            auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
+                                                   [&](const GameObject &obj)
+                                                   { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
+                            
+                            if (it != gameObjects.end())
+                            {
+                                gameObjects.erase(it);              // Remove the GameObject from the vector
+                                gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                            }
+
+                            // Remove child from list
+                            gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
+                            ImGui::PopID(); // Remove the current child ID before breaking
+                            break;
+                            
+                        }
+
+                        ImGui::PopID(); // Remove the current child ID
+                    
+                    }
 
                 // Button to remove the GameObject itself
                 if (ImGui::Button("Remove GameObject"))
                 {
+                    std::string removedName = gameObjectsUI[i].name._name;
+                        if (removedName.rfind("GameObject", 0) == 0)
+                        {
+                            std::string numPart = removedName.substr(10);
+                            if (!numPart.empty() && std::all_of(numPart.begin(), numPart.end(), ::isdigit))
+                            {
+                                usedGameObjectIndices.erase(std::stoi(numPart));
+                            }
+                        }
                     // Remove from gameObjects vector by matching the ID using a lambda function
                     // where find_if returns a pointer to gameObject
                     auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
@@ -279,20 +359,23 @@ int main(int argc, char **argv){
                                 gameObjects.erase(it); // Remove the GameObject from the vector                               
                             }
                         }
+
                         // clears children vector so its back to being empty
                         gameObjectsUI[i].children.clear();
                     }
                     gameObjectsUI.erase(gameObjectsUI.begin() + i);
                     ImGui::TreePop(); // Close the tree node before deleting
                     ImGui::PopID();   // Remove the current GameObject ID
-                    break;            // Restart the loop after removal
+                    break;
                 }
 
-                ImGui::TreePop(); // Close the tree node
-            }
 
-            ImGui::PopID(); // Remove the current GameObject ID
-        }
+
+                    ImGui::TreePop(); // Close the tree node
+                }
+
+                ImGui::PopID(); // Remove the current GameObject ID
+            }
 
         if(!save){
             if(ImGui::Button("Save")){
@@ -301,6 +384,203 @@ int main(int argc, char **argv){
         }
         ImGui::End();
 
+        if (selectedGameObject != nullptr)
+        {
+            bool exists = false;
+            for (const auto &obj : gameObjectsUI)
+            {
+                if (&obj.name == selectedGameObject)
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            // If the selected GameObject has been removed, reset the pointer
+            if (!exists)
+            {
+                selectedGameObject = nullptr;
+            }
+            else{
+
+                // Begin the right-hand properties menu
+                ImGui::Begin("GameObject Properties", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
+                // Set size and position for right-side alignment
+                ImGui::SetWindowSize(ImVec2(250, height - offset_height - 18));
+                ImGui::SetWindowPos(ImVec2(width - 250, 18));
+                if (!ImGui::IsWindowFocused()) {
+                    stopDrag = false;  // Stop dragging if the window is unselected
+                }
+
+                // Display selected GameObject name
+                ImGui::Text("Selected GameObject: %s", selectedGameObject->_name.c_str());
+
+                // Rename GameObject (updates in real-time)
+                static char renameBuffer[128];
+                strncpy(renameBuffer, selectedGameObject->_name.c_str(), sizeof(renameBuffer));
+
+                if (ImGui::InputText("Name", renameBuffer, IM_ARRAYSIZE(renameBuffer)))
+                {
+                    selectedGameObject->_name = renameBuffer; // Update the name dynamically
+                }
+
+                if (ImGui::IsItemDeactivatedAfterEdit() || ImGui::Button("Update Name"))
+                {
+                    // Step 1: Handle when the name is cleared
+                    if (selectedGameObject->_name.empty())
+                    {
+                        std::string previousName = selectedGameObject->_name;
+
+                        // Check if the previous name was in "GameObjectX" format
+                        if (previousName.rfind("GameObject", 0) == 0)
+                        {
+                            std::string numPart = previousName.substr(10); // Extract number
+                            if (!numPart.empty() && std::all_of(numPart.begin(), numPart.end(), ::isdigit))
+                            {
+                                int oldIndex = std::stoi(numPart);
+
+                                // Reuse the old index
+                                if (!usedGameObjectIndices.count(oldIndex))
+                                {
+                                    usedGameObjectIndices.insert(oldIndex);
+                                    selectedGameObject->_name = "GameObject" + std::to_string(oldIndex);
+                                    continue; // No need to assign a new index
+                                }
+                            }
+                        }
+
+                        // Assign a new index if no valid old index exists
+                        int newIndex = 1;
+                        while (usedGameObjectIndices.count(newIndex))
+                        {
+                            newIndex++;
+                        }
+                        usedGameObjectIndices.insert(newIndex);
+                        selectedGameObject->_name = "GameObject" + std::to_string(newIndex);
+                    }
+                    else
+                    {
+                        // Step 2: Handle non-empty names starting with "GameObject"
+                        if (selectedGameObject->_name.rfind("GameObject", 0) == 0)
+                        {
+                            std::string numPart = selectedGameObject->_name.substr(10); // Extract number
+                            if (!numPart.empty() && std::all_of(numPart.begin(), numPart.end(), ::isdigit))
+                            {
+                                int index = std::stoi(numPart);
+
+                                // Ensure the index is added to the set
+                                usedGameObjectIndices.insert(index);
+                            }
+                        }
+                    }
+                }
+
+                // Display and edit children
+                ImGui::Text("Children:");
+                for (size_t i = 0; i < gameObjectsUI.size(); ++i)
+                {
+                    if (&gameObjectsUI[i].name == selectedGameObject)
+                    {
+                        for (size_t j = 0; j < gameObjectsUI[i].children.size(); ++j)
+                        {
+                            ImGui::PushID(j); // Ensure unique ID
+
+                            // Editable input for child's name
+                            static char childRenameBuffer[128];
+                            strncpy(childRenameBuffer, gameObjectsUI[i].children[j]._name.c_str(), sizeof(childRenameBuffer));
+                            if (ImGui::InputText(("Child " + std::to_string(j)).c_str(), childRenameBuffer, IM_ARRAYSIZE(childRenameBuffer)))
+                            {
+                                gameObjectsUI[i].children[j]._name = childRenameBuffer; // Update in real time
+                            }
+
+                            ImGui::PopID();
+                        }
+                        break;
+                    }
+                }
+
+                ImGui::Text("Parent Position");
+
+                // Continuously update X/Y fields during dragging
+                int new_x = selectedGameObject->getX();
+                int new_y = selectedGameObject->getY();
+                for (auto &obj : gameObjects)
+                    {
+                        if (obj.GetID() == selectedGameObject->GetID())
+                        {
+                            matched_gameobject = &obj;
+                        }
+                    }
+                prev_screen_x = matched_gameobject->_screen_x;
+                prev_screen_y = matched_gameobject->_screen_y;
+
+                // Add drag controls for X and Y
+                if (ImGui::DragInt("X Position", &matched_gameobject->_screen_x, 1.0f))
+                {
+                    stopDrag = true;
+                    int diff_x = (prev_screen_x - matched_gameobject->_screen_x) * -1;
+                    matched_gameobject->UpdatePosX(diff_x);
+                }
+
+                if (ImGui::DragInt("Y Position", &matched_gameobject->_screen_y, 1.0f))
+                {
+                    stopDrag = true;
+                    int diff_y = (prev_screen_y - matched_gameobject->_screen_y);
+                    matched_gameobject->UpdatePosY(diff_y);
+                }
+
+                ImGui::Text("Parent Size");
+                if (ImGui::DragInt("Width", &matched_gameobject->_width, 1.0f))
+                {
+                    stopDrag = true;
+                }
+
+                if (ImGui::DragInt("Height", &matched_gameobject->_height, 1.0f))
+                {
+                    stopDrag = true;
+                }
+
+
+                ImGui::Text("Texture:");
+                ImTextureID obj_image = (ImTextureID)matched_gameobject->_objTexture;
+                ImGui::Image(obj_image, ImVec2(200, 200));
+                if(ImGui::Button("Select Image")){
+                    std::string newTexture = SelectImageFile();
+                    
+                    // this changes all instances that contain the old texture to the new texture including the previewGameObjects in gameObjectsCopy
+                    matched_gameobject->_objTexture = matched_gameobject->Texture(newTexture, window.renderer);
+                    matched_gameobject->_previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
+                    
+                    // iterates through gameObjectsCopy using a lambda function to find key-value pair for the gameObject we are looking for
+                    auto it = std::find_if(gameObjectsCopy.begin(), gameObjectsCopy.end(),
+                                                       [&](const auto &pair)
+                                                       { return pair.second.GetID() == matched_gameobject->GetID();});
+                    
+                    it->second._objTexture = matched_gameobject->Texture(newTexture, window.renderer);
+                    it->second._previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
+                    std::cout << "new Texture: " << newTexture << std::endl;
+                }
+
+                /*for (auto &obj : gameObjects)
+                {
+                    if (obj.GetID() == selectedGameObject->GetID())
+                    {
+                        obj.UpdatePos(obj.getY(), new_y);
+                        selectedGameObject->UpdatePos(obj.getY(), new_y);
+                    }
+                }*/
+                    
+                    // Add a Close Button
+                    if (ImGui::Button("Close"))
+                    {
+                        selectedGameObject = nullptr; // Deselect the GameObject and close the popup
+                    }
+
+                    ImGui::End();
+                }
+        }
+
+        
         // calls file manager cpp
         Initialize(width - offset_width, height - offset_height, offset_width, offset_height, window.renderer);
 
@@ -341,7 +621,6 @@ int main(int argc, char **argv){
                 gameObjectsCopy[gameObjects[i].GetID()] = GameObject();
             }
             gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
-            
         }
         cameraObjects[0].Camera_Render(3, width - offset_width, 0, width, height - offset_height);
         gameObjectCollision.Collision_Render(3, width - offset_width, 0, width, height - offset_height);
@@ -361,7 +640,7 @@ int main(int argc, char **argv){
             player3.Movement(event);
 
             // prevents gameObjects from spawning in wrong areas once preview is on and user switches back to editor
-            if(!isPressed){
+            if(!isPressed && !stopDrag){
             
                 // calls Zoom In and Out Function for GameScreen
                 gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);

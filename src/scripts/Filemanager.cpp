@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <windows.h>
+#include <commdlg.h>
 
 std::vector<std::pair<std::string, int>> directories;
 TreeNode* directory_tree;
@@ -13,6 +14,39 @@ void OpenFileWithDefaultProgram(const std::string& filePath){
     
     // Opens file with users default program NOTE: THIS WORKS FOR WINDOWS NOT TO SURE BOUT LINUX
     ShellExecute(0, "open", filePath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+}
+
+std::string SelectImageFile(){
+    
+    // Fixes issue where when we get a Image file it changes the current working directory
+    // This is so we can re-set it back to what its suppose to be
+    char workingDirectory[MAX_PATH];
+    GetCurrentDirectoryA(MAX_PATH, workingDirectory);
+
+    OPENFILENAMEA f = {sizeof(OPENFILENAMEA)};
+
+    char buff[MAX_PATH] = {};
+
+    f.lpstrTitle = "Image File Manager";
+    f.lpstrFilter = "png files\0*.png\0jpg files\0*.jpg\0";
+
+    f.nMaxFile = sizeof(buff);
+    f.lpstrFile = buff;
+    
+    // makes sure that the file exists 
+    f.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+    
+    std::string selectedImageFile;
+    
+    // opens file manager and when file is selected it saves too buff which we then set to selectedImageFile 
+    if(GetOpenFileNameA(&f)){
+        std::cout << "file name: " << buff << std::endl;
+        selectedImageFile = buff;
+    }
+
+    // re-sets working Directory back to original
+    SetCurrentDirectoryA(workingDirectory);
+    return selectedImageFile;
 }
 
 void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
@@ -129,6 +163,7 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
 }
 
 std::vector<std::pair<std::string, int>> GetAllDirectories(const std::string& rootPath) {
+    //std::cout << rootPath << std::endl;
     std::filesystem::path rootPath_filesystem = rootPath;
     
     // creates vector with string and int pair
@@ -143,23 +178,29 @@ std::vector<std::pair<std::string, int>> GetAllDirectories(const std::string& ro
 }
 
 void GetDirectoriesRecursively(const std::filesystem::path& rootPath, std::vector<std::pair<std::string, int>>& directories, int depth){
-    for (const auto& entry : std::filesystem::directory_iterator(rootPath)) {
-        
-        // checks if its a directory
-        if (entry.is_directory()) {
-            // Save directory name with depth (used for indentation)
-            std::string directoryName = entry.path().filename().string();
+    
+    //std::cout << rootPath << std::endl;
+    try{
+        for (const auto& entry : std::filesystem::directory_iterator(rootPath)) {
             
-            // checks wether the directory is hidden and if so skips it
-            if(directoryName.front() != '.'){
+            // checks if its a directory
+            if (entry.is_directory()) {
+                // Save directory name with depth (used for indentation)
+                std::string directoryName = entry.path().filename().string();
                 
-                // appends to vector
-                directories.emplace_back(entry.path().filename().string(), depth);
-                
-                // Recursively search inside subdirectories, increasing depth
-                GetDirectoriesRecursively(entry.path(), directories, depth + 1);
+                // checks wether the directory is hidden and if so skips it
+                if(directoryName.front() != '.'){
+                    
+                    // appends to vector
+                    directories.emplace_back(entry.path().filename().string(), depth);
+                    
+                    // Recursively search inside subdirectories, increasing depth
+                    GetDirectoriesRecursively(entry.path(), directories, depth + 1);
+                }
             }
         }
+    }catch(const std::filesystem::filesystem_error& e){
+        std::cerr << "filesystem error: " << e.what() << std::endl;
     }
 }
 
