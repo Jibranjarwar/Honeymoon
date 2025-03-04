@@ -11,6 +11,7 @@
 #include "filemanager.h"
 #include "serilization.h"
 #include "camera.h"
+#include "collision.h"
 #include <filesystem>
 #include "json.hpp"
 #include <unordered_map>
@@ -44,6 +45,7 @@ int main(int argc, char **argv){
     GameObject player3;
 
     Camera gameCamera(window.renderer, 400, 400, 200, 220, 0, 0, 0, 255);
+    Collision gameObjectCollision(window.renderer, 300, 300, 500, 220, 3, 252, 32, 255);
 
     std::vector<Camera> cameraObjects;
 
@@ -342,6 +344,7 @@ int main(int argc, char **argv){
             
         }
         cameraObjects[0].Camera_Render(3, width - offset_width, 0, width, height - offset_height);
+        gameObjectCollision.Collision_Render(3, width - offset_width, 0, width, height - offset_height);
 
         // This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
         //gameObjects[0].Render(width - offset_width, 0, width, height - offset_height);
