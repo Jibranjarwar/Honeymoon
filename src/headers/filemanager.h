@@ -30,4 +30,5 @@ TreeNode* CreateTree(std::vector<std::pair<std::string, int>>& directories, std:
 void RenderTreeNode(TreeNode* root);
 SDL_Texture* LoadIconTexure(std::string filename, SDL_Renderer* renderer);
 void OpenFileWithDefaultProgram(const std::string& filePath);
+std::string SelectImageFile();
 //void AddFiles(TreeNode * root, std::string rootPath);
