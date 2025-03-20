@@ -190,15 +190,23 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array,st
         
         current_window_position_x = screen_x - prev_drag_window_position_x;
         current_window_position_y = screen_y - prev_drag_window_position_y;
+
+        //std::cout << "window pos x: " << current_window_position_x << std::endl;
+        //std::cout << "window pos y: " << current_window_position_y << std::endl;
         
 
         for(int i = 0; i < array.size(); i++){
             //std::cout << array[i].GetID() << std::endl;
+            // moves gameObject with screen
             array[i]._x += current_window_position_x;
             array[i]._y += current_window_position_y;
+            // moves collisionBox with screen
+            array[i].collisionBox._x += current_window_position_x;
+            array[i].collisionBox._y += current_window_position_y;
         }
         for(int i = 0; i < other_array.size(); i++){
             //std::cout << array[i].GetID() << std::endl;
+            // moves camera GameObject with screen
             other_array[i]._x += current_window_position_x;
             other_array[i]._y += current_window_position_y;
         }

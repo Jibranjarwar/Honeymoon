@@ -250,15 +250,27 @@ void GameObject::Movement(SDL_Event &event){
     switch(event.key.keysym.sym){
         case SDLK_d:
             _x += 10;
+            if(addedCollision){
+                collisionBox._x += 10;
+            }
             break;
         case SDLK_a:
             _x -= 10;
+            if(addedCollision){
+                collisionBox._x -= 10;
+            }
             break;
         case SDLK_w:
             _y -= 10;
+            if(addedCollision){
+                collisionBox._y -= 10;
+            }
             break;
         case SDLK_s:
             _y += 10;
+            if(addedCollision){
+                collisionBox._y += 10;
+            }
             break; 
     }
 }
@@ -270,6 +282,19 @@ void GameObject::UpdatePosX(int diff_x){
 void GameObject::UpdatePosY(int diff_y){
     _y += diff_y;
 }
+
+void GameObject::UpdatePosAll_X(int diff_x) {
+    _x += diff_x;
+    collisionBox._x += diff_x;  
+    collisionBox._dest_rect.x += diff_x;  // Ensure the collision box updates as well
+}
+
+void GameObject::UpdatePosAll_Y(int diff_y) {
+    _y += diff_y;
+    collisionBox._y += diff_y;
+    collisionBox._dest_rect.y += diff_y;  // Ensure the collision box updates as well
+}
+
 
 SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* renderer = nullptr){
     
@@ -288,4 +313,12 @@ SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* rende
 void GameObject::Setter(){
     json something = findGameObject(_id);
     std::cout << "id: " << _id << " " << something.dump(4) << std::endl;
+}
+
+void GameObject::AddCollision(SDL_Renderer* renderer){
+    collisionBox = Collision(renderer, _width, _height, _x, _y, 3, 252, 32, 255, _screen_x, _screen_y);
+}
+
+void GameObject::RenderCollisionBox(int thickness, int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
+    collisionBox.Collision_Render(thickness, gridMinX, gridMinY, gridMaxX, gridMaxY);
 }

@@ -180,10 +180,11 @@ std::vector<std::pair<std::string, int>> GetAllDirectories(const std::string& ro
 void GetDirectoriesRecursively(const std::filesystem::path& rootPath, std::vector<std::pair<std::string, int>>& directories, int depth){
     
     //std::cout << rootPath << std::endl;
-    try{
+    try{        
         for (const auto& entry : std::filesystem::directory_iterator(rootPath)) {
             
             // checks if its a directory
+            
             if (entry.is_directory()) {
                 // Save directory name with depth (used for indentation)
                 std::string directoryName = entry.path().filename().string();
@@ -254,6 +255,27 @@ TreeNode* CreateTree(std::vector<std::pair<std::string, int>>& directories, std:
             previousNode = previousNode->parent;
             current_depth = depth;
         }
+        // finds the string after the last "\"
+        std::filesystem::path fsPath(currentPath);
+        std::string lastPart = fsPath.filename().string();
+
+        // edge case if we have two folders in same directory where we didnt go into a sub folder
+        // causing an issue with no depth change so it didnt apply proper logic without this
+        if (current_depth == depth && lastPart != previousNode->dirName){
+            //std::cout << "this is current path:" << currentPath << " and prev: " << previousNode->dirName << std::endl;
+            //std::cout << "dir Name: " << dirName << std::endl;
+            //currentNode = previousNode->parent;
+
+            size_t pos = currentPath.find("\\" + lastPart);
+            
+            // if search is NOT found find returns std::string::npos so we check against it
+            if (pos != std::string::npos) {
+                // Erase from "headers" to the end of the path
+                currentPath.erase(pos);
+            }
+
+            //std::cout << "new path: " << currentPath << std::endl;
+        }
         
         // add child node to parent node
         addChild(previousNode, dirName);
@@ -262,9 +284,18 @@ TreeNode* CreateTree(std::vector<std::pair<std::string, int>>& directories, std:
         currentNode = previousNode->children.back();
         
         currentPath += "\\" + currentNode->dirName;
-        //std::cout << currentPath << std::endl;
+        //std::cout << currentPath << " depth: " << depth << std::endl;
         
-        // loop too check all files within currentPath and add them too the current node (basically adding files into correct directories)
+        // NOTE: CURRENT FIX FOR WHEN CREATING NEW FOLDER SINCE THERE WAS BUG OF DIRECTORY NOT EXISTING AND CRASHING
+        // THIS CHECKS WETHER IT EXIST OR IS A DIRECTORY
+        // ADDITIONAL NOTE: TEMP FIX FROM CRASH BUT DOESNT APPLY PROPER LOGIC ONLY USE FOR DEBUGGING
+        
+        /*if (!std::filesystem::exists(currentPath) || !std::filesystem::is_directory(currentPath)) {
+            //std::cerr << "Skipping invalid directory: " << currentPath << std::endl;
+            //std::cout << currentPath << std::endl;
+            continue;
+        }*/
+        
         for(const auto& entry : std::filesystem::directory_iterator(currentPath, std::filesystem::directory_options::skip_permission_denied)){
             
             //std::cout << entry.path() << std::endl;

@@ -16,6 +16,7 @@
 #include "json.hpp"
 #include <unordered_map>
 #include <set>
+#include <algorithm>
 //DEAFULT CHILDERN NAME
 //CHILD STICKS WITH PARENT,
 //CHILD PROPERTIES
@@ -53,7 +54,7 @@ int main(int argc, char **argv){
     GameObject player3;
 
     Camera gameCamera(window.renderer, 400, 400, 200, 220, 0, 0, 0, 255);
-    Collision gameObjectCollision(window.renderer, 300, 300, 500, 220, 3, 252, 32, 255);
+    //Collision gameObjectCollision(window.renderer, 300, 300, 500, 220, 3, 252, 32, 255);
 
     std::vector<Camera> cameraObjects;
 
@@ -84,6 +85,7 @@ int main(int argc, char **argv){
     // list to hold all GameObjects in the UI
     std::vector<GameObjectUI> gameObjectsUI;
     std::vector<GameObject> gameObjects;
+    std::vector<std::pair<int, GameObject>> deletedObjects;
     std::set<int> usedGameObjectIndices;
 
 
@@ -175,6 +177,17 @@ int main(int argc, char **argv){
                 }else{
                     if(ImGui::MenuItem("Stop")){
                         isPressed = !isPressed;
+                        for(int i = 0; i < deletedObjects.size(); i++){
+                            std::cout << "index: " << deletedObjects[i].first << std::endl;
+                            gameObjects.insert(gameObjects.begin() + deletedObjects[i].first + 1, deletedObjects[i].second);
+                            //ISSUE: SOMETHING WITH THE GAMEOBJECTUI WHEN WE RESTORE OBJECT THE REFERENCING MESSES UP FOR THE OBJECTS
+                            
+                            for(auto& ui : gameObjectsUI){
+                                if(ui.name.GetID() == deletedObjects[i].second.GetID()){
+                                    std::cout << "samesame but not samesame" << std::endl;
+                                }
+                            }
+                        }
                     }
                 }          
                 ImGui::MenuItem("Settings");     
@@ -556,9 +569,50 @@ int main(int argc, char **argv){
                                                        [&](const auto &pair)
                                                        { return pair.second.GetID() == matched_gameobject->GetID();});
                     
-                    it->second._objTexture = matched_gameobject->Texture(newTexture, window.renderer);
-                    it->second._previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
-                    std::cout << "new Texture: " << newTexture << std::endl;
+                    if(it != gameObjectsCopy.end()){
+                        it->second._objTexture = matched_gameobject->Texture(newTexture, window.renderer);
+                        it->second._previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
+                        std::cout << "new Texture: " << newTexture << std::endl;
+                    }
+                }
+
+                if(!matched_gameobject->addedCollision){
+                    if(ImGui::Button("Add Collision")){
+                        matched_gameobject->AddCollision(window.renderer);
+                        matched_gameobject->addedCollision = true;
+                    }
+                }else{
+                    ImGui::Text("Collision Attributes:");
+                    int collision_x = matched_gameobject->collisionBox.getX();
+                    int collision_y = matched_gameobject->collisionBox.getY();
+                    prev_screen_x = matched_gameobject->collisionBox._screen_x;
+                    prev_screen_y = matched_gameobject->collisionBox._screen_y;
+                    
+                    ImGui::Text("Position");
+                    if (ImGui::DragInt("X Position##", &matched_gameobject->collisionBox._screen_x, 1.0f))
+                    {
+                        int col_diff_x = (prev_screen_x - matched_gameobject->collisionBox._screen_x) * -1;
+                        stopDrag = true;
+                        matched_gameobject->collisionBox.UpdatePosX(col_diff_x);
+                    }
+
+                    if (ImGui::DragInt("Y Position##", &matched_gameobject->collisionBox._screen_y, 1.0f))
+                    {
+                        int col_diff_y = (prev_screen_y - matched_gameobject->collisionBox._screen_y);
+                        stopDrag = true;
+                        matched_gameobject->collisionBox.UpdatePosY(col_diff_y);
+                    }
+
+                    ImGui::Text("Size");
+                    if (ImGui::DragInt("Width##", &matched_gameobject->collisionBox._width, 1.0f))
+                    {
+                        stopDrag = true;
+                    }
+
+                    if (ImGui::DragInt("Height##", &matched_gameobject->collisionBox._height, 1.0f))
+                    {
+                        stopDrag = true;
+                    }
                 }
 
                 /*for (auto &obj : gameObjects)
@@ -621,9 +675,18 @@ int main(int argc, char **argv){
                 gameObjectsCopy[gameObjects[i].GetID()] = GameObject();
             }
             gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
+
+            if(gameObjects[i].addedCollision){
+                gameObjects[i].RenderCollisionBox(3, width - offset_width, 0, width, height - offset_height);
+                //GameObject* collidedObj = gameObjects[i].collisionBox.Collision_Check(gameObjects[i], gameObjects);
+                /*if(collidedObj != nullptr){
+                    std::cout << collidedObj->GetID() << std::endl;
+                    gameObjects[i].collisionBox.Del(collidedObj, gameObjects, gameObjectsCopy);
+                }*/
+            }
         }
         cameraObjects[0].Camera_Render(3, width - offset_width, 0, width, height - offset_height);
-        gameObjectCollision.Collision_Render(3, width - offset_width, 0, width, height - offset_height);
+        //gameObjectCollision.Collision_Render(3, width - offset_width, 0, width, height - offset_height);
 
         // This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
         //gameObjects[0].Render(width - offset_width, 0, width, height - offset_height);
@@ -638,6 +701,10 @@ int main(int argc, char **argv){
 
             // Movement function
             player3.Movement(event);
+            
+            if(gameObjects.size() > 2){
+                gameObjects[2].Movement(event);
+            }
 
             // prevents gameObjects from spawning in wrong areas once preview is on and user switches back to editor
             if(!isPressed && !stopDrag){
@@ -671,9 +738,25 @@ int main(int argc, char **argv){
                 // ISSUE: WITH THE RESIZE FUNCTION IT GETS CALLED EVERY FRAME SO KEEPS EXPANDING AND BREAKS
                 if(gameObjectsCopy[i] != defaultObject){
                     //std::cout << "ID: " << gameObjectsCopy[i].GetID() << std::endl;
-                    cameraObjects[0].Resize(gameObjectsCopy[i], preview_width, preview_height);
+                    auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
+                    [&](const GameObject& obj) { return obj.GetID() == gameObjectsCopy[i].GetID(); });
+
+                    cameraObjects[0].Resize(gameObjectsCopy[i], *it, preview_width, preview_height);
                     std::cout << "width after resize: " << gameObjectsCopy[i]._width << std::endl;
                     gameObjectsCopy[i].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
+                    std::cout << gameObjectsCopy[i].GetID();
+                    
+                    if(gameObjects[2].addedCollision){
+                        gameObjects[2].collisionBox.On_Collision(gameObjects[2], gameObjects);
+                        /*GameObject* collidedObj = it->collisionBox.Collision_Check(*it, gameObjects);
+                        if(collidedObj != nullptr){
+                            std::cout << collidedObj->GetID() << std::endl;
+                            int index = std::distance(gameObjects.begin(), it);
+                            deletedObjects.push_back(std::make_pair(index, *it));
+                            it->collisionBox.Del(collidedObj, gameObjects, gameObjectsCopy);
+                        
+                        }*/
+                    }
                 }
             }
             //gameObjects[1].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
