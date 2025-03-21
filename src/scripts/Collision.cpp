@@ -1,5 +1,6 @@
 #include "collision.h"
 #include "gameobject.h"
+#include "gameobjectui.h"
 #include <iostream>
 
 Collision::Collision(){
@@ -83,6 +84,7 @@ GameObject* Collision::Collision_Check(GameObject& self, std::vector<GameObject>
 }
 
 void Collision::Del(GameObject* obj, std::vector<GameObject>& gameObjects, std::unordered_map<int, GameObject>& previewMap){
+    
     auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
         [obj](const GameObject& g) { return &g == obj; });  // Find the object in vector
     
@@ -91,6 +93,14 @@ void Collision::Del(GameObject* obj, std::vector<GameObject>& gameObjects, std::
         gameObjects.erase(it);
         
     }
+
+    // used for gameObjectUI before but currently no need anymore
+    /*auto other_it = std::find_if(gameObjectsUI.begin(), gameObjectsUI.end(),
+    [obj](const GameObjectUI& g) { return g.name.GetID() == obj->GetID(); });
+
+    if (other_it != gameObjectsUI.end()) {
+        gameObjectsUI.erase(other_it);
+    }*/
 }
 
 void Collision::On_Collision(GameObject& self, std::vector<GameObject>& gameObjects) {

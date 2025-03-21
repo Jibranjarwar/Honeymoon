@@ -12,6 +12,7 @@
 #include "serilization.h"
 #include "camera.h"
 #include "collision.h"
+#include "gameobjectui.h"
 #include <filesystem>
 #include "json.hpp"
 #include <unordered_map>
@@ -21,10 +22,6 @@
 //CHILD STICKS WITH PARENT,
 //CHILD PROPERTIES
 //gameobject 
-struct GameObjectUI {
-    GameObject name;
-    std::vector<GameObject> children; 
-};
 
 
 using json = nlohmann::json;
@@ -177,17 +174,28 @@ int main(int argc, char **argv){
                 }else{
                     if(ImGui::MenuItem("Stop")){
                         isPressed = !isPressed;
+                        std::sort(deletedObjects.begin(), deletedObjects.end(), 
+                            [](const std::pair<int, GameObject>& a, const std::pair<int, GameObject>& b) {
+                                return a.first < b.first; // Sort in ascending order
+                            });
                         for(int i = 0; i < deletedObjects.size(); i++){
                             std::cout << "index: " << deletedObjects[i].first << std::endl;
-                            gameObjects.insert(gameObjects.begin() + deletedObjects[i].first + 1, deletedObjects[i].second);
+                            std::cout << "size: " << gameObjects.size() << std::endl;
+                            gameObjects.insert(gameObjects.begin() + deletedObjects[i].first, deletedObjects[i].second);
+                            std::cout << "size: " << gameObjects.size() << std::endl;
+                            gameObjectsCopy[deletedObjects[i].second.GetID()] = deletedObjects[i].second;
+                            //gameObjectsUI.insert(gameObjectsUI.begin() + deletedObjects)
+                            
                             //ISSUE: SOMETHING WITH THE GAMEOBJECTUI WHEN WE RESTORE OBJECT THE REFERENCING MESSES UP FOR THE OBJECTS
                             
-                            for(auto& ui : gameObjectsUI){
+                            /*for(auto& ui : gameObjectsUI){
                                 if(ui.name.GetID() == deletedObjects[i].second.GetID()){
                                     std::cout << "samesame but not samesame" << std::endl;
                                 }
-                            }
+                            }*/
                         }
+
+                        deletedObjects.clear();
                     }
                 }          
                 ImGui::MenuItem("Settings");     
@@ -209,6 +217,11 @@ int main(int argc, char **argv){
         ImGui::Begin("GameObject Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
         ImGui::SetWindowSize(ImVec2(width - offset_width, height)); // Adjust size as needed
         ImGui::SetWindowPos(ImVec2(0, 18));
+
+        // if preview is on we disable gameManager so no new items can be added or changed while the test is on
+        if(isPressed){
+            ImGui::BeginDisabled(true);
+        }
 
         ImGui::Text("GameObjects");
 
@@ -395,6 +408,12 @@ int main(int argc, char **argv){
                 tester(gameObjects, gameScreen);
             }
         }
+        
+        // end if statement for preview disable gameManager since it needs and end for where we stop the Disabled in ImGui
+        if(isPressed){
+            ImGui::EndDisabled();
+        }
+        
         ImGui::End();
 
         if (selectedGameObject != nullptr)
@@ -681,7 +700,7 @@ int main(int argc, char **argv){
                 //GameObject* collidedObj = gameObjects[i].collisionBox.Collision_Check(gameObjects[i], gameObjects);
                 /*if(collidedObj != nullptr){
                     std::cout << collidedObj->GetID() << std::endl;
-                    gameObjects[i].collisionBox.Del(collidedObj, gameObjects, gameObjectsCopy);
+                    gameObjects[i].collisionBox.Del(collidedObj, gameObjects, gameObjectsUI, gameObjectsCopy);
                 }*/
             }
         }
@@ -728,6 +747,7 @@ int main(int argc, char **argv){
 
         if(isPressed){
             SDL_ShowWindow(previewWindow.window);
+            selectedGameObject = nullptr;
             
             //std::cout << gameObjectsCopy.size() << std::endl;
             for(int i = 0; i < gameObjectsCopy.size(); i++){
@@ -747,7 +767,22 @@ int main(int argc, char **argv){
                     std::cout << gameObjectsCopy[i].GetID();
                     
                     if(gameObjects[2].addedCollision){
-                        gameObjects[2].collisionBox.On_Collision(gameObjects[2], gameObjects);
+                        //gameObjects[2].collisionBox.On_Collision(gameObjects[2], gameObjects);
+                        GameObject* collidedObject = gameObjects[2].collisionBox.Collision_Check(gameObjects[2], gameObjects);
+                        
+                        if(collidedObject != nullptr){
+                            // finds object in gameObject vector
+                            auto collided_it = std::find(gameObjects.begin(), gameObjects.end(), *collidedObject);
+                            
+                            // uses distance formula from algorithm library to find index of gameObeject
+                            int index = std::distance(gameObjects.begin(), collided_it);
+                            
+                            // push deletedObjects too vector
+                            deletedObjects.push_back(std::make_pair(index, *collidedObject));
+                            
+                            // Del function to delete on collision
+                            gameObjects[2].collisionBox.Del(collidedObject, gameObjects, gameObjectsCopy);
+                        }
                         /*GameObject* collidedObj = it->collisionBox.Collision_Check(*it, gameObjects);
                         if(collidedObj != nullptr){
                             std::cout << collidedObj->GetID() << std::endl;
