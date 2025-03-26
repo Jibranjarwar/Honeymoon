@@ -219,33 +219,38 @@ void addChild(TreeNode* node, std::string dirName){
     node->children.push_back(newNode);
 }
 
-//Create a Tree Structure 
-TreeNode* CreateTree(std::vector<std::pair<std::string, int>>& directories, std::string rootPath){
-    
+// Create a Tree Structure
+TreeNode *CreateTree(std::vector<std::pair<std::string, int>> &directories, std::string rootPath)
+{
+
     int current_depth = 1;
-    TreeNode* root = GetNewNode(directories[0].first);
-    TreeNode* previousNode = root;
-    TreeNode* currentNode = root;
+    TreeNode *root = GetNewNode(directories[0].first);
+    TreeNode *previousNode = root;
+    TreeNode *currentNode = root;
     std::string currentPath = rootPath;
     std::string tempPath = currentPath;
-    
-    for (const auto& [dirName, depth] : std::vector(directories.begin() + 1, directories.end())){
-        
-        if(current_depth < depth){
+
+    for (const auto &[dirName, depth] : std::vector(directories.begin() + 1, directories.end()))
+    {
+
+        if (current_depth < depth)
+        {
             // we went down by 1
 
             // set the the current node before as the new root since we went down one
             previousNode = currentNode;
             current_depth = depth;
         }
-        else if(current_depth > depth){
+        else if (current_depth > depth)
+        {
             // we went back up 1
-            
+
             // size_t used as an unsigned int to get the position in the string
             size_t pos = currentPath.find("\\" + previousNode->dirName);
-            
+
             // if search is NOT found find returns std::string::npos so we check against it
-            if (pos != std::string::npos) {
+            if (pos != std::string::npos)
+            {
                 // Erase from "headers" to the end of the path
                 currentPath.erase(pos);
             }
@@ -254,40 +259,64 @@ TreeNode* CreateTree(std::vector<std::pair<std::string, int>>& directories, std:
             previousNode = previousNode->parent;
             current_depth = depth;
         }
-        
+        std::filesystem::path fsPath(currentPath);
+        std::string lastPart = fsPath.filename().string();
+
+        // edge case if we have two folders in same directory where we didnt go into a sub folder
+        // causing an issue with no depth change so it didnt apply proper logic without this
+        if (current_depth == depth && lastPart != previousNode->dirName)
+        {
+            // std::cout << "this is current path:" << currentPath << " and prev: " << previousNode->dirName << std::endl;
+            // std::cout << "dir Name: " << dirName << std::endl;
+            // currentNode = previousNode->parent;
+
+            size_t pos = currentPath.find("\\" + lastPart);
+
+            // if search is NOT found find returns std::string::npos so we check against it
+            if (pos != std::string::npos)
+            {
+                // Erase from "headers" to the end of the path
+                currentPath.erase(pos);
+            }
+
+            // std::cout << "new path: " << currentPath << std::endl;
+        }
+
         // add child node to parent node
         addChild(previousNode, dirName);
 
         // set the last item in vector which is the last child as current node since we want it as our last reference
         currentNode = previousNode->children.back();
-        
+
         currentPath += "\\" + currentNode->dirName;
-        //std::cout << currentPath << std::endl;
-        
+        // std::cout << currentPath << std::endl;
+
         // loop too check all files within currentPath and add them too the current node (basically adding files into correct directories)
-        for(const auto& entry : std::filesystem::directory_iterator(currentPath, std::filesystem::directory_options::skip_permission_denied)){
-            
-            //std::cout << entry.path() << std::endl;
-            
+        for (const auto &entry : std::filesystem::directory_iterator(currentPath, std::filesystem::directory_options::skip_permission_denied))
+        {
+
+            // std::cout << entry.path() << std::endl;
+
             // checks wether file already exists within vector if so skip
-            if (std::find(currentNode->files.begin(), currentNode->files.end(), entry.path().string()) == currentNode->files.end()){
-                
-                //ISSUE: is_regular_file() is what seems to be messing with the performance
-                //FIX: I avoided this by checking if entry has an extension which means its a file but some edgecase for this is that
-                //     not all files have extensions so could end up with some issues but in our case we need extensions for images, scripts etc
-                
+            if (std::find(currentNode->files.begin(), currentNode->files.end(), entry.path().string()) == currentNode->files.end())
+            {
+
+                // ISSUE: is_regular_file() is what seems to be messing with the performance
+                // FIX: I avoided this by checking if entry has an extension which means its a file but some edgecase for this is that
+                //      not all files have extensions so could end up with some issues but in our case we need extensions for images, scripts etc
+
                 // checks wether there is a file extensions which is faster than is_regular_file()
-                if (entry.path().has_extension()){
-                    //std::cout << "is file lol" << std::endl;
+                if (entry.path().has_extension())
+                {
+                    // std::cout << "is file lol" << std::endl;
                     currentNode->files.push_back(entry.path().string());
                 }
             }
         }
-        
-        //std::cout << "prev Node: " << previousNode->dirName << " current Node: " << currentNode->dirName << std::endl;
-        //std::cout << "dir: " << dirName << " depth: " << depth << std::endl;
-    }
 
+        // std::cout << "prev Node: " << previousNode->dirName << " current Node: " << currentNode->dirName << std::endl;
+        // std::cout << "dir: " << dirName << " depth: " << depth << std::endl;
+    }
     return root;
 }
 

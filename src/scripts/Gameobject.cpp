@@ -258,10 +258,14 @@ void GameObject::Movement(SDL_Event &event){
 
 void GameObject::UpdatePosX(int diff_x){
     _x += diff_x;
+    std::cout << "Updated X: " << _x << std::endl;  // Debug print
+
 }
 
 void GameObject::UpdatePosY(int diff_y){
     _y += diff_y;
+    std::cout << "Updated Y: " << _y << std::endl;  // Debug print
+
 }
 
 SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* renderer = nullptr){

@@ -199,19 +199,7 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array,st
             other_array[i]._x += current_window_position_x;
             other_array[i]._y += current_window_position_y;
         }
-        // Ensure selectedGameObject updates correctly
-        // If a game object is selected, update its position directly
-        /*if (selectedGameObject) {
-          selectedGameObject->UpdatePos(
-                selectedGameObject->getX() + current_window_position_x,
-                selectedGameObject->getY() + current_window_position_y
-            );
-        }*/
-        //player->_x += current_window_position_x;
-        //player->_y += current_window_position_y;
-
-        //std::cout << "x: " << array[0]._x << std::endl;
-        //std::cout << "y: " << array[0]._y << std::endl;
+    
 
         prev_drag_window_position_x = screen_x;
         prev_drag_window_position_y = screen_y;
