@@ -2,6 +2,9 @@
 #include "window.h"
 #include <iostream>
 
+int GameScreen::difference_x = 0;
+int GameScreen::difference_y = 0;
+
 GameScreen::GameScreen(SDL_Renderer* renderer): renderer(renderer){
 }
 
@@ -187,15 +190,23 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array,st
         
         current_window_position_x = screen_x - prev_drag_window_position_x;
         current_window_position_y = screen_y - prev_drag_window_position_y;
+
+        //std::cout << "window pos x: " << current_window_position_x << std::endl;
+        //std::cout << "window pos y: " << current_window_position_y << std::endl;
         
 
         for(int i = 0; i < array.size(); i++){
             //std::cout << array[i].GetID() << std::endl;
+            // moves gameObject with screen
             array[i]._x += current_window_position_x;
             array[i]._y += current_window_position_y;
+            // moves collisionBox with screen
+            array[i].collisionBox._x += current_window_position_x;
+            array[i].collisionBox._y += current_window_position_y;
         }
         for(int i = 0; i < other_array.size(); i++){
             //std::cout << array[i].GetID() << std::endl;
+            // moves camera GameObject with screen
             other_array[i]._x += current_window_position_x;
             other_array[i]._y += current_window_position_y;
         }
@@ -225,8 +236,8 @@ void GameScreen::ScreenOffset(){
     float zoom_offset_x = offset_width / zoomfactor;
     float zoom_offset_y = (window_height - offset_height) / zoomfactor;
 
-    //std::cout << "screen x cords: " << zoom_offset_x << std::endl;
-    //std::cout << "screen y cords: " << zoom_offset_y << std::endl;
+    //std::cout << "screen x cords: " << screen_x << std::endl;
+    //std::cout << "screen y cords: " << screen_y << std::endl;
     //std::cout << "range [" << min_x << " , " << max_x << "]" << std::endl;
     //std::cout << "screen y cords: " << zoom_offset_y << std::endl;
 }

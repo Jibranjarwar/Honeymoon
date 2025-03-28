@@ -55,7 +55,7 @@ bool Camera::Game_Camera_Objects(GameObject object){
     return SDL_HasIntersection(&_dest_rect, &object._dest_rect);
 }
 
-void Camera::Resize(GameObject& object, int window_width, int window_height){
+void Camera::Resize(GameObject& previewObject, GameObject& editorObject, int window_width, int window_height){
     // NEED TO CHANGE THE POSITIONS BASED ON DISTANCE AND SIZE
     // TO DO: Get Aspect ratio between gameObject and camera sizes
     
@@ -64,15 +64,15 @@ void Camera::Resize(GameObject& object, int window_width, int window_height){
     // ISSUE: SOMETHING WITH THE TEXTURE IS MESSY NEEDS TO BE SIZED SO IT DOESNT LOOK STRETCHED
     // FIXED: THINK THE STRETCH IS OKAY NOW SINCE IT DEPENDS ON THE ASPECT RATIO OF THE PREVIEW WINDOW
     
-    float aspectRatio_height = static_cast<float>(_height / (float)object._original_h);
-    float aspectRatio_width = static_cast<float>(_width / (float)object._original_w);
+    float aspectRatio_height = static_cast<float>(_height / (float)editorObject._height);
+    float aspectRatio_width = static_cast<float>(_width / (float)editorObject._width);
     /*int distance_y = object._original_y - _y;
     int distance_x = object._original_x - _x;
     float aspectRatio_y = static_cast<float>(_height / (float)distance_y);
     float aspectRatio_x = static_cast<float>(_width / (float)distance_x);*/
 
     // gets the distance between object point and centre of game Camera in terms of width
-    int distance_x = object._original_x - (_original_x + static_cast<int>(_width / 2));
+    int distance_x = editorObject._x - (_x + static_cast<int>(_width / 2));
     
     // ratio between the preview window and the width of the camera
     float aspectRatio_x = static_cast<float>(window_width) / _width;
@@ -81,7 +81,7 @@ void Camera::Resize(GameObject& object, int window_width, int window_height){
     int new_x = static_cast<int>(window_width / 2) + (distance_x * aspectRatio_x);
 
     // gets the distance between object point and centre of game Camera in terms of height
-    int distance_y = object._original_y - (_original_y + static_cast<int>(_height / 2));
+    int distance_y = editorObject._y - (_y + static_cast<int>(_height / 2));
     
     // ratio between the preview window and the height of the camera
     float aspectRatio_y = static_cast<float>(window_height) / _height;
@@ -92,15 +92,15 @@ void Camera::Resize(GameObject& object, int window_width, int window_height){
     //object._width = static_cast<int>(window_width / aspectRatio_width);
     int width_difference = static_cast<int>(window_width / aspectRatio_width);
     
-    std::cout << "distance x: " << distance_x << " and distance y: " << distance_y << std::endl;
-    std::cout << "aspectRatio x: " << aspectRatio_x << " and aspectRatio y: " << aspectRatio_y << std::endl;
-    std::cout << "new x: " << new_x << " and new y: " << new_y << std::endl;
+    //std::cout << "distance x: " << distance_x << " and distance y: " << distance_y << std::endl;
+    //std::cout << "aspectRatio x: " << aspectRatio_x << " and aspectRatio y: " << aspectRatio_y << std::endl;
+    //std::cout << "new x: " << new_x << " and new y: " << new_y << std::endl;
     
-    object._width = width_difference;
-    object._height = static_cast<int>(window_height / aspectRatio_height);
+    previewObject._width = width_difference;
+    previewObject._height = static_cast<int>(window_height / aspectRatio_height);
     //object._x = static_cast<int>(window_width / aspectRatio_x);
     //object._y = static_cast<int>(window_height / aspectRatio_y);
-    object._x = new_x;
-    object._y = new_y;
+    previewObject._x = new_x;
+    previewObject._y = new_y;
 
 }
