@@ -1,4 +1,4 @@
-player = gameObjects[1]
+player = gameObjects[3]
 
 print("Player name: ", player.name)
 print("Pos X: ", player.x)

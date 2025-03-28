@@ -40,6 +40,7 @@ void RegisterGameObjectsWithLua(sol::state& lua, std::vector<GameObject>& gameOb
 }
 
 // adds New instances of GameObject to Lua table
+// ISSUE: CAUSES CRASH BECAUSE OF VECTOR REALOCATION 
 void AddGameObjectToLua(sol::state& lua, GameObject& newGameObject) {
     sol::table gameObjectsTable = lua["gameObjects"];
     size_t newIndex = gameObjectsTable.size() + 1;

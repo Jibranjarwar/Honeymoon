@@ -288,7 +288,9 @@ int main(int argc, char **argv){
             gameObjectsUI.push_back({new_object, {}});
             gameObjects.push_back(new_object);
             // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
-            AddGameObjectToLua(lua, gameObjects.back());
+            // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
+            //AddGameObjectToLua(lua, gameObjects.back());
+            RegisterGameObjectsWithLua(lua, gameObjects); 
 
             // Clear the input field
             strcpy(gameObjectName, "");
@@ -352,7 +354,9 @@ int main(int argc, char **argv){
                         gameObjects.push_back(new_object);
                         
                         // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
-                        AddGameObjectToLua(lua, gameObjects.back());
+                        // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
+                        //AddGameObjectToLua(lua, gameObjects.back());
+                        RegisterGameObjectsWithLua(lua, gameObjects); 
 
                         strcpy(childObjectName, ""); // Clear input field
 
@@ -500,8 +504,8 @@ int main(int argc, char **argv){
             {
                 // Begin the right-hand properties menu for the selected object
                 ImGui::Begin("Object Properties", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
-                ImGui::SetWindowSize(ImVec2(250, height - 20));
-                ImGui::SetWindowPos(ImVec2(width - 250, 20));
+                ImGui::SetWindowSize(ImVec2(250, height - offset_height - 18));
+                ImGui::SetWindowPos(ImVec2(width - 250, 18));
 
                 // Display selected object name
                 ImGui::Text("Selected Object: %s", currentObject->_name.c_str());
