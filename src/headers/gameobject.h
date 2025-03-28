@@ -33,8 +33,11 @@ public:
 
     inline int getHeight() const { return _height; }
 
+    void static setEvent(SDL_Event* event);
+
     // Movement
     void Movement(SDL_Event &event);
+    void Lua_Movement();
 
     // Texture
     SDL_Texture* Texture(const std::string filename, SDL_Renderer* renderer);
@@ -69,6 +72,7 @@ public:
 // private members
 private:
     static int _current_id;
+    static SDL_Event* globalEvent;
     int _r, _g, _b;
     int _a = 255;
     SDL_Renderer* _objRenderer;   

@@ -4,6 +4,9 @@
 
 int GameObject::_current_id = 0;
 
+// NOTE: THIS COULD HAVE POTENTIAL ISSUES WITH NULLPTR WITH NOT CHECKS
+SDL_Event* GameObject::globalEvent = nullptr;
+
 // Constructor
 
 GameObject::GameObject(){
@@ -29,7 +32,9 @@ _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _original_y = y;
 
     Setter();
-}//copy paste add attribute std::string name, new attribute name, 
+}
+
+//copy paste add attribute std::string name, new attribute name, 
 GameObject::GameObject(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y):
 _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _id = _current_id++;
@@ -254,6 +259,15 @@ void GameObject::Movement(SDL_Event &event){
             _y += 10;
             break; 
     }
+}
+
+// Movement function for Lua which doesnt take parameter since we pass event as a global static variable saved in GameObject class
+void GameObject::Lua_Movement(){
+    Movement(*globalEvent);
+}
+
+void GameObject::setEvent(SDL_Event* event){
+    globalEvent = event;
 }
 
 void GameObject::UpdatePosX(int diff_x){

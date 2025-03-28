@@ -182,7 +182,12 @@ int main(int argc, char **argv){
                     if(ImGui::MenuItem("Stop")){
                         isPressed = !isPressed;
                     }
-                }          
+                }
+                // test button for native script
+                if(ImGui::MenuItem("RunScript")){
+                    lua.script_file("C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\test.lua");
+                    
+                }         
                 ImGui::MenuItem("Settings");     
                 ImGui::EndMenu();
             }
@@ -252,6 +257,8 @@ int main(int argc, char **argv){
             GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", name, 300, 300, 400, 400);
             gameObjectsUI.push_back({new_object, {}});
             gameObjects.push_back(new_object);
+            // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
+            AddGameObjectToLua(lua, gameObjects.back());
 
             // Clear the input field
             strcpy(gameObjectName, "");
@@ -313,6 +320,9 @@ int main(int argc, char **argv){
                         GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\shadow.png", childName, 300, 300, 400, 100);
                         gameObjectsUI[i].children.push_back(new_object);
                         gameObjects.push_back(new_object);
+                        
+                        // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
+                        AddGameObjectToLua(lua, gameObjects.back());
 
                         strcpy(childObjectName, ""); // Clear input field
 
@@ -673,6 +683,9 @@ int main(int argc, char **argv){
         // needs the be called to register events like key presses
         if (SDL_PollEvent(&event))
         {
+            // NOTE: COULD HAVE ISSUES DEPENDING ON NULLPTR SINCE NO CHECKS
+            // sets the global event variable for GameObject class
+            GameObject::setEvent(&event);
 
             window.pollEvents(event);
 
@@ -681,12 +694,8 @@ int main(int argc, char **argv){
 
             // Movement function
             //player3.Movement(event);
-            // Use Lua for movement instead of direct C++ call
             if (event.type == SDL_KEYDOWN)
             {
-                // Create a table to represent the event
-                sol::table lua_event = lua.create_table();
-                lua_event["key"] = SDL_GetKeyName(event.key.keysym.sym);
 
                 // Check if a GameObject is selected
                 GameObject *selectedObject = nullptr;
@@ -697,18 +706,6 @@ int main(int argc, char **argv){
                 else if (selectedChildObject != nullptr)
                 {
                     selectedObject = selectedChildObject; // Use the selected child GameObject
-                }
-
-                // If a GameObject is selected, pass it to Lua for movement
-                if (selectedObject != nullptr)
-                {
-                    std::cout << "Selected GameObject ID: " << selectedObject->GetID() << std::endl;
-                    std::cout << "Selected GameObject Name: " << selectedObject->_name << std::endl;
-                    std::cout << "Selected GameObject Position: (" << selectedObject->_x << ", " << selectedObject->_y << ")" << std::endl;
-
-                    lua["handleMovement"](selectedObject, lua_event);
-
-                    std::cout << "Updated GameObject Position: (" << selectedObject->_x << ", " << selectedObject->_y << ")" << std::endl;
                 }
             }
             if (!stopDrag){
@@ -721,6 +718,14 @@ int main(int argc, char **argv){
         }
 
         gameScreen->ScreenOffset();
+
+        if(lua["gameLoop"].valid()){
+            sol::function gameLoop = lua["gameLoop"];
+            gameLoop();  // Call the Lua game loop
+        }else {
+            // debug for Lua Code
+            //std::cerr << "Error: 'gameLoop' function not found in Lua!" << std::endl;
+        }
 
         // Draws IMGUI to the renderer to be ready to be presented on window by getting ImDrawData struct
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), window.renderer);
