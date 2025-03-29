@@ -8,7 +8,7 @@ public:
     Camera(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a);
     void Camera_Render(int thickness, int gridMinX, int gridMinY, int gridMaxX, int gridMaxY);
     bool Game_Camera_Objects(GameObject object);
-    void Resize(GameObject& object, int window_width, int window_height);
+    void Resize(GameObject& previewObject, GameObject& editorObject, int window_width, int window_height);
 
 public:
     SDL_Rect _dest_rect;

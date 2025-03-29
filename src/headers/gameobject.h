@@ -4,6 +4,7 @@
 #include <SDL2/SDL_image.h>
 #include <string>
 #include "json.hpp"
+#include "collision.h"
 
 using json = nlohmann::json;
 
@@ -25,6 +26,14 @@ public:
 
     void UpdatePosY(int diff_y);
 
+    void UpdatePosAll_X(int diff_x);
+
+    void UpdatePosAll_Y(int diff_y);
+
+    void AddCollision(SDL_Renderer* renderer);
+
+    void RenderCollisionBox(int thickness, int gridMinX, int gridMinY, int gridMaxX, int gridMaxY);
+
     inline int getX() const { return _x; }
 
     inline int getY() const { return _y; }
@@ -33,8 +42,11 @@ public:
 
     inline int getHeight() const { return _height; }
 
+    void static setEvent(SDL_Event* event);
+
     // Movement
     void Movement(SDL_Event &event);
+    void Lua_Movement();
 
     // Texture
     SDL_Texture* Texture(const std::string filename, SDL_Renderer* renderer);
@@ -64,12 +76,15 @@ public:
     SDL_Rect _dest_rect;
     SDL_Texture* _objTexture = nullptr;
     SDL_Texture* _previewTexture = nullptr;
+    bool addedCollision = false;
+    Collision collisionBox;
     
 
 // private members
 private:
     static int _current_id;
+    static SDL_Event* globalEvent;
     int _r, _g, _b;
     int _a = 255;
-    SDL_Renderer* _objRenderer;   
+    SDL_Renderer* _objRenderer;
 };

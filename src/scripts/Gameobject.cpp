@@ -1,8 +1,12 @@
 #include "gameobject.h"
 #include "serilization.h"
 #include <iostream>
+#include "gamescreen.h"
 
 int GameObject::_current_id = 0;
+
+// NOTE: THIS COULD HAVE POTENTIAL ISSUES WITH NULLPTR WITH NOT CHECKS
+SDL_Event* GameObject::globalEvent = nullptr;
 
 // Constructor
 
@@ -10,16 +14,19 @@ GameObject::GameObject(){
     _id = -1;
 }
 
+// NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a):
-_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y), _r(r), _g(g), _b(b), _a(a)
+_objRenderer(renderer), _width(width), _height(height), _x(x + GameScreen::difference_x), _y(y + GameScreen::difference_y), _r(r), _g(g), _b(b), _a(a)
 {
 _id = _current_id++;
 }
 
 // Another Optional Constructor
+// NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, std::string filename, int width, int height, int x, int y):
-_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
+_objRenderer(renderer), _width(width), _height(height), _x(x + GameScreen::difference_x), _y(y + GameScreen::difference_y){
     _id = _current_id++;
+    std::cout << "screen: " << GameScreen::difference_x << std::endl;
     _objTexture = Texture(filename, renderer=renderer);
     //_previewTexture = Texture(filename, renderer=renderer);
     _filename = filename;
@@ -29,11 +36,14 @@ _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _original_y = y;
 
     Setter();
-}//copy paste add attribute std::string name, new attribute name, 
+}
+//copy paste add attribute std::string name, new attribute name
+//NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y):
-_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
+_objRenderer(renderer), _width(width), _height(height), _x(x - GameScreen::difference_x), _y(y - GameScreen::difference_y){
     _id = _current_id++;
     _objTexture = Texture(filename, renderer=renderer);
+    std::cout << "screen: " << GameScreen::difference_x << std::endl;
     //_previewTexture = Texture(filename, renderer=renderer);
     _filename = filename;
     _name = name; 
@@ -243,17 +253,38 @@ void GameObject::Movement(SDL_Event &event){
     switch(event.key.keysym.sym){
         case SDLK_d:
             _x += 10;
+            if(addedCollision){
+                collisionBox._x += 10;
+            }
             break;
         case SDLK_a:
             _x -= 10;
+            if(addedCollision){
+                collisionBox._x -= 10;
+            }
             break;
         case SDLK_w:
             _y -= 10;
+            if(addedCollision){
+                collisionBox._y -= 10;
+            }
             break;
         case SDLK_s:
             _y += 10;
+            if(addedCollision){
+                collisionBox._y += 10;
+            }
             break; 
     }
+}
+
+// Movement function for Lua which doesnt take parameter since we pass event as a global static variable saved in GameObject class
+void GameObject::Lua_Movement(){
+    Movement(*globalEvent);
+}
+
+void GameObject::setEvent(SDL_Event* event){
+    globalEvent = event;
 }
 
 void GameObject::UpdatePosX(int diff_x){
@@ -267,6 +298,19 @@ void GameObject::UpdatePosY(int diff_y){
     std::cout << "Updated Y: " << _y << std::endl;  // Debug print
 
 }
+
+void GameObject::UpdatePosAll_X(int diff_x) {
+    _x += diff_x;
+    collisionBox._x += diff_x;  
+    collisionBox._dest_rect.x += diff_x;  // Ensure the collision box updates as well
+}
+
+void GameObject::UpdatePosAll_Y(int diff_y) {
+    _y += diff_y;
+    collisionBox._y += diff_y;
+    collisionBox._dest_rect.y += diff_y;  // Ensure the collision box updates as well
+}
+
 
 SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* renderer = nullptr){
     
@@ -285,4 +329,12 @@ SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* rende
 void GameObject::Setter(){
     json something = findGameObject(_id);
     std::cout << "id: " << _id << " " << something.dump(4) << std::endl;
+}
+
+void GameObject::AddCollision(SDL_Renderer* renderer){
+    collisionBox = Collision(renderer, _width, _height, _x, _y, 3, 252, 32, 255, _screen_x, _screen_y);
+}
+
+void GameObject::RenderCollisionBox(int thickness, int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
+    collisionBox.Collision_Render(thickness, gridMinX, gridMinY, gridMaxX, gridMaxY);
 }

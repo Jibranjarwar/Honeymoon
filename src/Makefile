@@ -1,5 +1,5 @@
 
-SOURCES = Main.cpp Window.cpp Gameobject.cpp Gamescreen.cpp FileManager.cpp Serilization.cpp Camera.cpp LuaFunctions.cpp
+SOURCES = Main.cpp Window.cpp Gameobject.cpp Gamescreen.cpp FileManager.cpp Serilization.cpp Camera.cpp LuaFunctions.cpp Collision.cpp
 SRC_DIR = scripts/
 
 SRC_FILES = $(addprefix $(SRC_DIR), $(SOURCES))

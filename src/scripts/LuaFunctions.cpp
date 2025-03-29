@@ -3,6 +3,7 @@
 #include "gameobject.h"
 #include <iostream>
 
+// creates a type for Lua to understand GameObject class
 void RegisterGameObjectWithLua(sol::state &lua) {
     lua.new_usertype<GameObject>("GameObject", 
         sol::constructors<
@@ -11,7 +12,7 @@ void RegisterGameObjectWithLua(sol::state &lua) {
             GameObject(SDL_Renderer*, std::string, std::string, int, int, int, int)
         >(),
         
-        "Movement", &GameObject::Movement, 
+        "Movement", &GameObject::Lua_Movement, 
         "UpdatePosX", &GameObject::UpdatePosX, 
         "UpdatePosY", &GameObject::UpdatePosY, 
         "Render", &GameObject::Render, 
@@ -28,6 +29,7 @@ void RegisterGameObjectWithLua(sol::state &lua) {
     );
 }
 
+// registers gameObject vector as a table for Lua
 void RegisterGameObjectsWithLua(sol::state& lua, std::vector<GameObject>& gameObjects) {
     
     sol::table gameObjectsTable = lua.create_table();
@@ -35,4 +37,12 @@ void RegisterGameObjectsWithLua(sol::state& lua, std::vector<GameObject>& gameOb
         gameObjectsTable[i + 1] = &gameObjects[i]; 
     }
     lua["gameObjects"] = gameObjectsTable; 
+}
+
+// adds New instances of GameObject to Lua table
+// ISSUE: CAUSES CRASH BECAUSE OF VECTOR REALOCATION 
+void AddGameObjectToLua(sol::state& lua, GameObject& newGameObject) {
+    sol::table gameObjectsTable = lua["gameObjects"];
+    size_t newIndex = gameObjectsTable.size() + 1;
+    gameObjectsTable[newIndex] = &newGameObject;
 }

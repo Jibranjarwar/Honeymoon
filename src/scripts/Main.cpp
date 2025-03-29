@@ -12,18 +12,19 @@
 #include "filemanager.h"
 #include "serilization.h"
 #include "camera.h"
+#include "collision.h"
+#include "gameobjectui.h"
 #include <filesystem>
 #include "json.hpp"
 #include <unordered_map>
 #include <set>
 #include "Sol/sol.hpp"
-
+#include <algorithm>
 //SETUP LUA CPP WRAPPER 
+//DEAFULT CHILDERN NAME
+//CHILD STICKS WITH PARENT,
+//CHILD PROPERTIES
 //gameobject 
-struct GameObjectUI {
-    GameObject name;
-    std::vector<GameObject> children; 
-};
 
 using json = nlohmann::json;
 
@@ -57,6 +58,7 @@ int main(int argc, char **argv){
     GameObject player3;
 
     Camera gameCamera(window.renderer, 400, 400, 200, 220, 0, 0, 0, 255);
+    //Collision gameObjectCollision(window.renderer, 300, 300, 500, 220, 3, 252, 32, 255);
 
     std::vector<Camera> cameraObjects;
 
@@ -87,6 +89,7 @@ int main(int argc, char **argv){
     // list to hold all GameObjects in the UI
     std::vector<GameObjectUI> gameObjectsUI;
     std::vector<GameObject> gameObjects;
+    std::vector<std::pair<int, GameObject>> deletedObjects;
     std::set<int> usedGameObjectIndices;
 
 
@@ -181,8 +184,35 @@ int main(int argc, char **argv){
                 }else{
                     if(ImGui::MenuItem("Stop")){
                         isPressed = !isPressed;
+                        std::sort(deletedObjects.begin(), deletedObjects.end(), 
+                            [](const std::pair<int, GameObject>& a, const std::pair<int, GameObject>& b) {
+                                return a.first < b.first; // Sort in ascending order
+                            });
+                        for(int i = 0; i < deletedObjects.size(); i++){
+                            std::cout << "index: " << deletedObjects[i].first << std::endl;
+                            std::cout << "size: " << gameObjects.size() << std::endl;
+                            gameObjects.insert(gameObjects.begin() + deletedObjects[i].first, deletedObjects[i].second);
+                            std::cout << "size: " << gameObjects.size() << std::endl;
+                            gameObjectsCopy[deletedObjects[i].second.GetID()] = deletedObjects[i].second;
+                            //gameObjectsUI.insert(gameObjectsUI.begin() + deletedObjects)
+                            
+                            //ISSUE: SOMETHING WITH THE GAMEOBJECTUI WHEN WE RESTORE OBJECT THE REFERENCING MESSES UP FOR THE OBJECTS
+                            
+                            /*for(auto& ui : gameObjectsUI){
+                                if(ui.name.GetID() == deletedObjects[i].second.GetID()){
+                                    std::cout << "samesame but not samesame" << std::endl;
+                                }
+                            }*/
+                        }
+
+                        deletedObjects.clear();
                     }
-                }          
+                }
+                // test button for native script
+                if(ImGui::MenuItem("RunScript")){
+                    lua.script_file("C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\test.lua");
+                    
+                }         
                 ImGui::MenuItem("Settings");     
                 ImGui::EndMenu();
             }
@@ -202,6 +232,11 @@ int main(int argc, char **argv){
         ImGui::Begin("GameObject Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
         ImGui::SetWindowSize(ImVec2(width - offset_width, height)); // Adjust size as needed
         ImGui::SetWindowPos(ImVec2(0, 18));
+
+        // if preview is on we disable gameManager so no new items can be added or changed while the test is on
+        if(isPressed){
+            ImGui::BeginDisabled(true);
+        }
 
         ImGui::Text("GameObjects");
 
@@ -252,6 +287,10 @@ int main(int argc, char **argv){
             GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", name, 300, 300, 400, 400);
             gameObjectsUI.push_back({new_object, {}});
             gameObjects.push_back(new_object);
+            // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
+            // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
+            //AddGameObjectToLua(lua, gameObjects.back());
+            RegisterGameObjectsWithLua(lua, gameObjects); 
 
             // Clear the input field
             strcpy(gameObjectName, "");
@@ -313,6 +352,11 @@ int main(int argc, char **argv){
                         GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\shadow.png", childName, 300, 300, 400, 100);
                         gameObjectsUI[i].children.push_back(new_object);
                         gameObjects.push_back(new_object);
+                        
+                        // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
+                        // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
+                        //AddGameObjectToLua(lua, gameObjects.back());
+                        RegisterGameObjectsWithLua(lua, gameObjects); 
 
                         strcpy(childObjectName, ""); // Clear input field
 
@@ -334,14 +378,13 @@ int main(int argc, char **argv){
                         ImGui::Text("- %s", gameObjectsUI[i].children[j]._name.c_str());
 
                         ImGui::SameLine();
+                        
                         if (ImGui::Button("Remove"))
                         {
-                            // Remove from gameObjects vector by matching the ID using a lambda function
-                            // where find_if returns a pointer to gameObject
                             auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
                                                    [&](const GameObject &obj)
                                                    { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
-
+                            
                             if (it != gameObjects.end())
                             {
                                 gameObjects.erase(it);              // Remove the GameObject from the vector
@@ -352,15 +395,17 @@ int main(int argc, char **argv){
                             gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
                             ImGui::PopID(); // Remove the current child ID before breaking
                             break;
+                            
                         }
 
                         ImGui::PopID(); // Remove the current child ID
+                    
                     }
 
-                    // Button to remove the GameObject itself
-                    if (ImGui::Button("Remove GameObject"))
-                    {
-                        std::string removedName = gameObjectsUI[i].name._name;
+                // Button to remove the GameObject itself
+                if (ImGui::Button("Remove GameObject"))
+                {
+                    std::string removedName = gameObjectsUI[i].name._name;
                         if (removedName.rfind("GameObject", 0) == 0)
                         {
                             std::string numPart = removedName.substr(10);
@@ -369,42 +414,42 @@ int main(int argc, char **argv){
                                 usedGameObjectIndices.erase(std::stoi(numPart));
                             }
                         }
-                        // Remove from gameObjects vector by matching the ID using a lambda function
-                        // where find_if returns a pointer to gameObject
-                        auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
-                                               [&](const GameObject &obj)
-                                               { return obj.GetID() == gameObjectsUI[i].name.GetID(); });
+                    // Remove from gameObjects vector by matching the ID using a lambda function
+                    // where find_if returns a pointer to gameObject
+                    auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
+                        [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].name.GetID(); });
 
-                        if (it != gameObjects.end())
-                        {
-                            gameObjects.erase(it);              // Remove the GameObject from the vector
-                            gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
-                        }
-
-                        // loop through children if not empty so we delete everything related to a gameObject since they
-                        // are its children
-                        if (gameObjectsUI[i].children.size() > 0)
-                        {
-                            for (int j = 0; j < gameObjectsUI[i].children.size(); j++)
-                            {
-                                auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
-                                                       [&](const GameObject &obj)
-                                                       { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
-
-                                if (it != gameObjects.end())
-                                {
-                                    gameObjects.erase(it);              // Remove the GameObject from the vector
-                                    gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
-                                }
-                            }
-                            // clears children vector so its back to being empty
-                            gameObjectsUI[i].children.clear();
-                        }
-                        gameObjectsUI.erase(gameObjectsUI.begin() + i);
-                        ImGui::TreePop(); // Close the tree node before deleting
-                        ImGui::PopID();   // Remove the current GameObject ID
-                        break;            // Restart the loop after removal
+                    if (it != gameObjects.end())
+                    {
+                        gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                        gameObjects.erase(it); // Remove the GameObject from the vector
+                        
                     }
+                    
+                    // loop through children if not empty so we delete everything related to a gameObject since they
+                    // are its children
+                    if(gameObjectsUI[i].children.size() > 0){
+                        for(int j = 0; j < gameObjectsUI[i].children.size(); j++){
+                            auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
+                                [&](const GameObject& obj) { return obj.GetID() == gameObjectsUI[i].children[j].GetID(); });
+
+                            if (it != gameObjects.end())
+                            {
+                                gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                                gameObjects.erase(it); // Remove the GameObject from the vector                               
+                            }
+                        }
+
+                        // clears children vector so its back to being empty
+                        gameObjectsUI[i].children.clear();
+                    }
+                    gameObjectsUI.erase(gameObjectsUI.begin() + i);
+                    ImGui::TreePop(); // Close the tree node before deleting
+                    ImGui::PopID();   // Remove the current GameObject ID
+                    break;
+                }
+
+
 
                     ImGui::TreePop(); // Close the tree node
                 }
@@ -417,6 +462,12 @@ int main(int argc, char **argv){
                 tester(gameObjects, gameScreen);
             }
         }
+        
+        // end if statement for preview disable gameManager since it needs and end for where we stop the Disabled in ImGui
+        if(isPressed){
+            ImGui::EndDisabled();
+        }
+        
         ImGui::End();
 
         if (selectedGameObject != nullptr || selectedChildObject != nullptr)
@@ -453,8 +504,8 @@ int main(int argc, char **argv){
             {
                 // Begin the right-hand properties menu for the selected object
                 ImGui::Begin("Object Properties", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
-                ImGui::SetWindowSize(ImVec2(250, height - 20));
-                ImGui::SetWindowPos(ImVec2(width - 250, 20));
+                ImGui::SetWindowSize(ImVec2(250, height - offset_height - 18));
+                ImGui::SetWindowPos(ImVec2(width - 250, 18));
 
                 // Display selected object name
                 ImGui::Text("Selected Object: %s", currentObject->_name.c_str());
@@ -608,9 +659,50 @@ int main(int argc, char **argv){
                                                        [&](const auto &pair)
                                                        { return pair.second.GetID() == matched_gameobject->GetID();});
                     
-                    it->second._objTexture = matched_gameobject->Texture(newTexture, window.renderer);
-                    it->second._previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
-                    std::cout << "new Texture: " << newTexture << std::endl;
+                    if(it != gameObjectsCopy.end()){
+                        it->second._objTexture = matched_gameobject->Texture(newTexture, window.renderer);
+                        it->second._previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
+                        std::cout << "new Texture: " << newTexture << std::endl;
+                    }
+                }
+
+                if(!matched_gameobject->addedCollision){
+                    if(ImGui::Button("Add Collision")){
+                        matched_gameobject->AddCollision(window.renderer);
+                        matched_gameobject->addedCollision = true;
+                    }
+                }else{
+                    ImGui::Text("Collision Attributes:");
+                    int collision_x = matched_gameobject->collisionBox.getX();
+                    int collision_y = matched_gameobject->collisionBox.getY();
+                    prev_screen_x = matched_gameobject->collisionBox._screen_x;
+                    prev_screen_y = matched_gameobject->collisionBox._screen_y;
+                    
+                    ImGui::Text("Position");
+                    if (ImGui::DragInt("X Position##", &matched_gameobject->collisionBox._screen_x, 1.0f))
+                    {
+                        int col_diff_x = (prev_screen_x - matched_gameobject->collisionBox._screen_x) * -1;
+                        stopDrag = true;
+                        matched_gameobject->collisionBox.UpdatePosX(col_diff_x);
+                    }
+
+                    if (ImGui::DragInt("Y Position##", &matched_gameobject->collisionBox._screen_y, 1.0f))
+                    {
+                        int col_diff_y = (prev_screen_y - matched_gameobject->collisionBox._screen_y);
+                        stopDrag = true;
+                        matched_gameobject->collisionBox.UpdatePosY(col_diff_y);
+                    }
+
+                    ImGui::Text("Size");
+                    if (ImGui::DragInt("Width##", &matched_gameobject->collisionBox._width, 1.0f))
+                    {
+                        stopDrag = true;
+                    }
+
+                    if (ImGui::DragInt("Height##", &matched_gameobject->collisionBox._height, 1.0f))
+                    {
+                        stopDrag = true;
+                    }
                 }
 
 
@@ -664,8 +756,18 @@ int main(int argc, char **argv){
                 gameObjectsCopy[gameObjects[i].GetID()] = GameObject();
             }
             gameObjects[i].Render(width - offset_width, 0, width, height - offset_height);
+
+            if(gameObjects[i].addedCollision){
+                gameObjects[i].RenderCollisionBox(3, width - offset_width, 0, width, height - offset_height);
+                //GameObject* collidedObj = gameObjects[i].collisionBox.Collision_Check(gameObjects[i], gameObjects);
+                /*if(collidedObj != nullptr){
+                    std::cout << collidedObj->GetID() << std::endl;
+                    gameObjects[i].collisionBox.Del(collidedObj, gameObjects, gameObjectsUI, gameObjectsCopy);
+                }*/
+            }
         }
         cameraObjects[0].Camera_Render(3, width - offset_width, 0, width, height - offset_height);
+        //gameObjectCollision.Collision_Render(3, width - offset_width, 0, width, height - offset_height);
 
         //This is a copy of the above gameObject but because its in a vector doesnt change original instance like above
         //gameObjects[0].Render(width - offset_width, 0, width, height - offset_height);
@@ -673,6 +775,9 @@ int main(int argc, char **argv){
         // needs the be called to register events like key presses
         if (SDL_PollEvent(&event))
         {
+            // NOTE: COULD HAVE ISSUES DEPENDING ON NULLPTR SINCE NO CHECKS
+            // sets the global event variable for GameObject class
+            GameObject::setEvent(&event);
 
             window.pollEvents(event);
 
@@ -681,12 +786,8 @@ int main(int argc, char **argv){
 
             // Movement function
             //player3.Movement(event);
-            // Use Lua for movement instead of direct C++ call
             if (event.type == SDL_KEYDOWN)
             {
-                // Create a table to represent the event
-                sol::table lua_event = lua.create_table();
-                lua_event["key"] = SDL_GetKeyName(event.key.keysym.sym);
 
                 // Check if a GameObject is selected
                 GameObject *selectedObject = nullptr;
@@ -698,29 +799,34 @@ int main(int argc, char **argv){
                 {
                     selectedObject = selectedChildObject; // Use the selected child GameObject
                 }
-
-                // If a GameObject is selected, pass it to Lua for movement
-                if (selectedObject != nullptr)
-                {
-                    std::cout << "Selected GameObject ID: " << selectedObject->GetID() << std::endl;
-                    std::cout << "Selected GameObject Name: " << selectedObject->_name << std::endl;
-                    std::cout << "Selected GameObject Position: (" << selectedObject->_x << ", " << selectedObject->_y << ")" << std::endl;
-
-                    lua["handleMovement"](selectedObject, lua_event);
-
-                    std::cout << "Updated GameObject Position: (" << selectedObject->_x << ", " << selectedObject->_y << ")" << std::endl;
-                }
             }
-            if (!stopDrag){
+            /*player3.Movement(event);
+            
+            if(gameObjects.size() > 2){
+                gameObjects[2].Movement(event);
+            }*/
+
+            // prevents gameObjects from spawning in wrong areas once preview is on and user switches back to editor
+            if(!isPressed && !stopDrag){
+            
                 // calls Zoom In and Out Function for GameScreen
                 gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
             
                 // Checks the drag for gameObject
                 gameScreen->InitalDragState(event, gameObjects, cameraObjects);
             }
-        }
-
+            
+        }    
+        
         gameScreen->ScreenOffset();
+
+        if(lua["gameLoop"].valid()){
+            sol::function gameLoop = lua["gameLoop"];
+            gameLoop();  // Call the Lua game loop
+        }else {
+            // debug for Lua Code
+            //std::cerr << "Error: 'gameLoop' function not found in Lua!" << std::endl;
+        }
 
         // Draws IMGUI to the renderer to be ready to be presented on window by getting ImDrawData struct
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), window.renderer);
@@ -730,6 +836,7 @@ int main(int argc, char **argv){
 
         if(isPressed){
             SDL_ShowWindow(previewWindow.window);
+            selectedGameObject = nullptr;
             
             //std::cout << gameObjectsCopy.size() << std::endl;
             for(int i = 0; i < gameObjectsCopy.size(); i++){
@@ -740,9 +847,40 @@ int main(int argc, char **argv){
                 // ISSUE: WITH THE RESIZE FUNCTION IT GETS CALLED EVERY FRAME SO KEEPS EXPANDING AND BREAKS
                 if(gameObjectsCopy[i] != defaultObject){
                     //std::cout << "ID: " << gameObjectsCopy[i].GetID() << std::endl;
-                    cameraObjects[0].Resize(gameObjectsCopy[i], preview_width, preview_height);
+                    auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
+                    [&](const GameObject& obj) { return obj.GetID() == gameObjectsCopy[i].GetID(); });
+
+                    cameraObjects[0].Resize(gameObjectsCopy[i], *it, preview_width, preview_height);
                     std::cout << "width after resize: " << gameObjectsCopy[i]._width << std::endl;
                     gameObjectsCopy[i].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
+                    std::cout << gameObjectsCopy[i].GetID();
+                    
+                    if(gameObjects[2].addedCollision){
+                        //gameObjects[2].collisionBox.On_Collision(gameObjects[2], gameObjects);
+                        GameObject* collidedObject = gameObjects[2].collisionBox.Collision_Check(gameObjects[2], gameObjects);
+                        
+                        if(collidedObject != nullptr){
+                            // finds object in gameObject vector
+                            auto collided_it = std::find(gameObjects.begin(), gameObjects.end(), *collidedObject);
+                            
+                            // uses distance formula from algorithm library to find index of gameObeject
+                            int index = std::distance(gameObjects.begin(), collided_it);
+                            
+                            // push deletedObjects too vector
+                            deletedObjects.push_back(std::make_pair(index, *collidedObject));
+                            
+                            // Del function to delete on collision
+                            gameObjects[2].collisionBox.Del(collidedObject, gameObjects, gameObjectsCopy);
+                        }
+                        /*GameObject* collidedObj = it->collisionBox.Collision_Check(*it, gameObjects);
+                        if(collidedObj != nullptr){
+                            std::cout << collidedObj->GetID() << std::endl;
+                            int index = std::distance(gameObjects.begin(), it);
+                            deletedObjects.push_back(std::make_pair(index, *it));
+                            it->collisionBox.Del(collidedObj, gameObjects, gameObjectsCopy);
+                        
+                        }*/
+                    }
                 }
             }
             //gameObjects[1].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
