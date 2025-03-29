@@ -1,0 +1,25 @@
+stages:
+  - build
+  - test
+
+variables:
+  BUILD_DIR: "src"
+
+build:
+  stage: build
+  image: gcc:latest 
+  script:
+    - echo "Building the project "
+    - make 
+    - ls -lah 
+  artifacts:
+    paths:
+      - main.exe  
+
+test:
+  stage: test
+  image: gcc:latest
+  script:
+    - echo "Running main.exe..."
+    - chmod +x main.exe  
+    - ./main.exe  
