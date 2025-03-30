@@ -1,18 +1,23 @@
 player = gameObjects[3]
 
+stopMovement = false
+
 print("Player name: ", player.name)
 print("Pos X: ", player.x)
 print("Pos Y: ", player.y)
 
 function gameLoop()
     
-    player:Movement()
-    
-    if player.x > 500 then
-        player.x = 200
-    else
-        print("This is the else statement")
+    if not stopMovement then
+        player:Movement()
     end
-    -- player:UpdatePosX(50)
-    print("New Pos X: ", player.x)
+
+    if player:OnCollision() then
+        print("we collided")
+        player.x = 100
+        player.y = 300
+        stopMovement = true
+    else
+        print("we have not collided with anything")
+    end
 end

@@ -83,6 +83,22 @@ GameObject* Collision::Collision_Check(GameObject& self, std::vector<GameObject>
     return nullptr;
 }
 
+bool Collision::Collision_Check_Bool(GameObject& self, std::vector<GameObject>& gameObjects){
+    
+    for(int i = 0; i < gameObjects.size(); i++){
+        if(gameObjects[i].addedCollision && self.GetID() != gameObjects[i].GetID()){
+            if(SDL_HasIntersection(&self.collisionBox._dest_rect, &gameObjects[i].collisionBox._dest_rect)){
+                std::cout << self.GetID() << " collided with " << gameObjects[i].GetID() << std::endl;
+                return true;
+            }
+        }else{
+            continue;
+        }
+    }
+
+    return false;
+}
+
 void Collision::Del(GameObject* obj, std::vector<GameObject>& gameObjects, std::unordered_map<int, GameObject>& previewMap){
     
     auto it = std::find_if(gameObjects.begin(), gameObjects.end(),

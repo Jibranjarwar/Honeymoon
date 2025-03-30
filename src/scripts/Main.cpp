@@ -28,6 +28,8 @@
 
 using json = nlohmann::json;
 
+// moved gameObjects vector to global space so LuaFunctions.cpp can access it
+std::vector<GameObject> gameObjects;
 
 int main(int argc, char **argv){
 
@@ -88,7 +90,6 @@ int main(int argc, char **argv){
     
     // list to hold all GameObjects in the UI
     std::vector<GameObjectUI> gameObjectsUI;
-    std::vector<GameObject> gameObjects;
     std::vector<std::pair<int, GameObject>> deletedObjects;
     std::set<int> usedGameObjectIndices;
 
@@ -210,7 +211,11 @@ int main(int argc, char **argv){
                 }
                 // test button for native script
                 if(ImGui::MenuItem("RunScript")){
-                    lua.script_file("C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\test.lua");
+                    try{
+                        lua.script_file("C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\test.lua");
+                    }catch(const sol::error& e){
+                        std::cerr << "Lua Error: " << e.what() << std::endl;
+                    }
                     
                 }         
                 ImGui::MenuItem("Settings");     

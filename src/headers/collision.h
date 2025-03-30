@@ -18,6 +18,7 @@ public:
     void UpdatePosX(int diff_x);   
     void UpdatePosY(int diff_y);
     GameObject* Collision_Check(GameObject& self, std::vector<GameObject>& gameObjects);
+    bool Collision_Check_Bool(GameObject& self, std::vector<GameObject>& gameObjects);
     void On_Collision(GameObject& self, std::vector<GameObject>& gameObjects);
     void Del(GameObject* obj, std::vector<GameObject>& gameObjects, std::unordered_map<int, GameObject>& previewMap);
 

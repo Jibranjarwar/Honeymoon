@@ -253,26 +253,34 @@ void GameObject::Movement(SDL_Event &event){
     switch(event.key.keysym.sym){
         case SDLK_d:
             _x += 10;
+            _screen_x += 10;
             if(addedCollision){
                 collisionBox._x += 10;
+                collisionBox._screen_x += 10;
             }
             break;
         case SDLK_a:
             _x -= 10;
+            _screen_x -= 10;
             if(addedCollision){
                 collisionBox._x -= 10;
+                collisionBox._screen_x -= 10;
             }
             break;
         case SDLK_w:
             _y -= 10;
+            _screen_y -= 10;
             if(addedCollision){
                 collisionBox._y -= 10;
+                collisionBox._screen_y -= 10;
             }
             break;
         case SDLK_s:
             _y += 10;
+            _screen_y += 10;
             if(addedCollision){
                 collisionBox._y += 10;
+                collisionBox._screen_y += 10;
             }
             break; 
     }
