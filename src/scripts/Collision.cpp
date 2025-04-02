@@ -83,6 +83,24 @@ GameObject* Collision::Collision_Check(GameObject& self, std::vector<GameObject>
     return nullptr;
 }
 
+// NOTE: IN LUA CODE NEED TO CHECK AGAINST RETURNED OBJ IF YOU DONT WANT TO CODE TO HANG
+sol::table Collision::Collision_Check_Lua(GameObject& self, std::vector<GameObject>& gameObjects, sol::state& lua) {
+    for (int i = 0; i < gameObjects.size(); i++) {
+        if (gameObjects[i].addedCollision && self.GetID() != gameObjects[i].GetID()) {
+            if (SDL_HasIntersection(&self.collisionBox._dest_rect, &gameObjects[i].collisionBox._dest_rect)) {
+                std::cout << self.GetID() << " collided with " << gameObjects[i].GetID() << std::endl;
+
+                // Return the Lua table representing the GameObject
+                sol::table luaGameObject = lua["gameObjects"][gameObjects[i].GetID()];
+                return luaGameObject;
+            }
+        }else{
+            continue;
+        }
+    }
+    return sol::nil;
+}
+
 bool Collision::Collision_Check_Bool(GameObject& self, std::vector<GameObject>& gameObjects){
     
     for(int i = 0; i < gameObjects.size(); i++){

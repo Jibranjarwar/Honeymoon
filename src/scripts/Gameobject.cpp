@@ -53,6 +53,8 @@ _objRenderer(renderer), _width(width), _height(height), _x(x - GameScreen::diffe
     _original_y = y;
     _screen_x = x;
     _screen_y = y;
+    _screen_width = width;
+    _screen_height = height;
     Setter();
 }
 // Destructor
@@ -269,7 +271,7 @@ void GameObject::Movement(SDL_Event &event){
             break;
         case SDLK_w:
             _y -= 10;
-            _screen_y -= 10;
+            _screen_y += 10;
             if(addedCollision){
                 collisionBox._y -= 10;
                 collisionBox._screen_y -= 10;
@@ -277,10 +279,10 @@ void GameObject::Movement(SDL_Event &event){
             break;
         case SDLK_s:
             _y += 10;
-            _screen_y += 10;
+            _screen_y -= 10;
             if(addedCollision){
                 collisionBox._y += 10;
-                collisionBox._screen_y += 10;
+                collisionBox._screen_y -= 10;
             }
             break; 
     }
@@ -305,6 +307,14 @@ void GameObject::UpdatePosY(int diff_y){
     _y += diff_y;
     std::cout << "Updated Y: " << _y << std::endl;  // Debug print
 
+}
+
+void GameObject::UpdateWidth(int diff_width){
+    _width += diff_width;
+}
+
+void GameObject::UpdateHeight(int diff_height){
+    _height += diff_height;
 }
 
 void GameObject::UpdatePosAll_X(int diff_x) {

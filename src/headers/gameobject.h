@@ -26,6 +26,10 @@ public:
 
     void UpdatePosY(int diff_y);
 
+    void UpdateWidth(int diff_width);
+
+    void UpdateHeight(int diff_height);
+
     void UpdatePosAll_X(int diff_x);
 
     void UpdatePosAll_Y(int diff_y);
@@ -68,6 +72,7 @@ public:
     int _x, _y;
     int _screen_x, _screen_y;
     int _width, _height;
+    int _screen_width, _screen_height;
     int _original_w, _original_h;
     int _original_x, _original_y;
     int _id;
@@ -78,6 +83,7 @@ public:
     SDL_Texture* _previewTexture = nullptr;
     bool addedCollision = false;
     Collision collisionBox;
+    std::vector<int> childrenIDs;
     
 
 // private members

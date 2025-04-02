@@ -29,7 +29,10 @@
 using json = nlohmann::json;
 
 // moved gameObjects vector to global space so LuaFunctions.cpp can access it
+// global variables
 std::vector<GameObject> gameObjects;
+sol::state global_lua;
+std::vector<GameObjectUI> gameObjectsUI;
 
 int main(int argc, char **argv){
 
@@ -89,7 +92,6 @@ int main(int argc, char **argv){
     }
     
     // list to hold all GameObjects in the UI
-    std::vector<GameObjectUI> gameObjectsUI;
     std::vector<std::pair<int, GameObject>> deletedObjects;
     std::set<int> usedGameObjectIndices;
 
@@ -138,10 +140,9 @@ int main(int argc, char **argv){
     std::cout << "object4 id: " << player4.GetID() << std::endl; 
     GameObject* selectedGameObject = nullptr;
     GameObject* selectedChildObject = nullptr;
-    sol::state lua;
-    lua.open_libraries(sol::lib::base);
-    RegisterGameObjectWithLua(lua);               
-    RegisterGameObjectsWithLua(lua, gameObjects); 
+    global_lua.open_libraries(sol::lib::base);
+    RegisterGameObjectWithLua(global_lua);               
+    RegisterGameObjectsWithLua(global_lua, gameObjects); 
 
     while(!window.isClosed()){
         SDL_GetWindowSize(window.window, &width, &height);
@@ -212,7 +213,7 @@ int main(int argc, char **argv){
                 // test button for native script
                 if(ImGui::MenuItem("RunScript")){
                     try{
-                        lua.script_file("C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\test.lua");
+                        global_lua.script_file("C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\test.lua");
                     }catch(const sol::error& e){
                         std::cerr << "Lua Error: " << e.what() << std::endl;
                     }
@@ -295,7 +296,7 @@ int main(int argc, char **argv){
             // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
             // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
             //AddGameObjectToLua(lua, gameObjects.back());
-            RegisterGameObjectsWithLua(lua, gameObjects); 
+            RegisterGameObjectsWithLua(global_lua, gameObjects); 
 
             // Clear the input field
             strcpy(gameObjectName, "");
@@ -357,11 +358,19 @@ int main(int argc, char **argv){
                         GameObject new_object = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\shadow.png", childName, 300, 300, 400, 100);
                         gameObjectsUI[i].children.push_back(new_object);
                         gameObjects.push_back(new_object);
+
+                        // find gameObject in gameObject vector so we can add to children ID vector
+                        auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
+                                                   [&](const GameObject &obj)
+                                                   { return obj.GetID() == gameObjectsUI[i].name.GetID(); });
+                        
+                        // add children IDs too gameObject so we can find them on easier later
+                        it->childrenIDs.push_back(new_object.GetID());
                         
                         // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
                         // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
                         //AddGameObjectToLua(lua, gameObjects.back());
-                        RegisterGameObjectsWithLua(lua, gameObjects); 
+                        RegisterGameObjectsWithLua(global_lua, gameObjects); 
 
                         strcpy(childObjectName, ""); // Clear input field
 
@@ -394,7 +403,11 @@ int main(int argc, char **argv){
                             {
                                 gameObjects.erase(it);              // Remove the GameObject from the vector
                                 gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
+                                it->childrenIDs.erase(std::remove(it->childrenIDs.begin(), it->childrenIDs.end(), it->GetID()), it->childrenIDs.end()); // Rempves the GameObject id from children vector
                             }
+
+                            // remake Lua Table after deleting gameObjects
+                            RegisterGameObjectsWithLua(global_lua, gameObjects);
 
                             // Remove child from list
                             gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
@@ -441,13 +454,17 @@ int main(int argc, char **argv){
                             if (it != gameObjects.end())
                             {
                                 gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
-                                gameObjects.erase(it); // Remove the GameObject from the vector                               
+                                gameObjects.erase(it); // Remove the GameObject from the vector
+                                it->childrenIDs.clear();                             
                             }
                         }
 
                         // clears children vector so its back to being empty
                         gameObjectsUI[i].children.clear();
                     }
+                    // remake Lua Table after deleting gameObjects
+                    RegisterGameObjectsWithLua(global_lua, gameObjects);
+                    
                     gameObjectsUI.erase(gameObjectsUI.begin() + i);
                     ImGui::TreePop(); // Close the tree node before deleting
                     ImGui::PopID();   // Remove the current GameObject ID
@@ -550,7 +567,11 @@ int main(int argc, char **argv){
                 {
                     int prev_screen_x = matched_gameobject->_screen_x;
                     int prev_screen_y = matched_gameobject->_screen_y;
+                    int prev_screen_width = matched_gameobject->_screen_width;
+                    int prev_screen_height = matched_gameobject->_screen_height;
 
+                    ImGui::Text("Position");
+                    
                     // Add drag controls for X and Y
                     if (ImGui::DragInt("X Position", &matched_gameobject->_screen_x, 1.0f, -1000, 1000))
                     {
@@ -575,6 +596,7 @@ int main(int argc, char **argv){
                                         {
                                             if (obj.GetID() == child.GetID())
                                             {
+                                                obj._screen_x += diff_x;
                                                 obj.UpdatePosX(diff_x);
                                                 break;
                                             }
@@ -589,7 +611,7 @@ int main(int argc, char **argv){
                     if (ImGui::DragInt("Y Position", &matched_gameobject->_screen_y, 1.0f, -1000, 1000))
                     {
                         stopDrag = true;
-                        int diff_y = (prev_screen_y - matched_gameobject->_screen_y) * -1;
+                        int diff_y = (prev_screen_y - matched_gameobject->_screen_y);
                         matched_gameobject->UpdatePosY(diff_y);
 
                         // If the selected object is a parent, update its children's positions
@@ -610,6 +632,81 @@ int main(int argc, char **argv){
                                             if (obj.GetID() == child.GetID())
                                             {
                                                 obj.UpdatePosY(diff_y);
+                                                obj._screen_y -= diff_y;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    ImGui::Text("Size");
+                    if (ImGui::DragInt("Width", &matched_gameobject->_screen_width, 1.0f, -1000, 1000))
+                    {
+                        stopDrag = true;
+                        int diff_width = (prev_screen_width - matched_gameobject->_screen_width) * -1;
+                        matched_gameobject->UpdateWidth(diff_width);
+
+                        // If the selected object is a parent, update its children's positions
+                        if (selectedGameObject != nullptr)
+                        {
+                            for (size_t i = 0; i < gameObjectsUI.size(); ++i)
+                            {
+                                if (gameObjectsUI[i].name.GetID() == matched_gameobject->GetID())
+                                {
+                                    // Update children positions
+                                    for (auto &child : gameObjectsUI[i].children)
+                                    {
+                                        child.UpdateWidth(diff_width);
+                                        //child._screen_width -= diff_width;
+
+                                        // Also update the copy in the gameObjects vector
+                                        for (auto &obj : gameObjects)
+                                        {
+                                            if (obj.GetID() == child.GetID())
+                                            {
+                                                obj.UpdateWidth(diff_width);
+                                                obj._screen_width += diff_width;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (ImGui::DragInt("Height", &matched_gameobject->_screen_height, 1.0f, -1000, 1000))
+                    {
+                        stopDrag = true;
+                        int diff_height = (prev_screen_height - matched_gameobject->_screen_height) * -1;
+                        matched_gameobject->UpdateHeight(diff_height);
+
+                        // If the selected object is a parent, update its children's positions
+                        if (selectedGameObject != nullptr)
+                        {
+                            for (size_t i = 0; i < gameObjectsUI.size(); ++i)
+                            {
+                                if (gameObjectsUI[i].name.GetID() == matched_gameobject->GetID())
+                                {
+                                    // Update children positions
+                                    for (auto &child : gameObjectsUI[i].children)
+                                    {
+                                        child.UpdateHeight(diff_height);
+                                        //child._screen_height += diff_height;
+
+                                        // Also update the copy in the gameObjects vector
+                                        for (auto &obj : gameObjects)
+                                        {
+                                            if (obj.GetID() == child.GetID())
+                                            {
+                                                obj._screen_height += diff_height;
+                                                obj.UpdateHeight(diff_height);
+                                                
                                                 break;
                                             }
                                         }
@@ -825,8 +922,8 @@ int main(int argc, char **argv){
         
         gameScreen->ScreenOffset();
 
-        if(lua["gameLoop"].valid()){
-            sol::function gameLoop = lua["gameLoop"];
+        if(global_lua["gameLoop"].valid()){
+            sol::function gameLoop = global_lua["gameLoop"];
             gameLoop();  // Call the Lua game loop
         }else {
             // debug for Lua Code
@@ -875,6 +972,7 @@ int main(int argc, char **argv){
                             deletedObjects.push_back(std::make_pair(index, *collidedObject));
                             
                             // Del function to delete on collision
+                            // ISSUE IF IT TRIES TO DELETE CHILD OBJECT OF ITSELF IT CRASHES
                             gameObjects[2].collisionBox.Del(collidedObject, gameObjects, gameObjectsCopy);
                         }
                         /*GameObject* collidedObj = it->collisionBox.Collision_Check(*it, gameObjects);
