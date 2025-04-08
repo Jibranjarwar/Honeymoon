@@ -33,6 +33,7 @@ using json = nlohmann::json;
 std::vector<GameObject> gameObjects;
 sol::state global_lua;
 std::vector<GameObjectUI> gameObjectsUI;
+extern bool dragFile;
 
 int main(int argc, char **argv){
 
@@ -41,6 +42,7 @@ int main(int argc, char **argv){
 
     GameObject* matched_gameobject;
     bool stopDrag = false;
+    bool CameraProperties = false;
     int prev_screen_x = 0;
     int prev_screen_y = 0;
 
@@ -244,6 +246,19 @@ int main(int argc, char **argv){
             ImGui::BeginDisabled(true);
         }
 
+        if(ImGui::Selectable("Camera")){
+            if (selectedGameObject != nullptr) {
+                // Do nothing, prevent opening Camera Properties
+            } else {
+                CameraProperties = true;
+            }
+        }
+
+        if (selectedGameObject != nullptr && ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Close GameObject Properties first");
+        }
+        
+        ImGui::Separator();
         ImGui::Text("GameObjects");
 
         // If user clicks a GameObject, set it as selected
@@ -403,7 +418,7 @@ int main(int argc, char **argv){
                             {
                                 gameObjects.erase(it);              // Remove the GameObject from the vector
                                 gameObjectsCopy.erase(it->GetID()); // Remove the GameObject from the map
-                                it->childrenIDs.erase(std::remove(it->childrenIDs.begin(), it->childrenIDs.end(), it->GetID()), it->childrenIDs.end()); // Rempves the GameObject id from children vector
+                                it->childrenIDs.erase(std::remove(it->childrenIDs.begin(), it->childrenIDs.end(), it->GetID()), it->childrenIDs.end()); // Removes the GameObject id from children vector
                             }
 
                             // remake Lua Table after deleting gameObjects
@@ -489,6 +504,57 @@ int main(int argc, char **argv){
         if(isPressed){
             ImGui::EndDisabled();
         }
+
+        // Camera properties
+        if(CameraProperties){
+            ImGui::Begin("Camera Properties", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
+
+            if (!ImGui::IsWindowFocused())
+            {
+                stopDrag = false; // Stop dragging if the window is unselected
+            }
+            
+            ImGui::SetWindowSize(ImVec2(250, height - offset_height - 18));
+            ImGui::SetWindowPos(ImVec2(width - 250, 18));
+            ImGui::Text("Position");
+                    
+            // Add drag controls for X and Y
+            if (ImGui::DragInt("X Position", &cameraObjects[0]._x, 1.0f, -1000, 1000))
+            {
+                stopDrag = true;
+                //int diff_x = (prev_screen_x - matched_gameobject->_screen_x) * -1;
+                //matched_gameobject->UpdatePosX(diff_x);
+            }
+
+            if (ImGui::DragInt("Y Position", &cameraObjects[0]._y, 1.0f, -1000, 1000))
+            {
+                stopDrag = true;
+                //int diff_y = (prev_screen_y - matched_gameobject->_screen_y);
+                //matched_gameobject->UpdatePosY(diff_y);
+
+                // If the selected object is a parent, update its children's positions
+            }
+
+            ImGui::Text("Size");
+            if (ImGui::DragInt("Width", &cameraObjects[0]._width, 1.0f, -1000, 1000))
+            {
+                stopDrag = true;
+                //int diff_width = (prev_screen_width - matched_gameobject->_screen_width) * -1;
+                //matched_gameobject->UpdateWidth(diff_width)
+            }
+
+            if (ImGui::DragInt("Height", &cameraObjects[0]._height, 1.0f, -1000, 1000))
+            {
+                stopDrag = true;
+                //int diff_height = (prev_screen_height - matched_gameobject->_screen_height) * -1;
+                //matched_gameobject->UpdateHeight(diff_height);
+            }
+
+            if(ImGui::Button("Close")){
+                CameraProperties = false;
+            }
+            ImGui::End();
+        }
         
         ImGui::End();
 
@@ -517,7 +583,7 @@ int main(int argc, char **argv){
             }
 
             // If the selected GameObject or Child Object has been removed, reset the pointer
-            if (!exists)
+            if (!exists && !CameraProperties)
             {
                 selectedGameObject = nullptr;
                 selectedChildObject = nullptr;
@@ -525,12 +591,18 @@ int main(int argc, char **argv){
             else
             {
                 // Begin the right-hand properties menu for the selected object
+                CameraProperties = false;
                 ImGui::Begin("Object Properties", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
                 ImGui::SetWindowSize(ImVec2(250, height - offset_height - 18));
                 ImGui::SetWindowPos(ImVec2(width - 250, 18));
 
                 // Display selected object name
                 ImGui::Text("Selected Object: %s", currentObject->_name.c_str());
+                //std::string copyOfName = currentObject->_name;
+                auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
+                        [&](const GameObject& obj) { return obj.GetID() == currentObject->GetID(); });
+                
+                //std::cout << it->_name << std::endl;
                 if (!ImGui::IsWindowFocused())
                 {
                     stopDrag = false; // Stop dragging if the window is unselected
@@ -545,6 +617,16 @@ int main(int argc, char **argv){
                     // Check if the input is not empty before updating
                     if (strlen(renameBuffer) > 0)
                     {
+                        //if(global_lua[it->_name].valid()){
+                        std::cout << "damn it should work" << std::endl;
+                        
+                        // ISSUE: doesnt update lua table with new name
+                        // POSSIBLE FIX: PASS IN NEW RENAME AS A FUNCTION WITH GLOBAL_LUA AND OLD NAME AND REASSIGN THE TABLE VALUE
+                        // FIXED: PASS IN NEW RENAME AS FUNCTION WITH GLOBAL_LUA AND CALL FUNCTION TO UPDATE KEY VALUE PAIR IN LUA TABLE
+                        UpdateKeyTableLua(global_lua, renameBuffer, *it);
+                        it->_name = renameBuffer;
+                            //global_lua[it->_name] = renameBuffer;
+                        //}
                         currentObject->_name = renameBuffer; // Update name only if input is not empty
                     }
                 }
@@ -746,11 +828,56 @@ int main(int argc, char **argv){
                     }
                 }
 
+                std::string fileName = std::filesystem::path(matched_gameobject->_filename).filename().string();
+                static char ImageBuffer[128];
+                strncpy(ImageBuffer, fileName.c_str(), sizeof(ImageBuffer));
+                
+                // makes sure that Text and Input Text are more aligned then before
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Texture:");
+                ImGui::SameLine();
+                ImGui::InputText("##", ImageBuffer, IM_ARRAYSIZE(ImageBuffer), ImGuiInputTextFlags_ReadOnly);
+                
+                if (ImGui::BeginDragDropTarget()) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_FILE")) {
+                        // makes sure payload exists
+                        if (payload && payload->Data) {
+                            std::cout << "accepted payload" << std::endl;
+                            std::string droppedFile = static_cast<const char*>(payload->Data);
+                            //std::cout << droppedFile << std::endl;
+                            
+                            // gets file extension since we dont want to accept anything other than png or jpg
+                            std::filesystem::path filePath(droppedFile);
+                            std::string extension = filePath.extension().string();
+
+                            if(extension == ".png" || extension == ".jpg"){
+                                matched_gameobject->_filename = droppedFile;
+                                // this changes all instances that contain the old texture to the new texture including the previewGameObjects in gameObjectsCopy
+                                matched_gameobject->_objTexture = matched_gameobject->Texture(droppedFile, window.renderer);
+                                matched_gameobject->_previewTexture = matched_gameobject->Texture(droppedFile, previewWindow.renderer);
+                                
+                                // iterates through gameObjectsCopy using a lambda function to find key-value pair for the gameObject we are looking for
+                                auto it = std::find_if(gameObjectsCopy.begin(), gameObjectsCopy.end(),
+                                                                [&](const auto &pair)
+                                                                { return pair.second.GetID() == matched_gameobject->GetID();});
+                                
+                                if(it != gameObjectsCopy.end()){
+                                    it->second._filename = droppedFile;
+                                    it->second._objTexture = matched_gameobject->Texture(droppedFile, window.renderer);
+                                    it->second._previewTexture = matched_gameobject->Texture(droppedFile, previewWindow.renderer);
+                                }
+                            }
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+
                 ImTextureID obj_image = (ImTextureID)matched_gameobject->_objTexture;
                 ImGui::Image(obj_image, ImVec2(200, 200));
                 if(ImGui::Button("Select Image")){
                     std::string newTexture = SelectImageFile();
+
+                    matched_gameobject->_filename = newTexture;
                     
                     // this changes all instances that contain the old texture to the new texture including the previewGameObjects in gameObjectsCopy
                     matched_gameobject->_objTexture = matched_gameobject->Texture(newTexture, window.renderer);
@@ -762,6 +889,7 @@ int main(int argc, char **argv){
                                                        { return pair.second.GetID() == matched_gameobject->GetID();});
                     
                     if(it != gameObjectsCopy.end()){
+                        it->second._filename = newTexture;
                         it->second._objTexture = matched_gameobject->Texture(newTexture, window.renderer);
                         it->second._previewTexture = matched_gameobject->Texture(newTexture, previewWindow.renderer);
                         std::cout << "new Texture: " << newTexture << std::endl;
@@ -909,7 +1037,7 @@ int main(int argc, char **argv){
             }*/
 
             // prevents gameObjects from spawning in wrong areas once preview is on and user switches back to editor
-            if(!isPressed && !stopDrag){
+            if(!isPressed && !stopDrag && !dragFile){
             
                 // calls Zoom In and Out Function for GameScreen
                 gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
@@ -939,6 +1067,7 @@ int main(int argc, char **argv){
         if(isPressed){
             SDL_ShowWindow(previewWindow.window);
             selectedGameObject = nullptr;
+            CameraProperties = false;
             
             //std::cout << gameObjectsCopy.size() << std::endl;
             for(int i = 0; i < gameObjectsCopy.size(); i++){

@@ -102,3 +102,25 @@ void AddGameObjectToLua(sol::state& lua, GameObject& newGameObject) {
     size_t newIndex = gameObjectsTable.size() + 1;
     gameObjectsTable[newIndex] = &newGameObject;
 }
+
+// Update key value pair in lua by finding old key and replacing it with new changed name so we can always access in Lua scripting
+void UpdateKeyTableLua(sol::state& lua, std::string newName, GameObject& newGameObject){
+    sol::table gameObjectsTable = lua["gameObjects"];
+    std::string oldKey;
+    for(auto& pair : gameObjectsTable){
+        if(pair.second.is<GameObject*>()){
+            GameObject* obj = pair.second.as<GameObject*>();
+            if(obj == &newGameObject){
+                std::cout << "print worked" << std::endl;
+                oldKey = pair.first.as<std::string>();
+                break;
+            }
+        }
+    }
+
+    if(!oldKey.empty()){
+        gameObjectsTable[oldKey] = sol::nil;
+    }
+
+    gameObjectsTable[newName] = &newGameObject;
+}

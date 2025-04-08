@@ -12,3 +12,4 @@ extern std::vector<GameObjectUI> gameObjectsUI;
 void RegisterGameObjectWithLua(sol::state& lua);
 void RegisterGameObjectsWithLua(sol::state& lua, std::vector<GameObject>& gameObjects);
 void AddGameObjectToLua(sol::state& lua, GameObject& newGameObject);
+void UpdateKeyTableLua(sol::state& lua, std::string newName, GameObject& newGameObject);

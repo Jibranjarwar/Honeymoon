@@ -1,5 +1,4 @@
 player = gameObjects["player"]
-player.x = 100
 
 stopMovement = false
 
@@ -12,7 +11,7 @@ print("Pos Y: ", player.y)
 function gameLoop()
 
     player:Movement()
-    -- player.children["bob"]:Movement()
+    player.children["bob"]:Movement()
 
     -- if player.x > 600 then
     --    player.x = 100
