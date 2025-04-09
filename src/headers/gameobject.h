@@ -72,6 +72,7 @@ public:
     int _x, _y;
     int _screen_x, _screen_y;
     int _width, _height;
+    int _a = 255;
     int _screen_width, _screen_height;
     int _original_w, _original_h;
     int _original_x, _original_y;
@@ -91,6 +92,5 @@ private:
     static int _current_id;
     static SDL_Event* globalEvent;
     int _r, _g, _b;
-    int _a = 255;
     SDL_Renderer* _objRenderer;
 };

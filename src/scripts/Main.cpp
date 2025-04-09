@@ -34,6 +34,7 @@ std::vector<GameObject> gameObjects;
 sol::state global_lua;
 std::vector<GameObjectUI> gameObjectsUI;
 extern bool dragFile;
+bool stopDrag = false;
 
 int main(int argc, char **argv){
 
@@ -41,7 +42,6 @@ int main(int argc, char **argv){
     
 
     GameObject* matched_gameobject;
-    bool stopDrag = false;
     bool CameraProperties = false;
     int prev_screen_x = 0;
     int prev_screen_y = 0;
@@ -144,7 +144,12 @@ int main(int argc, char **argv){
     GameObject* selectedChildObject = nullptr;
     global_lua.open_libraries(sol::lib::base);
     RegisterGameObjectWithLua(global_lua);               
-    RegisterGameObjectsWithLua(global_lua, gameObjects); 
+    RegisterGameObjectsWithLua(global_lua, gameObjects);
+
+    // FPS variables
+    int frameCount = 0;
+    int fps = 0;
+    Uint32 lastTime = SDL_GetTicks();
 
     while(!window.isClosed()){
         SDL_GetWindowSize(window.window, &width, &height);
@@ -232,6 +237,15 @@ int main(int argc, char **argv){
                 ImGui::MenuItem("About");         
                 ImGui::EndMenu();
             }
+
+            char fpsText[64];
+            
+            // use snprintf over sprintf so we dont write over the fpsText Buffer and cause a buffer overflow
+            snprintf(fpsText, sizeof(fpsText), "FPS: %d", fps);
+            ImVec2 textSize = ImGui::CalcTextSize(fpsText);
+            // get the distance too be able to display FPS on right side
+            ImGui::SetCursorPosX(ImGui::GetWindowSize().x - textSize.x - ImGui::GetStyle().ItemSpacing.x);
+            ImGui::Text("%s", fpsText);
 
             ImGui::EndMainMenuBar();
         }
@@ -606,6 +620,8 @@ int main(int argc, char **argv){
                 if (!ImGui::IsWindowFocused())
                 {
                     stopDrag = false; // Stop dragging if the window is unselected
+                }else{
+                    stopDrag = true;
                 }
 
                 // Store the current name before modifying
@@ -873,7 +889,24 @@ int main(int argc, char **argv){
                 }
 
                 ImTextureID obj_image = (ImTextureID)matched_gameobject->_objTexture;
-                ImGui::Image(obj_image, ImVec2(200, 200));
+                
+                std::filesystem::path ObjPath(matched_gameobject->_filename);
+                
+                if(ObjPath.extension().string() == ".png"){
+                    ImVec4 colour = ImVec4(1.0f, 1.0f, 1.0f, (static_cast<float>(matched_gameobject->_a) / 255.0f));
+                    ImGui::Image(obj_image, ImVec2(200, 200), ImVec2(0,0), ImVec2(1,1), colour);
+                    if(ImGui::SliderInt("Oppacity", &matched_gameobject->_a, 0, 255)){
+                        auto it = std::find_if(gameObjectsCopy.begin(), gameObjectsCopy.end(),
+                                                        [&](const auto &pair)
+                                                        { return pair.second.GetID() == matched_gameobject->GetID();});
+                        if(it != gameObjectsCopy.end()){
+                            it->second._a = matched_gameobject->_a;
+                        }
+                    }
+                }else{
+                    ImGui::Image(obj_image, ImVec2(200, 200));
+                }
+                
                 if(ImGui::Button("Select Image")){
                     std::string newTexture = SelectImageFile();
 
@@ -951,6 +984,18 @@ int main(int argc, char **argv){
 
         // Wraps up all ImGUI elements and compiles everything into a ImDrawData struct
         ImGui::Render();
+
+        frameCount++;
+        
+        // Gets the current Time since SDL was initialized 
+        Uint32 currentTime = SDL_GetTicks();
+        
+        // checks at least 1 second has passed since the last FPS update
+        if (currentTime - lastTime >= 1000) {
+            fps = frameCount;
+            frameCount = 0;
+            lastTime = currentTime;
+        }
 
         // renders the objects to the screen without this wont display
         // NOTE: THE ORDER IN WHICH YOU RENDER CAN BE SEEN AS "LAYERS"

@@ -80,6 +80,9 @@ void GameObject::RenderPreview(SDL_Renderer* preview_renderer, int offset_x, int
     if(_previewTexture == nullptr){
         _previewTexture = Texture(_filename, preview_renderer);
     }
+
+    SDL_SetRenderDrawBlendMode(preview_renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureAlphaMod(_previewTexture, _a);
     SDL_RenderCopy(preview_renderer, _previewTexture, nullptr, &new_dest_rect);
     //SDL_SetRenderDrawColor(preview_renderer, _r, _g, _b, _a);
     //SDL_RenderFillRect(preview_renderer, &new_dest_rect);
@@ -236,8 +239,10 @@ void GameObject::Render(int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
         SDL_RenderFillRect(_objRenderer, &_dest_rect);
     }else{
         // change this back to id = 0 if needed right now its 6 because doesnt exist
+        SDL_SetRenderDrawBlendMode(_objRenderer, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureAlphaMod(_objTexture, _a);
+        
         if(_x < gridMinX || _x + _width > gridMaxX || _y < gridMinY || _y + _height > gridMaxY){
-            
             // checks wether the game object is within the gamescreen or not and if not then dont call function to save performance 
             if(new_rect.w > 0 && new_rect.h > 0){
                 SDL_RenderCopyEx(_objRenderer, _objTexture, &_src_rect , &new_rect, 0, nullptr , SDL_FLIP_NONE);

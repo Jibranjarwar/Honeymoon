@@ -10,6 +10,7 @@ std::vector<std::filesystem::path> selectedFiles;
 std::string current_pressed_dir;
 SDL_Texture* file_image = nullptr;
 bool dragFile = false;
+extern bool stopDrag;
 
 void OpenFileWithDefaultProgram(const std::string& filePath){
     
@@ -62,11 +63,24 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
     ImGui::Begin("File Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
     ImGui::SetWindowSize(ImVec2(width, height));
     
+    if (!ImGui::IsWindowFocused())
+    {
+        stopDrag = false; // Stop dragging if the window is unselected
+    }else{
+        stopDrag = true;
+    }
+
     // Sidebar width
     float sidebarWidth = width * 0.2f;
     
     // Creates Child Process for Sidebar to navigate folders
     ImGui::BeginChild("Sidebar", ImVec2(sidebarWidth, height - 35), true, ImGuiWindowFlags_HorizontalScrollbar);
+    if (!ImGui::IsWindowFocused())
+    {
+        stopDrag = false; // Stop dragging if the window is unselected
+    }else{
+        stopDrag = true;
+    }
     
     //if(directories.empty()){
     
