@@ -62,26 +62,12 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
     }
     ImGui::Begin("File Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
     ImGui::SetWindowSize(ImVec2(width, height));
-    
-    if (!ImGui::IsWindowFocused())
-    {
-        stopDrag = false; // Stop dragging if the window is unselected
-    }else{
-        stopDrag = true;
-    }
 
     // Sidebar width
     float sidebarWidth = width * 0.2f;
     
     // Creates Child Process for Sidebar to navigate folders
     ImGui::BeginChild("Sidebar", ImVec2(sidebarWidth, height - 35), true, ImGuiWindowFlags_HorizontalScrollbar);
-    if (!ImGui::IsWindowFocused())
-    {
-        stopDrag = false; // Stop dragging if the window is unselected
-    }else{
-        stopDrag = true;
-    }
-    
     //if(directories.empty()){
     
     // NOTE: Could end up having some issues since its called each loop just in case
@@ -140,7 +126,7 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
 
         // Be able to drag Files in File Manager 
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-            std::cout << file.string().c_str() << std::endl;
+            //std::cout << file.string().c_str() << std::endl;
             ImGui::SetDragDropPayload("DRAG_FILE", file.string().c_str(), file.string().size() + 1);  // Set the payload
         
             ImGui::Text("%s", file.filename().string().c_str());  // You can customize this message

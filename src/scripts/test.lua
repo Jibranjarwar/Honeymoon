@@ -12,6 +12,7 @@ function gameLoop()
 
     player:Movement()
     player.children["bob"]:Movement()
+    enemyScript()
 
     -- if player.x > 600 then
     --    player.x = 100

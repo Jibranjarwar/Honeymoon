@@ -5,6 +5,7 @@
 #include <string>
 #include "json.hpp"
 #include "collision.h"
+#include "Sol/sol.hpp"
 
 using json = nlohmann::json;
 
@@ -85,6 +86,8 @@ public:
     bool addedCollision = false;
     Collision collisionBox;
     std::vector<int> childrenIDs;
+    std::vector<std::string> scripts;
+    bool initializedRunScript = false;
     
 
 // private members

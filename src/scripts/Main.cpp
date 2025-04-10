@@ -20,6 +20,7 @@
 #include <set>
 #include "Sol/sol.hpp"
 #include <algorithm>
+#include <memory>
 //SETUP LUA CPP WRAPPER 
 //DEAFULT CHILDERN NAME
 //CHILD STICKS WITH PARENT,
@@ -33,8 +34,13 @@ using json = nlohmann::json;
 std::vector<GameObject> gameObjects;
 sol::state global_lua;
 std::vector<GameObjectUI> gameObjectsUI;
+std::unordered_map<int, std::unique_ptr<sol::state>> gameObjectStates;
 extern bool dragFile;
 bool stopDrag = false;
+
+bool isStringInVector(const std::vector<std::string>& vec, const std::string& str) {
+    return std::find(vec.begin(), vec.end(), str) != vec.end();
+}
 
 int main(int argc, char **argv){
 
@@ -215,6 +221,11 @@ int main(int argc, char **argv){
                         }
 
                         deletedObjects.clear();
+
+                        // sets initializer back to false so we can runscript a new once we go into preview
+                        for(auto& gameObject : gameObjects){
+                            gameObject.initializedRunScript = false;
+                        }
                     }
                 }
                 // test button for native script
@@ -325,7 +336,13 @@ int main(int argc, char **argv){
             // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
             // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
             //AddGameObjectToLua(lua, gameObjects.back());
+            
             RegisterGameObjectsWithLua(global_lua, gameObjects); 
+            if(gameObjectStates.size() > 0){
+                for(auto& [id, state] : gameObjectStates){
+                    RegisterGameObjectsWithLua(*state, gameObjects);
+                }
+            }
 
             // Clear the input field
             strcpy(gameObjectName, "");
@@ -399,7 +416,12 @@ int main(int argc, char **argv){
                         // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
                         // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
                         //AddGameObjectToLua(lua, gameObjects.back());
-                        RegisterGameObjectsWithLua(global_lua, gameObjects); 
+                        RegisterGameObjectsWithLua(global_lua, gameObjects);
+                        if(gameObjectStates.size() > 0){
+                            for(auto& [id, state] : gameObjectStates){
+                                RegisterGameObjectsWithLua(*state, gameObjects);
+                            }
+                        }
 
                         strcpy(childObjectName, ""); // Clear input field
 
@@ -437,6 +459,11 @@ int main(int argc, char **argv){
 
                             // remake Lua Table after deleting gameObjects
                             RegisterGameObjectsWithLua(global_lua, gameObjects);
+                            if(gameObjectStates.size() > 0){
+                                for(auto& [id, state] : gameObjectStates){
+                                    RegisterGameObjectsWithLua(*state, gameObjects);
+                                }
+                            }
 
                             // Remove child from list
                             gameObjectsUI[i].children.erase(gameObjectsUI[i].children.begin() + j);
@@ -493,6 +520,11 @@ int main(int argc, char **argv){
                     }
                     // remake Lua Table after deleting gameObjects
                     RegisterGameObjectsWithLua(global_lua, gameObjects);
+                    if(gameObjectStates.size() > 0){
+                        for(auto& [id, state] : gameObjectStates){
+                            RegisterGameObjectsWithLua(*state, gameObjects);
+                        }
+                    }
                     
                     gameObjectsUI.erase(gameObjectsUI.begin() + i);
                     ImGui::TreePop(); // Close the tree node before deleting
@@ -526,6 +558,8 @@ int main(int argc, char **argv){
             if (!ImGui::IsWindowFocused())
             {
                 stopDrag = false; // Stop dragging if the window is unselected
+            }else{
+                stopDrag = true;
             }
             
             ImGui::SetWindowSize(ImVec2(250, height - offset_height - 18));
@@ -896,6 +930,9 @@ int main(int argc, char **argv){
                     ImVec4 colour = ImVec4(1.0f, 1.0f, 1.0f, (static_cast<float>(matched_gameobject->_a) / 255.0f));
                     ImGui::Image(obj_image, ImVec2(200, 200), ImVec2(0,0), ImVec2(1,1), colour);
                     if(ImGui::SliderInt("Oppacity", &matched_gameobject->_a, 0, 255)){
+                        // issue with this
+                        stopDrag = true;
+                        //std::cout << "stopDrag: " << stopDrag << std::endl;
                         auto it = std::find_if(gameObjectsCopy.begin(), gameObjectsCopy.end(),
                                                         [&](const auto &pair)
                                                         { return pair.second.GetID() == matched_gameobject->GetID();});
@@ -929,6 +966,79 @@ int main(int argc, char **argv){
                     }
                 }
 
+                ImGui::Separator();
+                ImGui::Spacing();
+                ImGui::Text("Scripts:");
+                char defaultBuffer[256] = "Upload Scripts Here";
+                ImGui::InputText("##DefaultScript", defaultBuffer, IM_ARRAYSIZE(defaultBuffer), ImGuiInputTextFlags_ReadOnly);
+                if (ImGui::BeginDragDropTarget()) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_FILE")) {
+                        // makes sure payload exists
+                        if (payload && payload->Data) {
+                            std::cout << "accepted payload" << std::endl;
+                            std::string droppedFile = static_cast<const char*>(payload->Data);
+                            //std::cout << droppedFile << std::endl;
+                            
+                            // gets file extension since we dont want to accept anything other than .lua
+                            std::filesystem::path filePath(droppedFile);
+                            std::string extension = filePath.extension().string();
+
+                            if(extension == ".lua" && !isStringInVector(matched_gameobject->scripts, droppedFile)){
+                                matched_gameobject->scripts.push_back(droppedFile);
+                                
+                                // iterates through gameObjectsCopy using a lambda function to find key-value pair for the gameObject we are looking for
+                                // NOTE: NOT SURE IF THIS IS NEEDED CURRENTLY
+                                /*auto it = std::find_if(gameObjectsCopy.begin(), gameObjectsCopy.end(),
+                                                                [&](const auto &pair)
+                                                                { return pair.second.GetID() == matched_gameobject->GetID();});
+                                
+                                if(it != gameObjectsCopy.end()){
+                                    it->second.scripts.push_back(droppedFile);
+                                }*/
+                            }
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+
+
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                ImGui::Text("Attached:");
+                if(matched_gameobject->scripts.size() > 0){
+                    if(gameObjectStates.find(matched_gameobject->GetID()) == gameObjectStates.end()){
+                        auto lua = std::make_unique<sol::state>();
+                        lua->open_libraries(sol::lib::base);
+                        RegisterGameObjectWithLua(*lua);
+                        RegisterGameObjectsWithLua(*lua, gameObjects);
+
+                        gameObjectStates[matched_gameobject->GetID()] = std::move(lua);
+
+                    }
+                    // used to display attached scripts dynamically
+                    for(size_t i = 0; i < matched_gameobject->scripts.size(); ++i){
+                        //RenderFileInput(i, matched_gameobject->scripts[i]);
+                        ImGui::PushID(i);
+                        static char scriptBuffer[128];
+                        strncpy(scriptBuffer, std::filesystem::path(matched_gameobject->scripts[i]).filename().string().c_str(), sizeof(scriptBuffer));
+
+                        ImGui::InputText(("##Script" + std::to_string(i)).c_str(), scriptBuffer, IM_ARRAYSIZE(scriptBuffer), ImGuiInputTextFlags_ReadOnly);
+                        //std::cout << "file: " << matched_gameobject->scripts[i] << std::endl;
+                        ImGui::PopID();
+                    }
+                }
+
+                // NOTE: DEBUG FOR CHECKING LUA STATE IN DICTIONARY
+                /*if(gameObjectStates.size() > 0){
+                    for (const auto& [id, statePtr] : gameObjectStates) {
+                        std::cout << "GameObject ID: " << id << " - Lua state is "
+                                << (statePtr ? "VALID" : "NULL") << std::endl;
+                    }
+                }*/
+                
+                
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
                 if(!matched_gameobject->addedCollision){
                     if(ImGui::Button("Add Collision")){
                         matched_gameobject->AddCollision(window.renderer);
@@ -1125,6 +1235,33 @@ int main(int argc, char **argv){
                     //std::cout << "ID: " << gameObjectsCopy[i].GetID() << std::endl;
                     auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
                     [&](const GameObject& obj) { return obj.GetID() == gameObjectsCopy[i].GetID(); });
+
+                    // ISSUE: ONLY RUNS GAMEOBJECT SCRIPTS IN CAMERA (Although might not be issue since you dont want to waste performance)
+                    if(it->scripts.size() > 0){
+                        //std::cout << "should run" << std::endl;
+                        std::unique_ptr<sol::state>& local_state_ptr = gameObjectStates[it->GetID()];
+                        
+                        // used too initialize the scripts so they run
+                        if(!it->initializedRunScript){
+                            // goes through each script if multiple attached too gameObject
+                            // NOTE: Multiple scripts only work as extra functions we can only have one gameLoop per gameObject state
+                            for(auto& script : it->scripts){
+                                std::cout << "script: " << script << std::endl;
+                                try{
+                                    (*local_state_ptr).script_file(script);
+                                }catch(const sol::error& e){
+                                    std::cerr << "Lua Error: " << e.what() << std::endl;
+                                }
+                            }
+                            it->initializedRunScript = true;    
+                        }
+                        
+                        // checks wether gameLoop exists which it needs to, too run scripts
+                        if((*local_state_ptr)["gameLoop"].valid()){
+                            sol::function gameLoop = (*local_state_ptr)["gameLoop"];
+                            gameLoop();
+                        }
+                    }
 
                     cameraObjects[0].Resize(gameObjectsCopy[i], *it, preview_width, preview_height);
                     std::cout << "width after resize: " << gameObjectsCopy[i]._width << std::endl;

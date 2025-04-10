@@ -23,8 +23,10 @@ void RegisterGameObjectWithLua(sol::state &lua) {
             return self.collisionBox.Collision_Check_Bool(self, gameObjects);
         },
 
-        "OnCollisionReturn", [](GameObject& self) -> sol::table {
-            sol::table collidedObject = self.collisionBox.Collision_Check_Lua(self, gameObjects, global_lua);
+        // ISSUE: GLOBAL STATE BUT WE NEED FOR DIFFERENT STATES
+        // FIX: we capture the reference in the lambda function
+        "OnCollisionReturn", [&lua](GameObject& self) -> sol::table {
+            sol::table collidedObject = self.collisionBox.Collision_Check_Lua(self, gameObjects, lua);
             return collidedObject.valid() ? collidedObject : sol::nil;
         },
         "UpdatePosX", &GameObject::UpdatePosX, 
@@ -32,8 +34,10 @@ void RegisterGameObjectWithLua(sol::state &lua) {
         "Render", &GameObject::Render, 
         "GetID", &GameObject::GetID,
 
-        "children", sol::property([](GameObject& obj) {
-        sol::table childrenTable = global_lua.create_table();
+        // ISSUE: GLOBAL STATE BUT WE NEED FOR DIFFERENT STATES
+        // FIX: we capture the reference in the lambda function
+        "children", sol::property([&lua](GameObject& obj) {
+        sol::table childrenTable = lua.create_table();
             for (int child_id : obj.childrenIDs) {
                 // find obj in gameObjects
                 //std::cout << "child id :" << child_id << std::endl;
