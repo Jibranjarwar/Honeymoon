@@ -9,6 +9,8 @@ TreeNode* directory_tree;
 std::vector<std::filesystem::path> selectedFiles;
 std::string current_pressed_dir;
 SDL_Texture* file_image = nullptr;
+bool dragFile = false;
+extern bool stopDrag;
 
 void OpenFileWithDefaultProgram(const std::string& filePath){
     
@@ -60,13 +62,12 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
     }
     ImGui::Begin("File Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
     ImGui::SetWindowSize(ImVec2(width, height));
-    
+
     // Sidebar width
     float sidebarWidth = width * 0.2f;
     
     // Creates Child Process for Sidebar to navigate folders
     ImGui::BeginChild("Sidebar", ImVec2(sidebarWidth, height - 35), true, ImGuiWindowFlags_HorizontalScrollbar);
-    
     //if(directories.empty()){
     
     // NOTE: Could end up having some issues since its called each loop just in case
@@ -123,7 +124,23 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
         ImGui::BeginGroup();
         ImGui::Image((void*)file_image, ImVec2(50, 75));
 
+        // Be able to drag Files in File Manager 
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+            //std::cout << file.string().c_str() << std::endl;
+            ImGui::SetDragDropPayload("DRAG_FILE", file.string().c_str(), file.string().size() + 1);  // Set the payload
+        
+            ImGui::Text("%s", file.filename().string().c_str());  // You can customize this message
+            ImGui::EndDragDropSource();
+        }
+
+        if(dragFile && !ImGui::IsMouseDown(ImGuiMouseButton_Left)){
+            dragFile = false;
+        }
+
         if(ImGui::IsItemHovered()){
+            if(ImGui::IsMouseDragging(ImGuiMouseButton_Left)){
+                dragFile = true;
+            }
             // Get the top-left corner of the image
             ImVec2 min = ImGui::GetItemRectMin();  
             
@@ -133,9 +150,8 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
             // Get the window's draw list and draw the rectangle
             ImGui::GetWindowDrawList()->AddRect(min, max, IM_COL32(39, 119, 245, 255), 5.0f, ImDrawFlags_RoundCornersAll, 2.0f);
         }
-
-        // If Image is clicked then we open the file with whatever default program or a program the user chooses
-        if(ImGui::IsItemClicked()){
+        
+        if(ImGui::IsItemClicked(ImGuiMouseButton_Right)){
             OpenFileWithDefaultProgram(file.string());
         }
         

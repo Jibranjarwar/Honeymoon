@@ -59,14 +59,17 @@ void Window::pollEvents(SDL_Event &event){
     
     switch (event.type)
     {
-    case SDL_QUIT:
-        _closed = true;
-        break;
+    case SDL_WINDOWEVENT:
+        if(event.window.event == SDL_WINDOWEVENT_CLOSE){
+            _closed = true;
+            break;
+        }
     
     case SDL_KEYDOWN:
         switch(event.key.keysym.sym)
         {
             case SDLK_ESCAPE:
+                std::cout << "Escape" << std::endl;
                 _closed = true;
                 break;
         }

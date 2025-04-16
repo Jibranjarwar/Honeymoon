@@ -1,6 +1,7 @@
 #include "camera.h"
 #include <iostream>
 #include <cmath>
+#include "gamescreen.h"
 
 Camera::Camera(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a):
 _objRenderer(renderer), _width(width), _original_w(width), _height(height), _original_h(height), _x(x), _original_x(x), _y(y), _original_y(y), _r(r), _g(g), _b(b), _a(a){
@@ -53,6 +54,18 @@ bool Camera::Game_Camera_Objects(GameObject object){
     //FIRST STEP: POSSIBLY GO THROUGH ALL GAMEOBJECTS THAT EXIST AND SEE IF ANY INTERSECT WITH OUR CAMERA?
     //std::cout << "HAS INTERACTION WITH: " << object._filename << ": " << SDL_HasIntersection(&_dest_rect, &object._dest_rect) << std::endl;
     return SDL_HasIntersection(&_dest_rect, &object._dest_rect);
+}
+
+void Camera::UpdatePosX(int diff_x){
+    _x += diff_x;
+    std::cout << "Updated X: " << _x << std::endl;  // Debug print
+
+}
+
+void Camera::UpdatePosY(int diff_y){
+    _y += diff_y;
+    std::cout << "Updated Y: " << _y << std::endl;  // Debug print
+
 }
 
 void Camera::Resize(GameObject& previewObject, GameObject& editorObject, int window_width, int window_height){
