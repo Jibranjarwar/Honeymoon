@@ -18,11 +18,14 @@ public:
     GameObject(SDL_Renderer* renderer, std::string filename, int width, int height, int x, int y);
     GameObject(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y);
     ~GameObject();
+    GameObject Copy();
 
     void RenderPreview(SDL_Renderer* preview_renderer, int offset_x, int offset_y);
 
     void Render(int gridMinX = 0, int gridMinY = 0, int gridMaxX = 0, int gridMaxY = 0);
 
+    void GameScreen_Render();
+    
     void UpdatePosX(int diff_x);
 
     void UpdatePosY(int diff_y);
@@ -77,7 +80,8 @@ public:
     int _screen_width, _screen_height;
     int _original_w, _original_h;
     int _original_x, _original_y;
-    int _id;
+    int preview_diff_x = 0, preview_diff_y = 0;
+    int _id, _lua_id = -1;
     std::string _filename;
     std::string _name;
     SDL_Rect _dest_rect;
@@ -88,12 +92,13 @@ public:
     std::vector<int> childrenIDs;
     std::vector<std::string> scripts;
     bool initializedRunScript = false;
+    static int _current_id;
+    static int _current_lua_id;
+    static SDL_Event* globalEvent;
     
 
 // private members
 private:
-    static int _current_id;
-    static SDL_Event* globalEvent;
     int _r, _g, _b;
     SDL_Renderer* _objRenderer;
 };

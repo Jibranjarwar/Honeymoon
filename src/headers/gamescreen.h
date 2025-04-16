@@ -1,12 +1,13 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-#include "gameobject.h"
+//#include "gameobject.h"
 #include "camera.h"
 #include <vector>
 #include "json.hpp"
 
 using json = nlohmann::json;
+class GameObject;
 
 class GameScreen{
 
@@ -40,6 +41,12 @@ public:
     
     void ScreenOffset();
 
+    void CreateInitialMatrix(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y);
+
+    void UpdateMatrix(int x_position, int y_position);
+
+    bool WindowChangeCheck(int window_width, int window_height);
+
     struct Vector2 {
         float x;
         float y;
@@ -55,6 +62,7 @@ public:
     SDL_Renderer* renderer;
     int mouse_wheel_y = 0;
     int window_width, window_height;
+    int prev_window_width = 0, prev_window_height = 0;
     int temp_offset_height;
     int offset_height_rounded;
     int offset_height;
@@ -72,4 +80,6 @@ public:
     int width_difference = 0, height_difference = 0;
     bool wasPressed = false;
     int count;
+    // needs to be a pointer since we use it in GameObject cpp which hasnt finished compiling
+    static GameObject* InitialMatrix;
 };

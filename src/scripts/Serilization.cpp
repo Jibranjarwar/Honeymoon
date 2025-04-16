@@ -4,7 +4,7 @@
 
 std::unordered_map<int, json> gameObjectMap;
 
-void tester(std::vector<GameObject> gameObjects, GameScreen* gamescreen){
+void tester(std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjects, GameScreen* gamescreen){
 
     /*json data = {
         {"name", "player"},
@@ -19,14 +19,63 @@ void tester(std::vector<GameObject> gameObjects, GameScreen* gamescreen){
     //data["gameObjects"] = json::array();
 
     for(const auto& gameObject : gameObjects){
-        json obj = {{"id", gameObject.GetID()}, {"size", {
-            {"width", gameObject._width}, 
-            {"height", gameObject._height}}},
-            {"id", gameObject.GetID()},
-            {"position", {{"x", gameObject._x}, {"y", gameObject._y}}},
+        json obj = {
+            {"id", gameObject.GetID()}, 
+            {"size", {
+                {"width", gameObject._width}, 
+                {"height", gameObject._height}}
+            },
+            {"name", gameObject._name},
+            {"position", {
+                {"x", gameObject._x}, 
+                {"y", gameObject._y}
+            }},
             {"filename", gameObject._filename},
-            {"originals", {{"original_x", gameObject._original_x}, {"original_y", gameObject._original_y}, {"original_w", gameObject._original_w}, {"original_h", gameObject._original_h}}}
+            {"originals", {
+                {"original_x", gameObject._original_x}, 
+                {"original_y", gameObject._original_y}, 
+                {"original_w", gameObject._original_w}, 
+                {"original_h", gameObject._original_h}
+            }},
+            {"screen_cord", {
+                {"x", gameObject._screen_x}, 
+                {"y", gameObject._screen_y}, 
+                {"width", gameObject._screen_width}, 
+                {"height", gameObject._screen_height}
+            }},
+            {"oppacity", gameObject._a},
+            {"addedCollision", gameObject.addedCollision}
+        };
+
+        if(gameObject.addedCollision){
+            obj["collision"] = {
+                {"x", gameObject.collisionBox._x},
+                {"y", gameObject.collisionBox._y},
+                {"screen_x", gameObject.collisionBox._screen_x},
+                {"screen_y", gameObject.collisionBox._screen_y},
+                {"originals", {
+                    {"x", gameObject.collisionBox._original_x}, 
+                    {"y", gameObject.collisionBox._original_y}, 
+                    {"width", gameObject.collisionBox._original_w}, 
+                    {"height", gameObject.collisionBox._original_h}
+                }},
+                {"colours", {
+                    {"r", gameObject.collisionBox._r},
+                    {"g", gameObject.collisionBox._g},
+                    {"b", gameObject.collisionBox._b},
+
+                }},
+                {"oppacity", gameObject.collisionBox._a},
             };
+        }
+
+        if(!gameObject.childrenIDs.empty()){
+            obj["children"] = gameObject.childrenIDs;
+        }
+
+        if(!gameObject.scripts.empty()){
+            obj["scripts"] = gameObject.scripts;
+        }
         
         // Add to the JSON array
         data["gameObjects"].push_back(obj);
@@ -35,7 +84,49 @@ void tester(std::vector<GameObject> gameObjects, GameScreen* gamescreen){
         gameObjectMap[gameObject.GetID()] = obj;
     }
 
-    data["gameScreen"] = {{"mouse_wheel_y", gamescreen->mouse_wheel_y},
+    data["LastObjectID"] = json{{"id", GameObject::_current_id}};
+
+    data["Camera"] = json{
+        {"ChangedScreenCord", cameraObjects[0].ChangeScreenCord},
+        {"x", cameraObjects[0]._x},
+        {"y", cameraObjects[0]._y},
+        {"screen_x", cameraObjects[0]._screen_x},
+        {"screen_y", cameraObjects[0]._screen_y},
+        {"originals", {
+            {"x", cameraObjects[0]._original_x}, 
+            {"y", cameraObjects[0]._original_y}, 
+            {"width", cameraObjects[0]._original_w}, 
+            {"height", cameraObjects[0]._original_h}
+        }},
+        {"colours", {
+            {"r", cameraObjects[0]._r},
+            {"g", cameraObjects[0]._g},
+            {"b", cameraObjects[0]._b},
+
+        }},
+        {"oppacity", cameraObjects[0]._a},
+    };
+
+    data["InitialMatrix"] = json{
+        {"size", {
+            {"width", GameScreen::InitialMatrix->_width}, 
+            {"height",  GameScreen::InitialMatrix->_height}}
+        },
+        {"name",  GameScreen::InitialMatrix->_name},
+        {"position", {
+            {"x",  GameScreen::InitialMatrix->_x}, 
+            {"y",  GameScreen::InitialMatrix->_y}
+        }},
+        {"filename",  GameScreen::InitialMatrix->_filename},
+        {"originals", {
+            {"x",  GameScreen::InitialMatrix->_original_x}, 
+            {"y",  GameScreen::InitialMatrix->_original_y}, 
+            {"width",  GameScreen::InitialMatrix->_original_w}, 
+            {"height",  GameScreen::InitialMatrix->_original_h}
+        }}
+    };
+    
+    /*data["gameScreen"] = {{"mouse_wheel_y", gamescreen->mouse_wheel_y},
         {"current_window_position_x", gamescreen->current_window_position_x},
         {"current_window_position_y", gamescreen->current_window_position_y},
         {"mouse_wheel_max", gamescreen->mouse_wheel_max},
@@ -44,6 +135,7 @@ void tester(std::vector<GameObject> gameObjects, GameScreen* gamescreen){
         {"viewport_offset_y", gamescreen->viewport_offset_y},
         {"difference_x", gamescreen->difference_x}, {"difference_y", gamescreen->difference_y},
         {"width_difference", gamescreen->width_difference}, {"height_difference", gamescreen->height_difference}};
+    */
 
     std::ofstream file("data.json");
     

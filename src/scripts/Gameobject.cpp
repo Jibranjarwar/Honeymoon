@@ -4,6 +4,7 @@
 #include "gamescreen.h"
 
 int GameObject::_current_id = 0;
+int GameObject::_current_lua_id = 0;
 
 // NOTE: THIS COULD HAVE POTENTIAL ISSUES WITH NULLPTR WITH NOT CHECKS
 SDL_Event* GameObject::globalEvent = nullptr;
@@ -16,7 +17,7 @@ GameObject::GameObject(){
 
 // NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, int width, int height, int x, int y, int r, int g, int b, int a):
-_objRenderer(renderer), _width(width), _height(height), _x(x + GameScreen::difference_x), _y(y + GameScreen::difference_y), _r(r), _g(g), _b(b), _a(a)
+_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y), _r(r), _g(g), _b(b), _a(a)
 {
 _id = _current_id++;
 }
@@ -24,9 +25,9 @@ _id = _current_id++;
 // Another Optional Constructor
 // NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, std::string filename, int width, int height, int x, int y):
-_objRenderer(renderer), _width(width), _height(height), _x(x + GameScreen::difference_x), _y(y + GameScreen::difference_y){
+_objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _id = _current_id++;
-    std::cout << "screen: " << GameScreen::difference_x << std::endl;
+    //std::cout << "screen: " << GameScreen::difference_x << std::endl;
     _objTexture = Texture(filename, renderer=renderer);
     //_previewTexture = Texture(filename, renderer=renderer);
     _filename = filename;
@@ -40,27 +41,58 @@ _objRenderer(renderer), _width(width), _height(height), _x(x + GameScreen::diffe
 //copy paste add attribute std::string name, new attribute name
 //NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
 GameObject::GameObject(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y):
-_objRenderer(renderer), _width(width), _height(height), _x(x - GameScreen::difference_x), _y(y - GameScreen::difference_y){
+_objRenderer(renderer), _width(width), _height(height){
     _id = _current_id++;
     _objTexture = Texture(filename, renderer=renderer);
-    std::cout << "screen: " << GameScreen::difference_x << std::endl;
+    //std::cout << "screen: " << GameScreen::difference_x << std::endl;
     //_previewTexture = Texture(filename, renderer=renderer);
     _filename = filename;
-    _name = name; 
-    _original_w = width;
-    _original_h = height;
-    _original_x = x;
-    _original_y = y;
-    _screen_x = x;
-    _screen_y = y;
-    _screen_width = width;
-    _screen_height = height;
+    _name = name;
+    if(GameScreen::InitialMatrix != nullptr){
+        std::cout << "original" << GameScreen::InitialMatrix->_original_x  << "x" << GameScreen::InitialMatrix->_x << std::endl;
+        _x = x - (GameScreen::InitialMatrix->_original_x - GameScreen::InitialMatrix->_x);
+        _y = y - (GameScreen::InitialMatrix->_original_y - GameScreen::InitialMatrix->_y);
+        _original_x = x - (GameScreen::InitialMatrix->_original_x - GameScreen::InitialMatrix->_x);
+        _original_y = y - (GameScreen::InitialMatrix->_original_y - GameScreen::InitialMatrix->_y);
+        _screen_x = _x - GameScreen::InitialMatrix->_x;
+        _screen_y = (_y - GameScreen::InitialMatrix->_y) * -1;
+        _original_w = width;
+        _original_h = height;
+        _screen_width = width;
+        _screen_height = height;
+    }
+    else if(name == "matrix4778192235010291"){
+        _x = x;
+        _y = y;
+        _original_x = x;
+        _original_y = y;
+        _screen_x = x;
+        _screen_y = y; 
+        _original_w = width;
+        _original_h = height;
+        _screen_width = width;
+        _screen_height = height;
+    }
     Setter();
 }
 // Destructor
 GameObject::~GameObject(){
 
 }
+
+GameObject GameObject::Copy() {
+    GameObject copied = GameObject(_objRenderer, _filename, _name + "_copy", _width, _height, _x, _y);
+    //std::cout << "dont crash" << std::endl;
+    copied._lua_id = _current_lua_id++;
+    copied._x = _x;
+    copied._y = _y;
+
+    // Optional: add a suffix to the name to make it unique
+
+    // Add to the vector and return pointer
+    return copied;
+}
+
 /*SDL_Rect new_dest_rect = { _x, _y, _width, _height};
     /*SDL_Texture* preview_texture = Texture(_filename, preview_renderer);
     SDL_RenderCopy(preview_renderer, preview_texture, nullptr, &new_dest_rect);
@@ -70,7 +102,7 @@ GameObject::~GameObject(){
 
 void GameObject::RenderPreview(SDL_Renderer* preview_renderer, int offset_x, int offset_y){
     SDL_Rect new_dest_rect = { _x, _y, _width, _height};
-    std::cout << _width << std::endl;
+    //std::cout << _width << std::endl;
     //SDL_Texture* preview_texture = Texture(_filename, preview_renderer);
     
     // THIS WAS THE ISSUE WITH SECOND WINDOW DOWN PERFORMANCE BECAUSE FOR SOME
@@ -86,6 +118,16 @@ void GameObject::RenderPreview(SDL_Renderer* preview_renderer, int offset_x, int
     SDL_RenderCopy(preview_renderer, _previewTexture, nullptr, &new_dest_rect);
     //SDL_SetRenderDrawColor(preview_renderer, _r, _g, _b, _a);
     //SDL_RenderFillRect(preview_renderer, &new_dest_rect);
+}
+
+void GameObject::GameScreen_Render(){
+    //std::cout << "name: " << _name << std::endl;
+    SDL_Rect new_dest_rect = { _x, _y, _width, _height};
+    SDL_Rect org_dest_rect = { _original_x, _original_y, 100, 100};
+    
+    SDL_RenderCopy(_objRenderer, _objTexture, nullptr, &new_dest_rect);
+    SDL_SetRenderDrawColor(_objRenderer, 200, 150, 10, 255);
+    SDL_RenderFillRect(_objRenderer, &org_dest_rect);
 }
 
 // Creates a Layer for the GameObject and saves it too renderer
@@ -260,34 +302,34 @@ void GameObject::Movement(SDL_Event &event){
     switch(event.key.keysym.sym){
         case SDLK_d:
             _x += 10;
-            _screen_x += 10;
+            //_screen_x += 10;
             if(addedCollision){
                 collisionBox._x += 10;
-                collisionBox._screen_x += 10;
+                //collisionBox._screen_x += 10;
             }
             break;
         case SDLK_a:
             _x -= 10;
-            _screen_x -= 10;
+            //_screen_x -= 10;
             if(addedCollision){
                 collisionBox._x -= 10;
-                collisionBox._screen_x -= 10;
+                //collisionBox._screen_x -= 10;
             }
             break;
         case SDLK_w:
             _y -= 10;
-            _screen_y += 10;
+            //_screen_y += 10;
             if(addedCollision){
                 collisionBox._y -= 10;
-                collisionBox._screen_y -= 10;
+                //collisionBox._screen_y -= 10;
             }
             break;
         case SDLK_s:
             _y += 10;
-            _screen_y -= 10;
+            //_screen_y -= 10;
             if(addedCollision){
                 collisionBox._y += 10;
-                collisionBox._screen_y -= 10;
+                //collisionBox._screen_y -= 10;
             }
             break; 
     }

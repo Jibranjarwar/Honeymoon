@@ -1,9 +1,11 @@
 #include "gamescreen.h"
 #include "window.h"
 #include <iostream>
+#include "gameobject.h"
 
 int GameScreen::difference_x = 0;
 int GameScreen::difference_y = 0;
+GameObject* GameScreen::InitialMatrix = nullptr;
 
 GameScreen::GameScreen(SDL_Renderer* renderer): renderer(renderer){
 }
@@ -23,6 +25,20 @@ void GameScreen::DrawGraph(SDL_Window *window){
     //offset_height = (int)(window_height / 2);
 
     offset_width = (int)(window_width / 1.25);
+
+    /*if(window_width != prev_window_width && window_height != prev_window_height){
+        UpdateMatrix(window_width - offset_width, window_height - offset_height);
+        prev_window_height = window_width;
+        prev_window_height = window_height;
+    }*/
+
+    if(prev_window_height == 0 && prev_window_width == 0){
+        UpdateMatrix(window_width - offset_width, window_height - offset_height);
+        prev_window_height = window_height;
+        prev_window_width = window_width;
+        //std::cout << prev_window_height << std::endl;
+        //std::cout << prev_window_width << std::endl;
+    }
 
     // creates grid
     count = 0;
@@ -48,6 +64,7 @@ void GameScreen::DrawGraph(SDL_Window *window){
 
     //std::cout << "amount: " << count << std::endl;
     SDL_RenderDrawLine(renderer, (window_width - offset_width), (window_height - offset_height), window_width, (window_height - offset_height));
+    //InitialMatrix->GameScreen_Render();
 }
 
 bool GameScreen::Zoomed(SDL_Event event){
@@ -66,7 +83,7 @@ void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array, s
 
     if(Zoomed(event)){
         // changes value of zoom but never goes lower than -3 because then we need to draw to many lines and program crashes
-        if(mouse_wheel_y + event.wheel.y > -4){
+        if(mouse_wheel_y + event.wheel.y >= 0){
             mouse_wheel_y += event.wheel.y;
             
             if(mouse_wheel_y > mouse_wheel_max){
@@ -79,8 +96,18 @@ void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array, s
         float reference_point_x = window_x - (window_width - offset_width);
         float reference_point_y = window_y + offset_height;
 
-        std::cout << "ref x: " << reference_point_x << std::endl;
-        std::cout << "ref y: " << reference_point_y << std::endl;
+        float mouse_in_world_x = (window_x - InitialMatrix->_x) / zoomfactor;
+        float mouse_in_world_y = (InitialMatrix->_y - window_y) / zoomfactor;
+
+        int diff_x = (window_x - InitialMatrix->_x) / zoomfactor;
+        int diff_y = (window_y - InitialMatrix->_y) / zoomfactor;
+
+        std::cout << "x before: " << InitialMatrix->_x << std::endl;
+        std::cout << "ref x: " << window_x << " diff x: " << InitialMatrix->_x << std::endl;
+        std::cout << "ref y: " << window_y << " diff y: " << InitialMatrix->_y << std::endl;
+        std::cout << "dif before: " << window_x - InitialMatrix->_x << " diff after: " << diff_x << std::endl;
+        std::cout << "dif before: " << window_y - InitialMatrix->_y << " diff after: " << diff_y << std::endl;
+        //std::cout << "ref y: " << (window_y * -1) << std::endl;
 
         /* 
         This if statement is after assignment so that when we zoom out for the first time it registers it unlike
@@ -101,6 +128,14 @@ void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array, s
             std::cout << "original x: " << array[1]._original_x << std::endl;
             std::cout << "original y: " << array[1]._original_y << std::endl;
 
+            InitialMatrix->_width = InitialMatrix->_original_w * zoomfactor;
+            InitialMatrix->_height = InitialMatrix->_original_h * zoomfactor;
+            InitialMatrix->_x = window_x - mouse_in_world_x * zoomfactor;
+            InitialMatrix->_y = window_y + mouse_in_world_y * zoomfactor;
+            //InitialMatrix->_x = diff_x;
+            std::cout << "x after: " << InitialMatrix->_x << std::endl;
+            //InitialMatrix->_x = InitialMatrix->_x * zoomfactor;
+
             // CALL FUNCTION HERE
             for (int i = 0; i < array.size(); i++) {
                 // Scale object size based on zoomfactor
@@ -115,8 +150,11 @@ void GameScreen::ZoomInAndOut(SDL_Event event, std::vector<GameObject>& array, s
                 std::cout << "dy: " << dy << std::endl; 
 
                 // Scale distance based on zoom factor and update position
-                array[i]._x = reference_point_x + dx * zoomfactor;
-                array[i]._y = reference_point_y + dy * zoomfactor;
+                //array[i]._x = reference_point_x + dx * zoomfactor;
+                //array[i]._y = reference_point_y + dy * zoomfactor;
+                array[i]._x = InitialMatrix->_x + array[i]._original_x * zoomfactor;
+                array[i]._y = InitialMatrix->_y - array[i]._original_y * zoomfactor;
+                //array[i]._y = InitialMatrix->_y + (array[i]._original_y * zoomfactor);
             }
 
             std::cout << "x: " << array[1]._x << std::endl;
@@ -186,6 +224,7 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array,st
     if(mouseState && SDL_BUTTON(SDL_BUTTON_LEFT)){
         //std::cout << "left" << std::endl;       
         wasPressed = true;
+        //std::cout << "WRONG" << std::endl;
         // updates drag position and takes it away from intial drag start position to get total offset to be moved
         
         current_window_position_x = screen_x - prev_drag_window_position_x;
@@ -193,7 +232,8 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array,st
 
         //std::cout << "window pos x: " << current_window_position_x << std::endl;
         //std::cout << "window pos y: " << current_window_position_y << std::endl;
-        
+        InitialMatrix->_x += current_window_position_x;
+        InitialMatrix->_y += current_window_position_y;
 
         for(int i = 0; i < array.size(); i++){
             //std::cout << array[i].GetID() << std::endl;
@@ -241,6 +281,16 @@ void GameScreen::ScreenOffset(){
     //std::cout << "range [" << min_x << " , " << max_x << "]" << std::endl;
     //std::cout << "screen y cords: " << zoom_offset_y << std::endl;
 }
+void GameScreen::CreateInitialMatrix(SDL_Renderer* renderer, std::string filename, std::string name, int width, int height, int x, int y){
+    InitialMatrix = new GameObject(renderer, filename, name, width, height, x, y);
+}
+
+void GameScreen::UpdateMatrix(int x_position, int y_position){
+    InitialMatrix->_x = x_position;
+    InitialMatrix->_y = y_position;
+    InitialMatrix->_original_x = x_position;
+    InitialMatrix->_original_y = y_position;
+}
 
 void GameScreen::Setter(json data){
     
@@ -255,4 +305,11 @@ void GameScreen::Setter(json data){
     viewport_offset_y = data["gameScreen"]["viewport_offset_y"];
     width_difference = data["gameScreen"]["width_difference"];
     zoomfactor = data["gameScreen"]["zoomfactor"];
+}
+
+bool GameScreen::WindowChangeCheck(int window_width, int window_height){
+    if(window_width != prev_window_width && window_height != prev_window_height){
+        return true;
+    }
+    return false;
 }
