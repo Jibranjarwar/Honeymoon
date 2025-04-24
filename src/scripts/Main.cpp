@@ -100,7 +100,7 @@ int main(int argc, char **argv){
     else{
 
         json load_data = reader_tester();
-
+        
         player = GameObject(window.renderer, load_data["gameObjects"][0]["filename"], load_data["gameObjects"][0]["size"]["width"], load_data["gameObjects"][0]["size"]["height"], load_data["gameObjects"][0]["position"]["x"], load_data["gameObjects"][0]["position"]["y"]);
         //GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
         player3 = GameObject(window.renderer, load_data["gameObjects"][1]["filename"], load_data["gameObjects"][1]["size"]["width"], load_data["gameObjects"][1]["size"]["height"], load_data["gameObjects"][1]["position"]["x"], load_data["gameObjects"][1]["position"]["y"]);
@@ -1055,6 +1055,12 @@ int main(int argc, char **argv){
                         }
                     }
                 }
+               
+                if (ImGui::Checkbox("Enable Gravity", &matched_gameobject->hasGravity)) {
+                    if (!matched_gameobject->hasGravity) {
+                        matched_gameobject->velocityY = 0;
+                    }
+                }
 
                 std::string fileName = std::filesystem::path(matched_gameobject->_filename).filename().string();
                 static char ImageBuffer[128];
@@ -1314,6 +1320,11 @@ int main(int argc, char **argv){
         //SDL_GetWindowSize(window.window, &width, &height);
 
         //player2.RenderPreview(window.renderer, 200, 200);
+
+        for (auto& obj : gameObjects) {
+            obj.ApplyGravity();
+            obj.GroundCollision(height - offset_height);
+        }
 
         
         for(int i = 0; i < gameObjects.size(); i++){

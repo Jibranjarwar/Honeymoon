@@ -1,53 +1,66 @@
 {
+    "Camera": {
+        "ChangedScreenCord": true,
+        "colours": {
+            "b": 0,
+            "g": 0,
+            "r": 0
+        },
+        "oppacity": 255,
+        "originals": {
+            "height": 400,
+            "width": 400,
+            "x": 200,
+            "y": 220
+        },
+        "screen_x": 40,
+        "screen_y": 230,
+        "x": 148,
+        "y": -92
+    },
+    "InitialMatrix": {
+        "filename": "C:\\Users\\shvdi\\Pictures\\default.png",
+        "name": "matrix4778192235010291",
+        "originals": {
+            "height": 100,
+            "width": 100,
+            "x": 160,
+            "y": 450
+        },
+        "position": {
+            "x": 108,
+            "y": 138
+        },
+        "size": {
+            "height": 100,
+            "width": 100
+        }
+    },
+    "LastObjectID": {
+        "id": 8
+    },
     "gameObjects": [
         {
-            "filename": "C:\\Users\\shvdi\\Pictures\\Azula.png",
-            "id": 0,
-            "originals": {
-                "original_h": 200,
-                "original_w": 200,
-                "original_x": 279,
-                "original_y": 399
-            },
-            "position": {
-                "x": 279,
-                "y": 399
-            },
-            "size": {
-                "height": 200,
-                "width": 200
-            }
-        },
-        {
-            "filename": "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg",
-            "id": 1,
-            "originals": {
-                "original_h": 100,
-                "original_w": 100,
-                "original_x": -21,
-                "original_y": 599
-            },
-            "position": {
-                "x": -21,
-                "y": 599
-            },
-            "size": {
-                "height": 100,
-                "width": 100
-            }
-        },
-        {
-            "filename": "C:\\Users\\jjlov\\Downloads\\aasdsad.png",
-            "id": 3,
+            "addedCollision": false,
+            "filename": "C:\\Users\\jjlov\\Desktop\\4thyear\\2025-csc1097-jarwarj2-shvydci2\\src\\scripts\\default.png",
+            "id": 5,
+            "name": "GameObject1",
+            "oppacity": 255,
             "originals": {
                 "original_h": 300,
                 "original_w": 300,
-                "original_x": 400,
-                "original_y": 400
+                "original_x": 208,
+                "original_y": 95
             },
             "position": {
-                "x": 400,
-                "y": 400
+                "x": 348,
+                "y": 88
+            },
+            "screen_cord": {
+                "height": 300,
+                "width": 300,
+                "x": 240,
+                "y": 50
             },
             "size": {
                 "height": 300,
@@ -55,35 +68,58 @@
             }
         },
         {
-            "filename": "C:\\Users\\shvdi\\Pictures\\shadow.png",
-            "id": 4,
+            "addedCollision": false,
+            "filename": "C:\\Users\\jjlov\\Desktop\\4thyear\\2025-csc1097-jarwarj2-shvydci2\\src\\scripts\\default.png",
+            "id": 6,
+            "name": "GameObject1",
+            "oppacity": 255,
             "originals": {
                 "original_h": 300,
                 "original_w": 300,
-                "original_x": 400,
-                "original_y": 100
+                "original_x": 348,
+                "original_y": 88
             },
             "position": {
-                "x": 400,
-                "y": 100
+                "x": 348,
+                "y": 88
+            },
+            "screen_cord": {
+                "height": 300,
+                "width": 300,
+                "x": 240,
+                "y": 50
+            },
+            "size": {
+                "height": 300,
+                "width": 300
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\jjlov\\Desktop\\4thyear\\2025-csc1097-jarwarj2-shvydci2\\src\\scripts\\default.png",
+            "id": 7,
+            "name": "GameObject2",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 300,
+                "original_w": 300,
+                "original_x": 348,
+                "original_y": 88
+            },
+            "position": {
+                "x": 348,
+                "y": 88
+            },
+            "screen_cord": {
+                "height": 300,
+                "width": 300,
+                "x": 240,
+                "y": 50
             },
             "size": {
                 "height": 300,
                 "width": 300
             }
         }
-    ],
-    "gameScreen": {
-        "current_window_position_x": 0,
-        "current_window_position_y": 0,
-        "difference_x": -150,
-        "difference_y": 488,
-        "height_difference": 450,
-        "mouse_wheel_max": 1,
-        "mouse_wheel_y": 0,
-        "viewport_offset_x": 0.0,
-        "viewport_offset_y": 0.0,
-        "width_difference": 800,
-        "zoomfactor": 1.0
-    }
+    ]
 }

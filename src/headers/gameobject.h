@@ -42,6 +42,10 @@ public:
 
     void RenderCollisionBox(int thickness, int gridMinX, int gridMinY, int gridMaxX, int gridMaxY);
 
+    void ApplyGravity();
+
+    void GroundCollision(int groundLevel);
+
     inline int getX() const { return _x; }
 
     inline int getY() const { return _y; }
@@ -95,6 +99,9 @@ public:
     static int _current_id;
     static int _current_lua_id;
     static SDL_Event* globalEvent;
+    float velocityY = 0;
+    static const float gravity;
+    bool hasGravity = false;
     
 
 // private members

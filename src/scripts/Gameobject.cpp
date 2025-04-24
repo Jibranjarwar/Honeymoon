@@ -5,6 +5,8 @@
 
 int GameObject::_current_id = 0;
 int GameObject::_current_lua_id = 0;
+const float GameObject::gravity = 0.5f;
+
 
 // NOTE: THIS COULD HAVE POTENTIAL ISSUES WITH NULLPTR WITH NOT CHECKS
 SDL_Event* GameObject::globalEvent = nullptr;
@@ -37,6 +39,24 @@ _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _original_y = y;
 
     Setter();
+}
+
+void GameObject::ApplyGravity() {
+    if (hasGravity) {  
+        velocityY += gravity;
+        _y += velocityY;
+        
+        if (addedCollision) {
+            collisionBox._y = _y;
+        }
+    }
+}
+
+void GameObject::GroundCollision(int groundLevel) {
+    if (_y + _height >= groundLevel) {
+        _y = groundLevel - _height;  
+        velocityY = 0;              
+    }
 }
 //copy paste add attribute std::string name, new attribute name
 //NOTE: we add GameScreen::difference_x and y so that when we drag the position it updates accordingly
