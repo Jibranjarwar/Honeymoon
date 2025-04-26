@@ -6,12 +6,14 @@
 #include "camera.h"
 #include "serilization.h"
 #include "gameobjectui.h"
+#include "luafunctions.h"
 #include "Sol/sol.hpp"
 #include <fstream>
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <algorithm>
+#include "Sol/sol.hpp"
 
 std::vector<GameObject> gameObjects;
 sol::state global_lua;
@@ -290,6 +292,68 @@ bool TestCollision(){
     return allPassed;
 }
 
+bool TestLuaFunctions(){
+    bool allPassed = true;
+
+    std::cout << "\n--- Testing Collision ---" << std::endl;
+
+    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
+    SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
+    std::vector<GameObject> fakeGameObjects;
+    gameObjects.push_back(GameObject(testRenderer, "test.png", "test1", 100, 100, 0, 50));
+    gameObjects.push_back(GameObject(testRenderer, "test2.png", "test2", 100, 100, 200, 200));
+
+    try{
+        sol::state lua_state;
+        lua_state.open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
+        RegisterGameObjectWithLua(lua_state);
+        RegisterGameObjectsWithLua(lua_state, gameObjects);
+
+        sol::load_result script1 = lua_state.load(R"(
+            obj = gameObject["test1"]
+            obj.x = 100
+            obj.y = 200
+            obj.width = 50
+            obj.height = 50
+            return obj.x, obj.y, obj.width, obj.height
+        )");
+
+        if (!script1.valid()) {
+            sol::error err = script1;
+            std::cerr << "Lua load error: " << err.what() << std::endl;
+            allPassed = false;
+            PrintTestResult("Loading Script", false);
+            std::cout << "Skipping further tests on LuaFunctions.cpp" << std::endl;
+            return allPassed;
+        }
+        
+        sol::protected_function_result result = script1();
+        if (!result.valid()) {
+            sol::error err = result;
+            std::cerr << "Lua execution error: " << err.what() << std::endl;
+            allPassed = false;
+            PrintTestResult("Executing Script", false);
+            std::cout << "Skipping further tests on LuaFunctions.cpp" << std::endl;
+            return allPassed;
+        }
+
+        std::tuple<int, int, int, int> values = result;
+        auto [xValue, yValue, widthV, heightV] = values;
+
+        bool ValueChanges = gameObjects[0]._x == xValue && gameObjects[0]._y == yValue && gameObjects[0]._height == heightV && gameObjects[0]._width == widthV;
+        
+        PrintTestResult("Checking if script Updated values of gameObject", ValueChanges);
+        allPassed == allPassed && ValueChanges;
+
+    }catch(...){
+        allPassed = false;
+    }
+
+    SDL_DestroyRenderer(testRenderer);
+    SDL_DestroyWindow(testWindow);
+    return allPassed;
+}
+
 // Main test function
 int main(int argc, char** argv) {
     std::cout << "==== GAME ENGINE BASIC TESTS ====" << std::endl;
@@ -303,7 +367,8 @@ int main(int argc, char** argv) {
     bool CameraPassed = TestCameraObject();
     bool serializationPassed = TestSerialization();
     bool CollisionPassed = TestCollision();
-    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed;
+    bool LuaFunctionsPassed = TestLuaFunctions();
+    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed && LuaFunctionsPassed;
     
     // Print summary
     std::cout << "\n==== TEST SUMMARY ====" << std::endl;
@@ -311,6 +376,7 @@ int main(int argc, char** argv) {
     std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Camera Tests: " << (CameraPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Collision Tests: " << (CollisionPassed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "LuaFunctions Tests: " << (LuaFunctionsPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Overall: " << (allTestsPassed ? "PASSED" : "FAILED") << std::endl;
     
     // Clean up
