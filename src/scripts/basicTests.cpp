@@ -343,7 +343,10 @@ bool TestLuaFunctions(){
         std::tuple<int, int, int, int> values = result;
         auto [xValue, yValue, widthV, heightV] = values;
         
-        std::cout << "x value: " << xValue << "gameObejct value: " << gameObjects[0]._x << std::endl;
+        std::cout << "x value: " << xValue + GameScreen::InitialMatrix->_x << " gameObejct value: " << gameObjects[0]._x << std::endl;
+        std::cout << "y value: " << yValue + GameScreen::InitialMatrix->_y << " gameObject value: " << gameObjects[0]._y << std::endl;
+        std::cout << "width value: " << widthV << " GameObject Value: " << gameObjects[0]._width << std::endl;
+        std::cout << "height value: " << heightV << "GameObject Value: " << gameObjects[0]._height << std::endl; 
 
         bool ValueChanges = gameObjects[0]._x == (xValue + GameScreen::InitialMatrix->_x) && gameObjects[0]._y == (yValue + GameScreen::InitialMatrix->_y) && gameObjects[0]._height == heightV && gameObjects[0]._width == widthV;
         
@@ -351,8 +354,8 @@ bool TestLuaFunctions(){
         allPassed = allPassed && ValueChanges;
 
         sol::load_result script2 = lua_state.load(R"(
-            obj = gameObjects["test1"].children["test2"]
-            return obj.name, obj.GetID() 
+            obj = gameObjects["test1"]:children["test2"]
+            return obj.name, obj.GetID()
         )");
 
         if (!script2.valid()) {
