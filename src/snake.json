@@ -1,0 +1,223 @@
+{
+    "Camera": {
+        "ChangedScreenCord": true,
+        "colours": {
+            "b": 0,
+            "g": 0,
+            "r": 0
+        },
+        "height": 500,
+        "oppacity": 255,
+        "originals": {
+            "height": 400,
+            "width": 400,
+            "x": 200,
+            "y": 220
+        },
+        "screen_x": 40,
+        "screen_y": 230,
+        "width": 500,
+        "x": 239,
+        "y": -61
+    },
+    "InitialMatrix": {
+        "filename": "C:\\Users\\shvdi\\Pictures\\default.png",
+        "name": "matrix4778192235010291",
+        "originals": {
+            "height": 100,
+            "width": 100,
+            "x": 160,
+            "y": 450
+        },
+        "position": {
+            "x": 199,
+            "y": 169
+        },
+        "size": {
+            "height": 100,
+            "width": 100
+        }
+    },
+    "LastObjectID": {
+        "id": 14
+    },
+    "gameObjects": [
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\default.png",
+            "id": 4,
+            "name": "background",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 500,
+                "original_w": 500,
+                "original_x": 274,
+                "original_y": 37
+            },
+            "position": {
+                "x": 239,
+                "y": -61
+            },
+            "screen_cord": {
+                "height": 500,
+                "width": 500,
+                "x": 40,
+                "y": 230
+            },
+            "size": {
+                "height": 500,
+                "width": 500
+            }
+        },
+        {
+            "addedCollision": true,
+            "collision": {
+                "colours": {
+                    "b": 32,
+                    "g": 252,
+                    "r": 3
+                },
+                "oppacity": 255,
+                "originals": {
+                    "height": 30,
+                    "width": 30,
+                    "x": 795,
+                    "y": 218
+                },
+                "screen_x": 240,
+                "screen_y": 50,
+                "x": 439,
+                "y": 119
+            },
+            "filename": "C:\\Users\\shvdi\\Pictures\\grass.png",
+            "id": 5,
+            "name": "snake_head",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 30,
+                "original_w": 30,
+                "original_x": 795,
+                "original_y": 218
+            },
+            "position": {
+                "x": 439,
+                "y": 119
+            },
+            "screen_cord": {
+                "height": 30,
+                "width": 30,
+                "x": 240,
+                "y": 50
+            },
+            "scripts": [
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\snake.lua"
+            ],
+            "size": {
+                "height": 30,
+                "width": 30
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\dirt.png",
+            "id": 6,
+            "name": "snake_body",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 30,
+                "original_w": 30,
+                "original_x": 825,
+                "original_y": 218
+            },
+            "position": {
+                "x": 469,
+                "y": 119
+            },
+            "screen_cord": {
+                "height": 30,
+                "width": 30,
+                "x": 270,
+                "y": 50
+            },
+            "size": {
+                "height": 30,
+                "width": 30
+            }
+        },
+        {
+            "addedCollision": true,
+            "collision": {
+                "colours": {
+                    "b": 32,
+                    "g": 252,
+                    "r": 3
+                },
+                "oppacity": 255,
+                "originals": {
+                    "height": 30,
+                    "width": 28,
+                    "x": 765,
+                    "y": 218
+                },
+                "screen_x": 210,
+                "screen_y": 50,
+                "x": 409,
+                "y": 119
+            },
+            "filename": "C:\\Users\\shvdi\\Downloads\\apple.png",
+            "id": 7,
+            "name": "apple",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 30,
+                "original_w": 28,
+                "original_x": 765,
+                "original_y": 218
+            },
+            "position": {
+                "x": 409,
+                "y": 119
+            },
+            "screen_cord": {
+                "height": 30,
+                "width": 28,
+                "x": 210,
+                "y": 50
+            },
+            "scripts": [
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\apple.lua"
+            ],
+            "size": {
+                "height": 30,
+                "width": 28
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Downloads\\gameOver.png",
+            "id": 8,
+            "name": "gameOver",
+            "oppacity": 0,
+            "originals": {
+                "original_h": 300,
+                "original_w": 580,
+                "original_x": 219,
+                "original_y": 22
+            },
+            "position": {
+                "x": 199,
+                "y": 19
+            },
+            "screen_cord": {
+                "height": 300,
+                "width": 580,
+                "x": 0,
+                "y": 150
+            },
+            "size": {
+                "height": 300,
+                "width": 580
+            }
+        }
+    ]
+}

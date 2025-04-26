@@ -51,6 +51,39 @@ std::string SelectImageFile(){
     return selectedImageFile;
 }
 
+std::string SelectJsonFile(){
+    
+    // Fixes issue where when we get a Image file it changes the current working directory
+    // This is so we can re-set it back to what its suppose to be
+    char workingDirectory[MAX_PATH];
+    GetCurrentDirectoryA(MAX_PATH, workingDirectory);
+
+    OPENFILENAMEA f = {sizeof(OPENFILENAMEA)};
+
+    char buff[MAX_PATH] = {};
+
+    f.lpstrTitle = "Image File Manager";
+    f.lpstrFilter = "json files\0*.json\0";
+
+    f.nMaxFile = sizeof(buff);
+    f.lpstrFile = buff;
+    
+    // makes sure that the file exists 
+    f.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+    
+    std::string selectedJsonFile;
+    
+    // opens file manager and when file is selected it saves too buff which we then set to selectedImageFile 
+    if(GetOpenFileNameA(&f)){
+        std::cout << "file name: " << buff << std::endl;
+        selectedJsonFile = buff;
+    }
+
+    // re-sets working Directory back to original
+    SetCurrentDirectoryA(workingDirectory);
+    return selectedJsonFile;
+}
+
 void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
     static ImVec2 lastPosition = ImVec2(-1, -1);
     ImVec2 wantedPosition(x, y);

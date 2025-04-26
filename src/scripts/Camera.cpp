@@ -115,5 +115,6 @@ void Camera::Resize(GameObject& previewObject, GameObject& editorObject, int win
     //object._y = static_cast<int>(window_height / aspectRatio_y);
     previewObject._x = new_x;
     previewObject._y = new_y;
+    previewObject._a = editorObject._a;
 
 }

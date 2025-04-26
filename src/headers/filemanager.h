@@ -31,4 +31,5 @@ void RenderTreeNode(TreeNode* root);
 SDL_Texture* LoadIconTexure(std::string filename, SDL_Renderer* renderer);
 void OpenFileWithDefaultProgram(const std::string& filePath);
 std::string SelectImageFile();
+std::string SelectJsonFile();
 //void AddFiles(TreeNode * root, std::string rootPath);

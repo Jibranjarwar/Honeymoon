@@ -56,6 +56,8 @@ int main(int argc, char **argv){
 
     GameObject* matched_gameobject;
     bool CameraProperties = false;
+    bool openSavePopup = false;
+    bool openRenamePopup = false;
     int prev_screen_x = 0;
     int prev_screen_y = 0;
 
@@ -99,13 +101,13 @@ int main(int argc, char **argv){
     }
     else{
 
-        json load_data = reader_tester();
+        //json load_data = reader_tester();
 
-        player = GameObject(window.renderer, load_data["gameObjects"][0]["filename"], load_data["gameObjects"][0]["size"]["width"], load_data["gameObjects"][0]["size"]["height"], load_data["gameObjects"][0]["position"]["x"], load_data["gameObjects"][0]["position"]["y"]);
+        //player = GameObject(window.renderer, load_data["gameObjects"][0]["filename"], load_data["gameObjects"][0]["size"]["width"], load_data["gameObjects"][0]["size"]["height"], load_data["gameObjects"][0]["position"]["x"], load_data["gameObjects"][0]["position"]["y"]);
         //GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
-        player3 = GameObject(window.renderer, load_data["gameObjects"][1]["filename"], load_data["gameObjects"][1]["size"]["width"], load_data["gameObjects"][1]["size"]["height"], load_data["gameObjects"][1]["position"]["x"], load_data["gameObjects"][1]["position"]["y"]);
+        //player3 = GameObject(window.renderer, load_data["gameObjects"][1]["filename"], load_data["gameObjects"][1]["size"]["width"], load_data["gameObjects"][1]["size"]["height"], load_data["gameObjects"][1]["position"]["x"], load_data["gameObjects"][1]["position"]["y"]);
 
-        gameScreen->Setter(load_data);
+        //gameScreen->Setter(load_data);
     }
     
     // list to hold all GameObjects in the UI
@@ -117,6 +119,8 @@ int main(int argc, char **argv){
     // for adding new GameObject and child names
     static char gameObjectName[32] = "";
     static char childObjectName[32] = "";
+    static char ProjectName[32] = "";
+    std::string projectName_saved;
     GameObject defaultObject;
 
     //gameObjects.push_back(player);
@@ -156,7 +160,7 @@ int main(int argc, char **argv){
     std::cout << "object4 id: " << player4.GetID() << std::endl; 
     GameObject* selectedGameObject = nullptr;
     GameObject* selectedChildObject = nullptr;
-    global_lua.open_libraries(sol::lib::base, sol::lib::table);
+    global_lua.open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
     RegisterGameObjectWithLua(global_lua);               
     RegisterGameObjectsWithLua(global_lua, gameObjects);
 
@@ -190,119 +194,147 @@ int main(int argc, char **argv){
          // Creates the top menu bar
         if (ImGui::BeginMainMenuBar()) {
             // Project Name menu
-            if (ImGui::BeginMenu("Project Name")) {
-                ImGui::MenuItem("New Project");   
+            std::string menuLabel = projectName_saved.empty() ? "Project Name" : projectName_saved;
+            if (ImGui::BeginMenu(menuLabel.c_str())) {  
                 if(ImGui::MenuItem("Load Project")){
-                    json loaded_data = reader_tester();
+                    std::string loaded_file = SelectJsonFile();
+                    std::cout << "loaded_file: " << loaded_file << std::endl;
+                    json loaded_data = reader_tester(loaded_file);
                     std::vector<int> children = {};
-                    
-                    for(auto gameObject : loaded_data["gameObjects"]){
+                    try{
+                        gameObjects.clear();
+                        gameObjectsCopy.clear();
+                        gameObjectStates.clear();
+                        gameObjectsUI.clear();
+                        std::filesystem::path file_path = loaded_file;
+                        projectName_saved = file_path.stem().string();
+                        
+                        GameObject::_current_id = loaded_data["LastObjectID"]["id"];
+                        for(auto gameObject : loaded_data["gameObjects"]){
                         //std::string name = gameObject["name"];
                         
-                        std::cout << gameObject["name"] << std::endl;
-                        std::cout << gameObject["id"] << std::endl;
-                        GameObject restore_obj = GameObject(window.renderer, gameObject["filename"], gameObject["name"], gameObject["size"]["width"], gameObject["size"]["height"], gameObject["position"]["x"], gameObject["position"]["y"]);
-                        restore_obj._id = gameObject["id"];
-                        restore_obj._x = gameObject["position"]["x"];
-                        restore_obj._y = gameObject["position"]["y"];
-                        restore_obj._original_x = gameObject["originals"]["original_x"];
-                        restore_obj._original_y = gameObject["originals"]["original_y"];
-                        restore_obj._original_w = gameObject["originals"]["original_w"];
-                        restore_obj._original_h = gameObject["originals"]["original_h"];
-                        restore_obj._screen_x = gameObject["screen_cord"]["x"];
-                        restore_obj._screen_y = gameObject["screen_cord"]["y"];
-                        restore_obj._screen_width = gameObject["screen_cord"]["width"];
-                        restore_obj._screen_height = gameObject["screen_cord"]["height"];
-                        restore_obj._a = gameObject["oppacity"];
-                        restore_obj.addedCollision = gameObject["addedCollision"];
-                        if(restore_obj.addedCollision){
-                            restore_obj.AddCollision(window.renderer);
-                            restore_obj.collisionBox._x = gameObject["collision"]["x"];
-                            restore_obj.collisionBox._y = gameObject["collision"]["y"];
-                            restore_obj.collisionBox._screen_x = gameObject["collision"]["screen_x"];
-                            restore_obj.collisionBox._screen_y = gameObject["collision"]["screen_y"];
-                            restore_obj.collisionBox._original_x = gameObject["collision"]["originals"]["x"];
-                            restore_obj.collisionBox._original_y = gameObject["collision"]["originals"]["y"];
-                            restore_obj.collisionBox._original_w = gameObject["collision"]["originals"]["width"];
-                            restore_obj.collisionBox._original_h = gameObject["collision"]["originals"]["height"];
-                        }
-                        if(!gameObject["children"].empty()){
-                            //std::cout << "not empty" << std::endl;
-                            restore_obj.childrenIDs = gameObject["children"].get<std::vector<int>>();
-                            for(auto child : gameObject["children"]){
-                                children.push_back(child);
+                            std::cout << gameObject["name"] << std::endl;
+                            std::cout << gameObject["id"] << std::endl;
+                            GameObject restore_obj = GameObject(window.renderer, gameObject["filename"], gameObject["name"], gameObject["size"]["width"], gameObject["size"]["height"], gameObject["position"]["x"], gameObject["position"]["y"]);
+                            restore_obj._id = gameObject["id"];
+                            restore_obj._x = gameObject["position"]["x"];
+                            restore_obj._y = gameObject["position"]["y"];
+                            restore_obj._original_x = gameObject["originals"]["original_x"];
+                            restore_obj._original_y = gameObject["originals"]["original_y"];
+                            restore_obj._original_w = gameObject["originals"]["original_w"];
+                            restore_obj._original_h = gameObject["originals"]["original_h"];
+                            restore_obj._screen_x = gameObject["screen_cord"]["x"];
+                            restore_obj._screen_y = gameObject["screen_cord"]["y"];
+                            restore_obj._screen_width = gameObject["screen_cord"]["width"];
+                            restore_obj._screen_height = gameObject["screen_cord"]["height"];
+                            restore_obj._a = gameObject["oppacity"];
+                            restore_obj.addedCollision = gameObject["addedCollision"];
+                            if(restore_obj.addedCollision){
+                                restore_obj.AddCollision(window.renderer);
+                                restore_obj.collisionBox._x = gameObject["collision"]["x"];
+                                restore_obj.collisionBox._y = gameObject["collision"]["y"];
+                                restore_obj.collisionBox._screen_x = gameObject["collision"]["screen_x"];
+                                restore_obj.collisionBox._screen_y = gameObject["collision"]["screen_y"];
+                                restore_obj.collisionBox._original_x = gameObject["collision"]["originals"]["x"];
+                                restore_obj.collisionBox._original_y = gameObject["collision"]["originals"]["y"];
+                                restore_obj.collisionBox._original_w = gameObject["collision"]["originals"]["width"];
+                                restore_obj.collisionBox._original_h = gameObject["collision"]["originals"]["height"];
                             }
-                        }
-                        if(std::find(children.begin(), children.end(), restore_obj.GetID()) == children.end()){
-                            gameObjectsUI.push_back({restore_obj, {}});
-                        }
-                        gameObjects.push_back(restore_obj);
-                    }
-
-                    for(auto gameObject : loaded_data["gameObjects"]){
-                        
-                        auto gameObject_it = std::find_if(gameObjects.begin(), gameObjects.end(),
-                                                   [&](const GameObject &obj)
-                                                   { return obj.GetID() == gameObject["id"]; });
-                        
-                        if(!gameObject["scripts"].empty()){
-                            gameObject_it->scripts = gameObject["scripts"];
-                            auto lua = std::make_unique<sol::state>();
-                            lua->open_libraries(sol::lib::base, sol::lib::table);
-                            RegisterGameObjectWithLua(*lua);
-                            RegisterGameObjectsWithLua(*lua, gameObjects);
-
-                            gameObjectStates[gameObject_it->GetID()] = std::move(lua);
-                        }
-                        
-                        auto gameObjectUI_it = std::find_if(gameObjectsUI.begin(), gameObjectsUI.end(),
-                                                   [&](const GameObjectUI &obj)
-                                                   { return obj.name.GetID() == gameObject["id"]; });
-                        
-                        if(gameObjectUI_it != gameObjectsUI.end()){
                             if(!gameObject["children"].empty()){
-                                for(auto child: gameObject["children"]){
-                                    std::cout << "children: " << child << std::endl;
-                                    auto child_it = std::find_if(gameObjects.begin(), gameObjects.end(),
+                                //std::cout << "not empty" << std::endl;
+                                restore_obj.childrenIDs = gameObject["children"].get<std::vector<int>>();
+                                for(auto child : gameObject["children"]){
+                                    children.push_back(child);
+                                }
+                            }
+                            if(std::find(children.begin(), children.end(), restore_obj.GetID()) == children.end()){
+                                gameObjectsUI.push_back({restore_obj, {}});
+                            }
+                            gameObjects.push_back(restore_obj);
+                        }
+
+                        for(auto gameObject : loaded_data["gameObjects"]){
+                            
+                            auto gameObject_it = std::find_if(gameObjects.begin(), gameObjects.end(),
                                                     [&](const GameObject &obj)
-                                                    { return obj.GetID() == child; });
-                                    
-                                    if(child_it != gameObjects.end()){
-                                        gameObjectUI_it->children.push_back(*child_it);
+                                                    { return obj.GetID() == gameObject["id"]; });
+                            
+                            if(!gameObject["scripts"].empty()){
+                                gameObject_it->scripts = gameObject["scripts"];
+                                auto lua = std::make_unique<sol::state>();
+                                lua->open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
+                                RegisterGameObjectWithLua(*lua);
+                                RegisterGameObjectsWithLua(*lua, gameObjects);
+
+                                gameObjectStates[gameObject_it->GetID()] = std::move(lua);
+                            }
+                            
+                            auto gameObjectUI_it = std::find_if(gameObjectsUI.begin(), gameObjectsUI.end(),
+                                                    [&](const GameObjectUI &obj)
+                                                    { return obj.name.GetID() == gameObject["id"]; });
+                            
+                            if(gameObjectUI_it != gameObjectsUI.end()){
+                                if(!gameObject["children"].empty()){
+                                    for(auto child: gameObject["children"]){
+                                        std::cout << "children: " << child << std::endl;
+                                        auto child_it = std::find_if(gameObjects.begin(), gameObjects.end(),
+                                                        [&](const GameObject &obj)
+                                                        { return obj.GetID() == child; });
+                                        
+                                        if(child_it != gameObjects.end()){
+                                            gameObjectUI_it->children.push_back(*child_it);
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        GameScreen::InitialMatrix->_x = loaded_data["InitialMatrix"]["position"]["x"];
+                        GameScreen::InitialMatrix->_y = loaded_data["InitialMatrix"]["position"]["y"];
+                        GameScreen::InitialMatrix->_width = loaded_data["InitialMatrix"]["size"]["width"];
+                        GameScreen::InitialMatrix->_height = loaded_data["InitialMatrix"]["size"]["height"];
+                        GameScreen::InitialMatrix->_original_x = loaded_data["InitialMatrix"]["originals"]["x"];
+                        GameScreen::InitialMatrix->_original_y = loaded_data["InitialMatrix"]["originals"]["y"];
+                        GameScreen::InitialMatrix->_original_w = loaded_data["InitialMatrix"]["originals"]["width"];
+                        GameScreen::InitialMatrix->_original_h = loaded_data["InitialMatrix"]["originals"]["height"];
+
+                        cameraObjects[0].ChangeScreenCord = loaded_data["Camera"]["ChangedScreenCord"];
+                        cameraObjects[0]._x = loaded_data["Camera"]["x"];
+                        cameraObjects[0]._y = loaded_data["Camera"]["y"];
+                        cameraObjects[0]._width = loaded_data["Camera"]["width"];
+                        cameraObjects[0]._height = loaded_data["Camera"]["height"];
+                        cameraObjects[0]._screen_x = loaded_data["Camera"]["screen_x"];
+                        cameraObjects[0]._screen_y = loaded_data["Camera"]["screen_y"];
+                        cameraObjects[0]._original_x = loaded_data["Camera"]["originals"]["x"];
+                        cameraObjects[0]._original_y = loaded_data["Camera"]["originals"]["y"];
+                        cameraObjects[0]._original_w = loaded_data["Camera"]["originals"]["width"];
+                        cameraObjects[0]._original_h = loaded_data["Camera"]["originals"]["height"];
                     }
-
-                    GameScreen::InitialMatrix->_x = loaded_data["InitialMatrix"]["position"]["x"];
-                    GameScreen::InitialMatrix->_y = loaded_data["InitialMatrix"]["position"]["y"];
-                    GameScreen::InitialMatrix->_width = loaded_data["InitialMatrix"]["size"]["width"];
-                    GameScreen::InitialMatrix->_height = loaded_data["InitialMatrix"]["size"]["height"];
-                    GameScreen::InitialMatrix->_original_x = loaded_data["InitialMatrix"]["originals"]["x"];
-                    GameScreen::InitialMatrix->_original_y = loaded_data["InitialMatrix"]["originals"]["y"];
-                    GameScreen::InitialMatrix->_original_w = loaded_data["InitialMatrix"]["originals"]["width"];
-                    GameScreen::InitialMatrix->_original_h = loaded_data["InitialMatrix"]["originals"]["height"];
-
-                    cameraObjects[0].ChangeScreenCord = loaded_data["Camera"]["ChangedScreenCord"];
-                    cameraObjects[0]._x = loaded_data["Camera"]["x"];
-                    cameraObjects[0]._y = loaded_data["Camera"]["y"];
-                    cameraObjects[0]._screen_x = loaded_data["Camera"]["screen_x"];
-                    cameraObjects[0]._screen_y = loaded_data["Camera"]["screen_y"];
-                    cameraObjects[0]._original_x = loaded_data["Camera"]["originals"]["x"];
-                    cameraObjects[0]._original_y = loaded_data["Camera"]["originals"]["y"];
-                    cameraObjects[0]._original_w = loaded_data["Camera"]["originals"]["width"];
-                    cameraObjects[0]._original_h = loaded_data["Camera"]["originals"]["height"];
-
-                    GameObject::_current_id = loaded_data["LastObjectID"]["id"];
+                    catch (const std::exception &e) {
+                        std::cerr << "An error occurred during loading of project: " << e.what() << std::endl;
+                    }
                 }  
-                ImGui::MenuItem("Save Project");  
+                if(ImGui::MenuItem("Save Project")){
+                    if(projectName_saved.empty()){
+                        openSavePopup = true;
+                    }else{
+                        tester(projectName_saved, gameObjects, cameraObjects, gameScreen); 
+                    }
+                }
+
+                if(!projectName_saved.empty()){
+                    if(ImGui::MenuItem("Rename Project")){
+                        openRenamePopup = true;
+                    }
+                }
+
                 ImGui::EndMenu();
             }
 
             // Project menu
+            
             if (ImGui::BeginMenu("Project")) {
-                ImGui::MenuItem("Build");
+                //ImGui::MenuItem("Build");
                 if(!isPressed){
                     if(ImGui::MenuItem("Run")){
                         isPressed = !isPressed;
@@ -412,6 +444,61 @@ int main(int argc, char **argv){
             ImGui::Text("%s", fpsText);
 
             ImGui::EndMainMenuBar();
+        }
+
+        if (openSavePopup) {
+            ImGui::OpenPopup("SavePopup");
+            openSavePopup = false;
+        };
+
+        if (openRenamePopup) {
+            ImGui::OpenPopup("RenamePopup");
+            openRenamePopup = false;
+        }
+
+        if ((ImGui::BeginPopupModal("SavePopup", NULL, ImGuiWindowFlags_AlwaysAutoResize))) {
+            stopDrag = true;
+            ImGui::Text("Save your Project");
+            ImGui::InputText("Project Name:", ProjectName, IM_ARRAYSIZE(ProjectName));
+            
+            if (ImGui::Button("OK")) {
+                // Do something
+                stopDrag = false;
+                projectName_saved = std::string(ProjectName);
+                std::cout << "Saved Project name:" << projectName_saved << std::endl;
+                tester(projectName_saved, gameObjects, cameraObjects, gameScreen);
+                ImGui::CloseCurrentPopup();
+            }
+        
+            if (ImGui::Button("Cancel")) {
+                stopDrag = false;
+                ImGui::CloseCurrentPopup();
+            }
+        
+            ImGui::EndPopup();
+        }
+
+        if ((ImGui::BeginPopupModal("RenamePopup", NULL, ImGuiWindowFlags_AlwaysAutoResize))) {
+            stopDrag = true;
+            ImGui::Text("Save your Project");
+            ImGui::InputText("Project Name:", ProjectName, IM_ARRAYSIZE(ProjectName));
+            
+            if (ImGui::Button("OK")) {
+                // Do something
+                stopDrag = false;
+                std::string temp_Name = projectName_saved + ".json";
+                projectName_saved = std::string(ProjectName);
+                std::cout << "Saved Project name:" << projectName_saved << std::endl;
+                rename_file(temp_Name, projectName_saved);
+                ImGui::CloseCurrentPopup();
+            }
+        
+            if (ImGui::Button("Cancel")) {
+                stopDrag = false;
+                ImGui::CloseCurrentPopup();
+            }
+        
+            ImGui::EndPopup();
         }
 
         // Sidebar for managing GameObjects and ChildObjects
@@ -693,11 +780,31 @@ int main(int argc, char **argv){
                 ImGui::PopID(); // Remove the current GameObject ID
             }
 
-        if(!save){
-            if(ImGui::Button("Save")){
-                tester(gameObjects, cameraObjects, gameScreen);
-            }
+        if (ImGui::Button("Open Popup")) {
+            ImGui::OpenPopup("MyPopup");
         }
+        
+        if ((ImGui::BeginPopupModal("MyPopup", NULL, ImGuiWindowFlags_AlwaysAutoResize))) {
+            stopDrag = true;
+            ImGui::Text("This is a popup!");
+            ImGui::InputText("Project Name:", ProjectName, IM_ARRAYSIZE(ProjectName));
+            
+            if (ImGui::Button("OK")) {
+                // Do something
+                stopDrag = false;
+                projectName_saved = std::string(ProjectName);
+                std::cout << "Saved Project name:" << projectName_saved << std::endl;
+                ImGui::CloseCurrentPopup();
+            }
+        
+            if (ImGui::Button("Cancel")) {
+                stopDrag = false;
+                ImGui::CloseCurrentPopup();
+            }
+        
+            ImGui::EndPopup();
+        }
+            
         
         // end if statement for preview disable gameManager since it needs and end for where we stop the Disabled in ImGui
         if(isPressed){
@@ -762,6 +869,7 @@ int main(int argc, char **argv){
 
             if(ImGui::Button("Close")){
                 CameraProperties = false;
+                stopDrag = false;
             }
             ImGui::End();
         }
@@ -1149,6 +1257,7 @@ int main(int argc, char **argv){
                 ImGui::Text("Scripts:");
                 char defaultBuffer[256] = "Upload Scripts Here";
                 ImGui::InputText("##DefaultScript", defaultBuffer, IM_ARRAYSIZE(defaultBuffer), ImGuiInputTextFlags_ReadOnly);
+                ImGui::SameLine();
                 if (ImGui::BeginDragDropTarget()) {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_FILE")) {
                         // makes sure payload exists
@@ -1185,7 +1294,7 @@ int main(int argc, char **argv){
                 if(matched_gameobject->scripts.size() > 0){
                     if(gameObjectStates.find(matched_gameobject->GetID()) == gameObjectStates.end()){
                         auto lua = std::make_unique<sol::state>();
-                        lua->open_libraries(sol::lib::base, sol::lib::table);
+                        lua->open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
                         RegisterGameObjectWithLua(*lua);
                         RegisterGameObjectsWithLua(*lua, gameObjects);
 
@@ -1201,6 +1310,19 @@ int main(int argc, char **argv){
 
                         ImGui::InputText(("##Script" + std::to_string(i)).c_str(), scriptBuffer, IM_ARRAYSIZE(scriptBuffer), ImGuiInputTextFlags_ReadOnly);
                         //std::cout << "file: " << matched_gameobject->scripts[i] << std::endl;
+                        ImGui::SameLine();
+                        if (ImGui::Button("Remove")) {
+                            auto it = std::find(matched_gameobject->scripts.begin(), matched_gameobject->scripts.end(), matched_gameobject->scripts[i]);
+                            
+                            if (it != matched_gameobject->scripts.end()) {
+                                matched_gameobject->scripts.erase(it);
+
+                                if(matched_gameobject->scripts.empty()){
+                                    gameObjectStates.erase(matched_gameobject->GetID());
+                                }
+                                scriptBuffer[0] = '\0';
+                            }
+                        }
                         ImGui::PopID();
                     }
                 }
@@ -1419,6 +1541,13 @@ int main(int argc, char **argv){
             SDL_ShowWindow(previewWindow.window);
             selectedGameObject = nullptr;
             CameraProperties = false;
+
+            for(int i = 0; i < gameObjects.size(); i++){
+                if(gameObjects[i].preview_diff_x == 0 && gameObjects[i].preview_diff_y == 0){
+                    gameObjects[i].preview_diff_x = gameObjects[i]._x;
+                    gameObjects[i].preview_diff_y = gameObjects[i]._y;
+                }
+            }
             
             //std::cout << gameObjectsCopy.size() << std::endl;
             for(int i = 0; i < gameObjectsCopy.size(); i++){
@@ -1431,11 +1560,6 @@ int main(int argc, char **argv){
                     //std::cout << "ID: " << gameObjectsCopy[i].GetID() << std::endl;
                     auto it = std::find_if(gameObjects.begin(), gameObjects.end(), 
                     [&](const GameObject& obj) { return obj.GetID() == gameObjectsCopy[i].GetID(); });
-
-                    if(it->preview_diff_x == 0 && it->preview_diff_y == 0){
-                        it->preview_diff_x = it->_x;
-                        it->preview_diff_y = it->_y;
-                    }
 
                     // ISSUE: ONLY RUNS GAMEOBJECT SCRIPTS IN CAMERA (Although might not be issue since you dont want to waste performance)
                     if(it->scripts.size() > 0){
@@ -1469,7 +1593,8 @@ int main(int argc, char **argv){
                     gameObjectsCopy[i].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);
                     //std::cout << gameObjectsCopy[i].GetID();
                     
-                    if(gameObjects[2].addedCollision){
+                    // test logic for testing collision before implementation
+                    /*if(gameObjects[2].addedCollision){
                         //gameObjects[2].collisionBox.On_Collision(gameObjects[2], gameObjects);
                         GameObject* collidedObject = gameObjects[2].collisionBox.Collision_Check(gameObjects[2], gameObjects);
                         
@@ -1494,8 +1619,8 @@ int main(int argc, char **argv){
                             deletedObjects.push_back(std::make_pair(index, *it));
                             it->collisionBox.Del(collidedObj, gameObjects, gameObjectsCopy);
                         
-                        }*/
-                    }
+                        }
+                    }*/
                 }
             }
             //gameObjects[1].RenderPreview(previewWindow.renderer, width - offset_width, offset_height);

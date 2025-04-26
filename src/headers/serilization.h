@@ -10,8 +10,10 @@
 // setting alias
 using json = nlohmann::json;
 
-void tester(std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjects, GameScreen* gamescreen);
+void tester(std::string projectName, std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjects, GameScreen* gamescreen);
 
-json reader_tester();
+json reader_tester(std::string project);
+
+void rename_file(std::string project, std::string newName);
 
 json findGameObject(int id);

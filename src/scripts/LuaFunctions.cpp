@@ -5,6 +5,9 @@
 #include <iostream>
 #include <algorithm>
 #include "gamescreen.h"
+#include <chrono>
+
+using Clock = std::chrono::steady_clock;
 
 // gets gameObjects vector from Main.cpp
 //extern std::vector<GameObject> gameObjects; 
@@ -15,29 +18,46 @@
 void RegisterGameObjectWithLua(sol::state &lua) {
     lua.new_usertype<GameObject>("GameObject", 
         
-        "Copy", [&lua](GameObject& self) -> GameObject {
+        "Copy", [&lua](GameObject& self) -> GameObject* {
             GameObject copy = self.Copy();
             gameObjects.push_back(copy);
             //RegisterGameObjectsWithLua(lua, gameObjects);
             std::cout << copy._name << " and " << copy.GetID() << std::endl;
             deleteObjects.push_back(copy);
-            return copy;
+
+            auto it = std::find_if(gameObjects.begin(), gameObjects.end(),
+                                                   [&](const GameObject &obj)
+                                                   { return obj.GetID() == copy.GetID(); });
+            
+            if(it != gameObjects.end()){
+                return &(*it);
+            }else{
+                return nullptr;
+            }
         },
 
         "Movement", &GameObject::Lua_Movement,
         "OnCollision", [](GameObject& self) -> bool {
             return self.collisionBox.Collision_Check_Bool(self, gameObjects);
         },
+        "AddCollision", [](GameObject& self){
+            self.addedCollision = true;
+            self.AddCollision(self._objRenderer);
+        },
 
         // ISSUE: GLOBAL STATE BUT WE NEED FOR DIFFERENT STATES
         // FIX: we capture the reference in the lambda function
-        "OnCollisionReturn", [&lua](GameObject& self) -> sol::table {
+        // not working feature because causes lua to not go beyond calling this function
+        
+        /*"OnCollisionReturn", [&lua](GameObject& self) -> sol::table {
             sol::table collidedObject = self.collisionBox.Collision_Check_Lua(self, gameObjects, lua);
             return collidedObject.valid() ? collidedObject : sol::nil;
+        },*/
+
+        // working feature that returns ref to gameObject 
+        "OnCollisionReturn", [](GameObject& self) -> GameObject* {
+            return self.collisionBox.Collision_Check(self, gameObjects);
         },
-        "UpdatePosX", &GameObject::UpdatePosX, 
-        "UpdatePosY", &GameObject::UpdatePosY, 
-        "Render", &GameObject::Render, 
         "GetID", &GameObject::GetID,
 
         // ISSUE: GLOBAL STATE BUT WE NEED FOR DIFFERENT STATES
@@ -94,9 +114,9 @@ void RegisterGameObjectWithLua(sol::state &lua) {
         ), 
         "width", &GameObject::_width, 
         "height", &GameObject::_height, 
-        "name", &GameObject::_name, 
-        "screen_x", &GameObject::_screen_x, 
-        "screen_y", &GameObject::_screen_y
+        "name", &GameObject::_name,
+        "oppacity", &GameObject::_a
+
     );
 
     RegisterLuaFunctions(lua);
@@ -213,5 +233,18 @@ void RegisterLuaFunctions(sol::state &lua){
         }
         lua["gameObjects"] = updatedTable;
         idsToRemove.clear();
+    });
+
+    lua.set_function("Delay", [](float delaySeconds){
+        static auto lastTime = Clock::now();
+        auto now = Clock::now();
+        std::chrono::duration<float> elapsed = now - lastTime;
+
+        if (elapsed.count() >= delaySeconds) {
+            lastTime = now;
+            return true;
+        }
+
+        return false;
     });
 }

@@ -87,6 +87,10 @@ GameObject GameObject::Copy() {
     copied._x = _x;
     copied._y = _y;
 
+    /*if(addedCollision){
+        copied.AddCollision(_objRenderer);
+    }*/
+
     // Optional: add a suffix to the name to make it unique
 
     // Add to the vector and return pointer

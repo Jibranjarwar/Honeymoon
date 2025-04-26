@@ -95,10 +95,10 @@ public:
     static int _current_id;
     static int _current_lua_id;
     static SDL_Event* globalEvent;
+    SDL_Renderer* _objRenderer;
     
 
 // private members
 private:
     int _r, _g, _b;
-    SDL_Renderer* _objRenderer;
 };

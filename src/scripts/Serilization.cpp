@@ -4,7 +4,7 @@
 
 std::unordered_map<int, json> gameObjectMap;
 
-void tester(std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjects, GameScreen* gamescreen){
+void tester(std::string projectName, std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjects, GameScreen* gamescreen){
 
     /*json data = {
         {"name", "player"},
@@ -14,7 +14,6 @@ void tester(std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjec
     };*/
 
     json data;
-    
     // creates empty array in json for gameObjects
     //data["gameObjects"] = json::array();
 
@@ -90,6 +89,8 @@ void tester(std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjec
         {"ChangedScreenCord", cameraObjects[0].ChangeScreenCord},
         {"x", cameraObjects[0]._x},
         {"y", cameraObjects[0]._y},
+        {"width", cameraObjects[0]._width},
+        {"height", cameraObjects[0]._height},
         {"screen_x", cameraObjects[0]._screen_x},
         {"screen_y", cameraObjects[0]._screen_y},
         {"originals", {
@@ -137,7 +138,7 @@ void tester(std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjec
         {"width_difference", gamescreen->width_difference}, {"height_difference", gamescreen->height_difference}};
     */
 
-    std::ofstream file("data.json");
+    std::ofstream file(projectName + ".json");
     
     if(file.is_open()){
         // pretty print with 4-space indentation
@@ -149,20 +150,36 @@ void tester(std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjec
     }
 }
 
-json reader_tester(){
-    std::ifstream file("data.json");
+json reader_tester(std::string project){
+    std::ifstream file(project);
     json loaded_data;
     if(file.is_open()){
         file >> loaded_data;
         file.close();
-
-        std::cout << "Name: " << loaded_data["gameObjects"][0]["name"] << std::endl;
-        std::cout << "Position" << "(" << loaded_data["gameObjects"][0]["position"]["x"] << ", " << loaded_data["gameObjects"][0]["position"]["y"] << ")" << std::endl;
     }else{
         std::cout << "Failed to open file for reading!" << std::endl;
     }
 
     return loaded_data;
+}
+
+void rename_file(std::string project, std::string newName){
+    std::filesystem::path oldPath = std::filesystem::current_path() / project;
+
+    // Ensure the file exists before renaming
+    if (!std::filesystem::exists(oldPath)) {
+        std::cerr << "File not found: " << oldPath << std::endl;
+        return;
+    }
+
+    std::filesystem::path newPath = oldPath.parent_path() / (newName + ".json");
+
+    try {
+        std::filesystem::rename(oldPath, newPath);
+        std::cout << "File successfully renamed to: " << newPath.filename() << std::endl;
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Rename failed: " << e.what() << std::endl;
+    }
 }
 
 //TO DO: GAMEOBJECTMAP HAS ISSUE WHERE IT DOESNT EXIST PAST SCOPE
