@@ -350,7 +350,7 @@ bool TestLuaFunctions(){
 
         sol::load_result script2 = lua_state.load(R"(
             obj = gameObjects["test1"].children["test2"]
-            return obj.name, obj:GetID
+            return obj.name, obj:GetID()
         )");
 
         if (!script2.valid()) {
