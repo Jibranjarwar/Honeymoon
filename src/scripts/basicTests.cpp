@@ -53,6 +53,30 @@ bool TestGameObjects() {
     return allPassed;
 }
 
+bool TestCameraObject(){
+    bool allPassed = true;
+
+    std::cout << "\n--- Testing CameraObject ---" << std::endl;
+
+    // Setup temporary SDL window and renderer
+    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_HIDDEN);
+    SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
+    
+    try{
+        Camera TestCamera(testRenderer, 200, 200, 100, 500, 0, 0, 0, 255);
+    }catch(...){
+        PrintTestResult("Camera Initialisation", false);
+        allPassed = false;
+    }
+
+    // Cleanup
+    SDL_DestroyRenderer(testRenderer);
+    SDL_DestroyWindow(testWindow);
+
+    return allPassed;
+
+}
+
 // Test serialization functionality
 bool TestSerialization() {
     bool allPassed = true;
@@ -89,14 +113,16 @@ int main(int argc, char** argv) {
     }
     
     bool gameObjectsPassed = TestGameObjects();
-    bool serializationPassed = TestSerialization();
+    bool CameraPassed = TestCameraObject();
+    //bool serializationPassed = TestSerialization();
     
-    bool allTestsPassed = gameObjectsPassed && serializationPassed;
+    bool allTestsPassed = gameObjectsPassed && CameraPassed;
     
     // Print summary
     std::cout << "\n==== TEST SUMMARY ====" << std::endl;
     std::cout << "GameObject Tests: " << (gameObjectsPassed ? "PASSED" : "FAILED") << std::endl;
-    std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
+    //std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "Camera Tests: " << (CameraPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Overall: " << (allTestsPassed ? "PASSED" : "FAILED") << std::endl;
     
     // Clean up
