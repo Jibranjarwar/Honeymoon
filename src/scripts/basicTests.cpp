@@ -70,10 +70,45 @@ bool TestCameraObject(){
     // Setup temporary SDL window and renderer
     SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
+    GameObject testObject1(testRenderer, 100, 100, 150, 550, 255, 255, 255, 255);
+    GameObject testObject2(testRenderer, 100, 100, 50, 200, 255, 255, 255, 255);
     
     try{
         Camera TestCamera(testRenderer, 200, 200, 100, 500, 0, 0, 0, 255);
+        bool cameraInitializedCorrectly = 
+        TestCamera._width == 200 && 
+        TestCamera._height == 200 &&
+        TestCamera._x == 100 &&
+        TestCamera._y == 500; 
+
+        PrintTestResult("Camera Initialization", cameraInitializedCorrectly);
+        
+        allPassed = allPassed && cameraInitializedCorrectly;
+        
         TestCamera.Camera_Render(5, 100, 300, 500, 600);
+
+        bool cameraIntersection = TestCamera.Game_Camera_Objects(testObject1);
+        bool noCameraIntersection = TestCamera.Game_Camera_Objects(testObject2);
+
+        PrintTestResult("Camera Interaction with Object Inside", cameraIntersection);
+        PrintTestResult("Camera Interaction with Object Outside", noCameraIntersection);
+
+        allPassed = allPassed && cameraIntersection && noCameraIntersection;
+
+        int _old_x = TestCamera._x;
+        int _old_y = TestCamera._y;
+
+        TestCamera.UpdatePosX(100);
+        TestCamera.UpdatePosY(100);
+
+        bool cameraUpdateX = _old_x + 100 == TestCamera._x;
+        bool cameraUpdateY = _old_y + 100 == TestCamera._y;
+
+        PrintTestResult("Camera Updating Position X", cameraUpdateX);
+        PrintTestResult("Camera Updating Poistion Y", cameraUpdateY);
+
+        allPassed = allPassed && cameraUpdateX && cameraUpdateY;
+
     }catch(...){
         PrintTestResult("Camera Initialisation", false);
         allPassed = false;
