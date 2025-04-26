@@ -128,12 +128,13 @@ bool TestSerialization() {
         if (fileExists) {
             json testFile = reader_tester(testName + ".json");
         
-            bool hasGameObjects = testFile.contains("GameObjects");
-            bool hasCameras = testFile.contains("CameraObjects");
+            bool hasGameObjects = testFile.contains("gameObjects");
+            bool hasCameras = testFile.contains("Camera");
             bool hasInitialMatrix = testFile.contains("InitialMatrix");
         
             PrintTestResult("Contains GameObjects", hasGameObjects);
             PrintTestResult("Contains CameraObjects", hasCameras);
+            PrintTestResult("Contains InitalMatrix", hasInitialMatrix);
         
             allPassed = allPassed && hasGameObjects && hasCameras && hasInitialMatrix;
         }
