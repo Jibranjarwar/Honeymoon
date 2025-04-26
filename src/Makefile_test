@@ -27,6 +27,11 @@ $(TEST_TARGET): $(SRC_DIR)/basicTests.cpp
 		$(SRC_DIR)/Gameobject.cpp \
 		$(SRC_DIR)/Window.cpp \
 		$(SRC_DIR)/Serilization.cpp \
+		$(SRC_DIR)/Camera.cpp \
+		$(SRC_DIR)/Collision.cpp \
+		$(SRC_DIR)/LuaFunctions.cpp \
+		$(SRC_DIR)/Filemanager.cpp \
+		$(SRC_DIR)/Gamescreen.cpp \
 		$(PLATFORM_LIBS)
 
 run: $(TARGET)
