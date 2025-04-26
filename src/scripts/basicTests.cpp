@@ -137,7 +137,7 @@ bool TestSerialization() {
         
             allPassed = allPassed && hasGameObjects && hasCameras && hasInitialMatrix;
         }
-        rename_file(testName, newTestName);
+        rename_file((testName + ".json"), newTestName);
 
         bool originalGone = !std::ifstream(testName + ".json").good();
         bool renamedExists = std::ifstream(newTestName + ".json").good();
