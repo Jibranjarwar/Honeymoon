@@ -1,0 +1,40 @@
+SRC_DIR := scripts
+HEADERS_DIR := headers
+INCLUDE_DIR := include
+LIB_DIR := lib
+
+TARGET := main
+TEST_TARGET := basic_tests
+
+# === SOURCES ===
+SOURCES := Main.cpp Window.cpp Gameobject.cpp Gamescreen.cpp Filemanager.cpp Serilization.cpp Camera.cpp LuaFunctions.cpp Collision.cpp
+SRC_FILES := $(addprefix $(SRC_DIR)/, $(SOURCES))
+
+# === COMPILER SETTINGS ===
+CXX := g++
+CXXFLAGS := -I$(INCLUDE_DIR) -I$(HEADERS_DIR) -I$(HEADERS_DIR)/ImGUI -I$(HEADERS_DIR)/Sol -I$(HEADERS_DIR)/Lua -L$(LIB_DIR)
+PLATFORM_LIBS := -limgui -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lcomdlg32 -llua
+
+# === TARGETS ===
+all: $(TARGET) $(TEST_TARGET)
+
+$(TARGET): 
+	$(CXX) $(CXXFLAGS) -o $@ $(SRC_FILES) $(PLATFORM_LIBS) -mwindows
+
+$(TEST_TARGET): $(SRC_DIR)/basicTests.cpp
+	$(CXX) $(CXXFLAGS) -o $@ \
+		$(SRC_DIR)/basicTests.cpp \
+		$(SRC_DIR)/Gameobject.cpp \
+		$(SRC_DIR)/Window.cpp \
+		$(SRC_DIR)/Serilization.cpp \
+		$(PLATFORM_LIBS)
+
+run: $(TARGET)
+	./$(TARGET)
+
+test: $(TEST_TARGET)
+	@echo "Running tests..."
+	./$(TEST_TARGET)
+
+clean:
+	del /Q $(TARGET).exe $(TEST_TARGET).exe 2>nul || rm -f $(TARGET).exe $(TEST_TARGET).exe
