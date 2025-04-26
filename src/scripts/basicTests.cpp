@@ -265,16 +265,17 @@ bool TestCollision(){
         PrintTestResult("Bool Collision Check", collisionCheck);
         
         GameObject* obj = fakeGameObjects[0].collisionBox.Collision_Check(fakeGameObjects[0], fakeGameObjects);
-        PrintTestResult("Collision return check", obj->GetID() == 1);
+        PrintTestResult("Collision return check", obj->GetID() == 2);
 
-        allPassed = allPassed && collisionCheck && obj->GetID() == 1;
+        allPassed = allPassed && collisionCheck && (obj->GetID() == 2);
 
         GameObject* ptr = &fakeGameObjects[1];
 
         collider.Del(ptr, fakeGameObjects, fakeGameObjectMap);
 
-        bool deletedObject = std::find(fakeGameObjects.begin(), fakeGameObjects.end(), 1) == fakeGameObjects.end();
-        bool deletedObjectMap = fakeGameObjectMap.find(1) == fakeGameObjectMap.end();
+        bool deletedObject = std::find_if(fakeGameObjects.begin(), fakeGameObjects.end(),
+                        [](const GameObject& obj) { return obj.GetID() == 2; }) == fakeGameObjects.end();
+        bool deletedObjectMap = fakeGameObjectMap.find(2) == fakeGameObjectMap.end();
 
         PrintTestResult("Collision Deleted Object vector", deletedObject);
         PrintTestResult("Collision Deleted Object Map", deletedObjectMap);
