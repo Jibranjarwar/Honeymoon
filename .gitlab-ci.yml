@@ -17,7 +17,7 @@ build:
     - Get-ChildItem -Force
     - |
       if (Test-Path "$mingwBin\mingw32-make.exe") {
-        & "$mingwBin\mingw32-make.exe" -f Makefile_test main basicTests
+        & "$mingwBin\mingw32-make.exe" -f Makefile_test main basic_tests
       } else {
         Write-Error "mingw32-make.exe not found"
         exit 1
@@ -25,7 +25,7 @@ build:
   artifacts:
     paths:
       - ${BUILD_DIR}/main.exe
-      - ${BUILD_DIR}/basicTests.exe
+      - ${BUILD_DIR}/basic_tests.exe
   tags:
     - windows
 
@@ -36,6 +36,6 @@ test:
     - $mingwBin = "C:\ProgramData\mingw64\mingw64\bin"
     - $env:Path = "$mingwBin;$env:Path"
     - cd ${BUILD_DIR}
-    - if (Test-Path ".\basicTests.exe") { echo "Running basicTests.exe..."; .\basicTests.exe } else { Write-Error "basicTests.exe not found"; exit 1 }
+    - if (Test-Path ".\basic_tests.exe") { echo "Running basic_tests.exe..."; .\basic_tests.exe } else { Write-Error "basic_tests.exe not found"; exit 1 }
   tags:
     - windows
