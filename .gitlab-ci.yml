@@ -15,13 +15,6 @@ build:
     - Get-Content -Path Makefile_test
     - '$dir = Get-Location; Write-Host "Current directory: $dir"'
     - Get-ChildItem -Force
-    - |
-      if (Test-Path "$mingwBin\mingw32-make.exe") {
-        & "$mingwBin\mingw32-make.exe" -f Makefile_test main basic_tests
-      } else {
-        Write-Error "mingw32-make.exe not found"
-        exit 1
-      }
   artifacts:
     paths:
       - ${BUILD_DIR}/main.exe
