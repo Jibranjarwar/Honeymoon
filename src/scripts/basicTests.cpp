@@ -93,9 +93,9 @@ bool TestCameraObject(){
         bool noCameraIntersection = TestCamera.Game_Camera_Objects(testObject2);
 
         PrintTestResult("Camera Interaction with Object Inside", cameraIntersection);
-        PrintTestResult("Camera Interaction with Object Outside", noCameraIntersection);
+        PrintTestResult("Camera Interaction with Object Outside", !noCameraIntersection);
 
-        allPassed = allPassed && cameraIntersection && noCameraIntersection;
+        allPassed = allPassed && cameraIntersection && !noCameraIntersection;
 
         int _old_x = TestCamera._x;
         int _old_y = TestCamera._y;
