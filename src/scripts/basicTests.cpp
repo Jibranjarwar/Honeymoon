@@ -344,10 +344,10 @@ bool TestLuaFunctions(){
         
         std::cout << "x value: " << xValue << "gameObejct value: " << gameObjects[0]._x << std::endl;
 
-        bool ValueChanges = gameObjects[0]._x == xValue && gameObjects[0]._y == yValue && gameObjects[0]._height == heightV && gameObjects[0]._width == widthV;
+        bool ValueChanges = gameObjects[0]._x == (xValue + GameScreen::InitialMatrix->_x) && gameObjects[0]._y == (yValue + GameScreen::InitialMatrix->_y) && gameObjects[0]._height == heightV && gameObjects[0]._width == widthV;
         
         PrintTestResult("Checking if script Updated values of gameObject", ValueChanges);
-        allPassed == allPassed && ValueChanges;
+        allPassed = allPassed && ValueChanges;
 
     }catch(...){
         allPassed = false;
