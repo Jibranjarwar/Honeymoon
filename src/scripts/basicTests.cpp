@@ -295,7 +295,7 @@ bool TestCollision(){
 bool TestLuaFunctions(){
     bool allPassed = true;
 
-    std::cout << "\n--- Testing Collision ---" << std::endl;
+    std::cout << "\n--- Testing LuaFunctions ---" << std::endl;
 
     SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
@@ -310,7 +310,7 @@ bool TestLuaFunctions(){
         RegisterGameObjectsWithLua(lua_state, gameObjects);
 
         sol::load_result script1 = lua_state.load(R"(
-            obj = gameObject["test1"]
+            obj = gameObjects["test1"]
             obj.x = 100
             obj.y = 200
             obj.width = 50
