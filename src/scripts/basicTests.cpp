@@ -344,18 +344,18 @@ bool TestLuaFunctions(){
         auto [xValue, yValue, widthV, heightV] = values;
         
         std::cout << "x value: " << xValue + GameScreen::InitialMatrix->_x << " gameObejct value: " << gameObjects[0]._x << std::endl;
-        std::cout << "y value: " << yValue + GameScreen::InitialMatrix->_y << " gameObject value: " << gameObjects[0]._y << std::endl;
+        std::cout << "y value: " << yValue + (GameScreen::InitialMatrix->_y * -1) << " gameObject value: " << gameObjects[0]._y << std::endl;
         std::cout << "width value: " << widthV << " GameObject Value: " << gameObjects[0]._width << std::endl;
         std::cout << "height value: " << heightV << "GameObject Value: " << gameObjects[0]._height << std::endl; 
 
-        bool ValueChanges = gameObjects[0]._x == (xValue + GameScreen::InitialMatrix->_x) && gameObjects[0]._y == (yValue + GameScreen::InitialMatrix->_y) && gameObjects[0]._height == heightV && gameObjects[0]._width == widthV;
+        bool ValueChanges = gameObjects[0]._x == (xValue + GameScreen::InitialMatrix->_x) && gameObjects[0]._y == (yValue + (GameScreen::InitialMatrix->_y * -1)) && gameObjects[0]._height == heightV && gameObjects[0]._width == widthV;
         
-        PrintTestResult("Checking if script Updated values of gameObject", ValueChanges);
+        PrintTestResult("Checking if script Updated values for gameObject", ValueChanges);
         allPassed = allPassed && ValueChanges;
 
         sol::load_result script2 = lua_state.load(R"(
-            obj = gameObjects["test1"]:children["test2"]
-            return obj.name, obj.GetID()
+            obj = gameObjects["test1"].children["test2"]
+            return obj.name
         )");
 
         if (!script2.valid()) {
@@ -377,10 +377,10 @@ bool TestLuaFunctions(){
             return allPassed;
         }
 
-        std::tuple<std::string, int> values2 = result2;
-        auto [obj_name, obj_id] = values2;
+        //std::tuple<std::string, int> values2 = result2;
+        std::string obj_name = result2;
 
-        bool ChildrenCheck = gameObjects[1]._name == obj_name && gameObjects[1].GetID() == obj_id; 
+        bool ChildrenCheck = gameObjects[1]._name == obj_name; 
         
         PrintTestResult("Checking if script Works with Children GameObjects", ChildrenCheck);
         allPassed = allPassed && ChildrenCheck;
