@@ -85,7 +85,9 @@ bool TestCameraObject(){
         
         allPassed = allPassed && cameraInitializedCorrectly;
         
-        TestCamera.Camera_Render(5, 100, 300, 500, 600);
+        TestCamera.Camera_Render(5, 0, 0, 900, 900);
+        testObject1.Render(0, 0, 900, 900);
+        testObject2.Render(0, 0, 900, 900);
 
         bool cameraIntersection = TestCamera.Game_Camera_Objects(testObject1);
         bool noCameraIntersection = TestCamera.Game_Camera_Objects(testObject2);
@@ -129,7 +131,7 @@ bool TestSerialization() {
     std::cout << "\n--- Testing Serialization ---" << std::endl;
 
     // Initializing fake values needed for test
-    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_HIDDEN);
+    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
     
     std::string testName = "TestProject";
