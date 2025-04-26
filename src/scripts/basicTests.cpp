@@ -92,6 +92,21 @@ bool TestSerialization() {
     bool allPassed = true;
     
     std::cout << "\n--- Testing Serialization ---" << std::endl;
+
+    // Initializing fake values needed for test
+    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_HIDDEN);
+    SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
+    
+    std::string testName = "TestProject";
+    std::string newTestName = "TestNewProject";
+    std::vector<GameObject> fakeGameObjects;
+    std::vector<Camera> fakeCameraObjects;
+    fakeGameObjects.push_back(GameObject(testRenderer, "test.png", 100, 100, 0, 50));
+    fakeGameObjects.push_back(GameObject(testRenderer, "test2.png", 100, 100, 200, 200));
+    fakeCameraObjects.push_back(Camera(testRenderer, 200, 200, 100, 500, 0, 0, 0, 255));
+
+    GameScreen* gameScreen = new GameScreen(testRenderer);
+    GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
     
     try {
         /*std::ofstream testFile("test_data.json");
@@ -103,33 +118,43 @@ bool TestSerialization() {
         allPassed = allPassed && fileExists;*/
         
         // Setup temporary SDL window and renderer
-        SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_HIDDEN);
-        SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
-        
-        std::string testName = "TestProject";
-        std::vector<GameObject> fakeGameObjects;
-        std::vector<Camera> fakeCameraObjects;
-        fakeGameObjects.push_back(GameObject(testRenderer, "test.png", 100, 100, 0, 50));
-        fakeGameObjects.push_back(GameObject(testRenderer, "test2.png", 100, 100, 200, 200));
-        fakeCameraObjects.push_back(Camera(testRenderer, 200, 200, 100, 500, 0, 0, 0, 255));
-
-        GameScreen* gameScreen = new GameScreen(testRenderer);
-        GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
 
         tester(testName, fakeGameObjects, fakeCameraObjects, gameScreen);
 
         bool fileExists = std::ifstream(testName + ".json").good();
         PrintTestResult("File Creation", fileExists);
         allPassed = allPassed && fileExists;
+
+        if (fileExists) {
+            json testFile = reader_tester(testName + ".json");
+        
+            bool hasGameObjects = testFile.contains("GameObjects");
+            bool hasCameras = testFile.contains("CameraObjects");
+            bool hasInitialMatrix = testFile.contains("InitialMatrix");
+        
+            PrintTestResult("Contains GameObjects", hasGameObjects);
+            PrintTestResult("Contains CameraObjects", hasCameras);
+        
+            allPassed = allPassed && hasGameObjects && hasCameras && hasInitialMatrix;
+        }
+        rename_file(testName, newTestName);
+
+        bool originalGone = !std::ifstream(testName + ".json").good();
+        bool renamedExists = std::ifstream(newTestName + ".json").good();
+
+        PrintTestResult("Original file removed after rename", originalGone);
+        PrintTestResult("Renamed file exists", renamedExists);
         
         // Clean up
         std::remove((testName + ".json").c_str());
     } catch (const std::exception& e) {
         std::cerr << "Exception: " << e.what() << std::endl;
-        PrintTestResult("File Creation", false);
+        PrintTestResult("Serilization Test", false);
         allPassed = false;
     }
     
+    SDL_DestroyRenderer(testRenderer);
+    SDL_DestroyWindow(testWindow);
     return allPassed;
 }
 
