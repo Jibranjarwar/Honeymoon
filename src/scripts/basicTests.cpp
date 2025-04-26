@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
     bool gameObjectsPassed = TestGameObjects();
     bool CameraPassed = TestCameraObject();
     bool serializationPassed = TestSerialization();
-    bool allTestsPassed = gameObjectsPassed && CameraPassed;
+    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed;
     
     // Print summary
     std::cout << "\n==== TEST SUMMARY ====" << std::endl;
