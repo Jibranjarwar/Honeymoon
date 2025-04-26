@@ -302,6 +302,7 @@ bool TestLuaFunctions(){
     std::vector<GameObject> fakeGameObjects;
     gameObjects.push_back(GameObject(testRenderer, "test.png", "test1", 100, 100, 0, 50));
     gameObjects.push_back(GameObject(testRenderer, "test2.png", "test2", 100, 100, 200, 200));
+    gameObjects[0].childrenIDs.push_back(gameObjects[1].GetID());
     GameScreen* gameScreen = new GameScreen(testRenderer);
     GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
 
@@ -348,6 +349,38 @@ bool TestLuaFunctions(){
         
         PrintTestResult("Checking if script Updated values of gameObject", ValueChanges);
         allPassed = allPassed && ValueChanges;
+
+        sol::load_result script2 = lua_state.load(R"(
+            obj = gameObjects["test1"].children["test2"]
+            return obj.name, obj.GetID() 
+        )");
+
+        if (!script2.valid()) {
+            sol::error err = script2;
+            std::cerr << "Lua load error: " << err.what() << std::endl;
+            allPassed = false;
+            PrintTestResult("Loading Script", false);
+            std::cout << "Skipping further tests on LuaFunctions.cpp" << std::endl;
+            return allPassed;
+        }
+        
+        sol::protected_function_result result2 = script2();
+        if (!result2.valid()) {
+            sol::error err = result2;
+            std::cerr << "Lua execution error: " << err.what() << std::endl;
+            allPassed = false;
+            PrintTestResult("Executing Script", false);
+            std::cout << "Skipping further tests on LuaFunctions.cpp" << std::endl;
+            return allPassed;
+        }
+
+        std::tuple<std::string, int> values2 = result2;
+        auto [obj_name, obj_id] = values2;
+
+        bool ChildrenCheck = gameObjects[1]._name == obj_name && gameObjects[1].GetID() == obj_id; 
+        
+        PrintTestResult("Checking if script Works with Children GameObjects", ChildrenCheck);
+        allPassed = allPassed && ChildrenCheck;
 
     }catch(...){
         allPassed = false;
