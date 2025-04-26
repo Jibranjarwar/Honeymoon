@@ -1163,6 +1163,13 @@ int main(int argc, char **argv){
                         }
                     }
                 }
+               
+                // UNFINISHED PHYSICS LOGIC
+                /*if (ImGui::Checkbox("Enable Gravity", &matched_gameobject->hasGravity)) {
+                    if (!matched_gameobject->hasGravity) {
+                        matched_gameobject->velocityY = 0;
+                    }
+                }*/
 
                 std::string fileName = std::filesystem::path(matched_gameobject->_filename).filename().string();
                 static char ImageBuffer[128];
@@ -1436,6 +1443,12 @@ int main(int argc, char **argv){
         //SDL_GetWindowSize(window.window, &width, &height);
 
         //player2.RenderPreview(window.renderer, 200, 200);
+
+        // UNFINISHED PHYSICS LOGIC
+        /*for (auto& obj : gameObjects) {
+            obj.ApplyGravity();
+            obj.GroundCollision(height - offset_height);
+        }*/
 
         
         for(int i = 0; i < gameObjects.size(); i++){
