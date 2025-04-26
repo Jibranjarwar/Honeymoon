@@ -265,9 +265,9 @@ bool TestCollision(){
         PrintTestResult("Bool Collision Check", collisionCheck);
         
         GameObject* obj = fakeGameObjects[0].collisionBox.Collision_Check(fakeGameObjects[0], fakeGameObjects);
-        PrintTestResult("Collision return check", obj->GetID() == 2);
+        PrintTestResult("Collision return check", obj->GetID() == fakeGameObjects[2].GetID());
 
-        allPassed = allPassed && collisionCheck && (obj->GetID() == 2);
+        allPassed = allPassed && collisionCheck && (obj->GetID() == fakeGameObjects[2].GetID());
 
         GameObject* ptr = &fakeGameObjects[1];
 
