@@ -350,7 +350,7 @@ bool TestLuaFunctions(){
 
         sol::load_result script2 = lua_state.load(R"(
             obj = gameObjects["test1"].children["test2"]
-            return obj.name
+            return obj.name, obj:GetID
         )");
 
         if (!script2.valid()) {
@@ -372,10 +372,10 @@ bool TestLuaFunctions(){
             return allPassed;
         }
 
-        //std::tuple<std::string, int> values2 = result2;
-        std::string obj_name = result2;
+        std::tuple<std::string, int> values2 = result2;
+        auto [obj_name, obj_id] = values2;
 
-        bool ChildrenCheck = gameObjects[1]._name == obj_name; 
+        bool ChildrenCheck = gameObjects[1]._name == obj_name && gameObjects[1].GetID() == obj_id; 
         
         PrintTestResult("Checking if script Works with Children GameObjects", ChildrenCheck);
         allPassed = allPassed && ChildrenCheck;
