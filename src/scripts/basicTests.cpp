@@ -5,8 +5,16 @@
 #include "gamescreen.h"
 #include "camera.h"
 #include "serilization.h"
+#include "gameobjectui.h"
+#include "Sol/sol.hpp"
 #include <fstream>
 #include <vector>
+
+std::vector<GameObject> gameObjects;
+sol::state global_lua;
+std::vector<GameObjectUI> gameObjectsUI;
+std::vector<GameObject> deleteObjects;
+std::unordered_map<int, GameObject> gameObjectsCopy;
 
 void PrintTestResult(const std::string& testName, bool passed) {
     if (passed) {
