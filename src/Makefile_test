@@ -24,6 +24,7 @@ $(TARGET):
 $(TEST_TARGET): $(SRC_DIR)/basicTests.cpp
 	$(CXX) $(CXXFLAGS) -o $@ \
 		$(SRC_DIR)/basicTests.cpp \
+		$(SRC_DIR)/Main.cpp \
 		$(SRC_DIR)/Gameobject.cpp \
 		$(SRC_DIR)/Window.cpp \
 		$(SRC_DIR)/Serilization.cpp \
