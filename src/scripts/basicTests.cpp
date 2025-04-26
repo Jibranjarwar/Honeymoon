@@ -255,7 +255,7 @@ bool TestCollision(){
         bool collisionUpdateX = _old_x + 100 == collider._x;
         bool collisionUpdateY = _old_y + 100 == collider._y;
 
-        /*PrintTestResult("Camera Updating Position X", collisionUpdateX);
+        PrintTestResult("Camera Updating Position X", collisionUpdateX);
         PrintTestResult("Camera Updating Poistion Y", collisionUpdateY);
 
         allPassed = allPassed && collisionUpdateX && collisionUpdateY;
@@ -280,14 +280,13 @@ bool TestCollision(){
         PrintTestResult("Collision Deleted Object Map", deletedObjectMap);
 
         allPassed = allPassed && deletedObject && deletedObjectMap;
-        */
-        SDL_DestroyRenderer(testRenderer);
-        SDL_DestroyWindow(testWindow);
-        return allPassed;
     }catch(...){
         allPassed = false;
     }
 
+    SDL_DestroyRenderer(testRenderer);
+    SDL_DestroyWindow(testWindow);
+    return allPassed;
 }
 
 // Main test function
@@ -302,13 +301,15 @@ int main(int argc, char** argv) {
     bool gameObjectsPassed = TestGameObjects();
     bool CameraPassed = TestCameraObject();
     bool serializationPassed = TestSerialization();
-    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed;
+    bool CollisionPassed = TestCollision();
+    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed;
     
     // Print summary
     std::cout << "\n==== TEST SUMMARY ====" << std::endl;
     std::cout << "GameObject Tests: " << (gameObjectsPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Camera Tests: " << (CameraPassed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "Collision Tests: " << (CollisionPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Overall: " << (allTestsPassed ? "PASSED" : "FAILED") << std::endl;
     
     // Clean up
