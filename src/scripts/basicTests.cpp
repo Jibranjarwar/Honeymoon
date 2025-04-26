@@ -9,6 +9,7 @@
 #include "Sol/sol.hpp"
 #include <fstream>
 #include <vector>
+#include <string>
 
 std::vector<GameObject> gameObjects;
 sol::state global_lua;
@@ -67,11 +68,12 @@ bool TestCameraObject(){
     std::cout << "\n--- Testing CameraObject ---" << std::endl;
 
     // Setup temporary SDL window and renderer
-    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_HIDDEN);
+    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
     
     try{
         Camera TestCamera(testRenderer, 200, 200, 100, 500, 0, 0, 0, 255);
+        TestCamera.Camera_Render(5, 100, 300, 500, 600);
     }catch(...){
         PrintTestResult("Camera Initialisation", false);
         allPassed = false;
@@ -92,16 +94,36 @@ bool TestSerialization() {
     std::cout << "\n--- Testing Serialization ---" << std::endl;
     
     try {
-        std::ofstream testFile("test_data.json");
+        /*std::ofstream testFile("test_data.json");
         testFile << "{\"test\": true}";
         testFile.close();
         
         bool fileExists = std::ifstream("test_data.json").good();
         PrintTestResult("File Creation", fileExists);
+        allPassed = allPassed && fileExists;*/
+        
+        // Setup temporary SDL window and renderer
+        SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_HIDDEN);
+        SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
+        
+        std::string testName = "TestProject";
+        std::vector<GameObject> fakeGameObjects;
+        std::vector<Camera> fakeCameraObjects;
+        fakeGameObjects.push_back(GameObject(testRenderer, "test.png", 100, 100, 0, 50));
+        fakeGameObjects.push_back(GameObject(testRenderer, "test2.png", 100, 100, 200, 200));
+        fakeCameraObjects.push_back(Camera(testRenderer, 200, 200, 100, 500, 0, 0, 0, 255));
+
+        GameScreen* gameScreen = new GameScreen(testRenderer);
+        GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
+
+        tester(testName, fakeGameObjects, fakeCameraObjects, gameScreen);
+
+        bool fileExists = std::ifstream(testName + ".json").good();
+        PrintTestResult("File Creation", fileExists);
         allPassed = allPassed && fileExists;
         
         // Clean up
-        std::remove("test_data.json");
+        std::remove((testName + ".json").c_str());
     } catch (const std::exception& e) {
         std::cerr << "Exception: " << e.what() << std::endl;
         PrintTestResult("File Creation", false);
@@ -122,14 +144,13 @@ int main(int argc, char** argv) {
     
     bool gameObjectsPassed = TestGameObjects();
     bool CameraPassed = TestCameraObject();
-    //bool serializationPassed = TestSerialization();
-    
+    bool serializationPassed = TestSerialization();
     bool allTestsPassed = gameObjectsPassed && CameraPassed;
     
     // Print summary
     std::cout << "\n==== TEST SUMMARY ====" << std::endl;
     std::cout << "GameObject Tests: " << (gameObjectsPassed ? "PASSED" : "FAILED") << std::endl;
-    //std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Camera Tests: " << (CameraPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Overall: " << (allTestsPassed ? "PASSED" : "FAILED") << std::endl;
     
