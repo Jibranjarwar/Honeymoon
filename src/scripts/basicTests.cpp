@@ -302,6 +302,8 @@ bool TestLuaFunctions(){
     std::vector<GameObject> fakeGameObjects;
     gameObjects.push_back(GameObject(testRenderer, "test.png", "test1", 100, 100, 0, 50));
     gameObjects.push_back(GameObject(testRenderer, "test2.png", "test2", 100, 100, 200, 200));
+    GameScreen* gameScreen = new GameScreen(testRenderer);
+    GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
 
     try{
         sol::state lua_state;
@@ -339,6 +341,8 @@ bool TestLuaFunctions(){
 
         std::tuple<int, int, int, int> values = result;
         auto [xValue, yValue, widthV, heightV] = values;
+        
+        std::cout << "x value: " << xValue << "gameObejct value: " << gameObjects[0]._x << std::endl;
 
         bool ValueChanges = gameObjects[0]._x == xValue && gameObjects[0]._y == yValue && gameObjects[0]._height == heightV && gameObjects[0]._width == widthV;
         
