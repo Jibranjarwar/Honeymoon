@@ -86,7 +86,7 @@ bool TestGameObjects() {
 
         GameObject obj4(testRenderer, "test2.png", "fakeName", 50, 60, 70, 80);
 
-        bool ConstructorCheck =
+        ConstructorCheck =
             obj4._filename == "test.png" && 
             obj4.getX() == 70 - GameScreen::InitialMatrix->_x && 
             obj4.getY() == 80 - GameScreen::InitialMatrix->_y &&
