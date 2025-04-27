@@ -313,3 +313,7 @@ bool GameScreen::WindowChangeCheck(int window_width, int window_height){
     }
     return false;
 }
+//Destructor
+GameScreen::~GameScreen() {
+
+}
