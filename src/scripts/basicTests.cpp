@@ -308,12 +308,12 @@ bool Testlua_stateFunctions(){
     GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
 
     try{
-        sol::state lua_state_state;
-        lua_state_state.open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
-        RegisterGameObjectWithlua_state(lua_state_state);
-        RegisterGameObjectsWithlua_state(lua_state_state, gameObjects);
+        sol::state lua_state;
+        lua_state.open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
+        RegisterGameObjectWithLua(lua_state);
+        RegisterGameObjectsWithLua(lua_state, gameObjects);
 
-        sol::load_result script1 = lua_state_state.load(R"(
+        sol::load_result script1 = lua_state.load(R"(
             obj = gameObjects["test1"]
             obj.x = 100
             obj.y = 200
@@ -349,7 +349,7 @@ bool Testlua_stateFunctions(){
         PrintTestResult("Checking if script Updated values for gameObject", ValueChanges);
         allPassed = allPassed && ValueChanges;
 
-        sol::load_result script2 = lua_state_state.load(R"(
+        sol::load_result script2 = lua_state.load(R"(
             obj = gameObjects["test1"].children["test2"]
             return obj.name, obj:GetID()
         )");
@@ -395,23 +395,23 @@ bool Testlua_stateFunctions(){
         assert(lua_state["DOWN_key"] == SDLK_DOWN);
         assert(lua_state["SPACE_key"] == SDLK_SPACE);
 
-        assert(lua["KeycodeToScancode"](SDLK_a) == SDL_GetScancodeFromKey(SDLK_a));
-        assert(lua["KeycodeToScancode"](SDLK_d) == SDL_GetScancodeFromKey(SDLK_d));
-        assert(lua["KeycodeToScancode"](SDLK_w) == SDL_GetScancodeFromKey(SDLK_w));
-        assert(lua["KeycodeToScancode"](SDLK_s) == SDL_GetScancodeFromKey(SDLK_s));
-        assert(lua["KeycodeToScancode"](SDLK_q) == SDL_GetScancodeFromKey(SDLK_q));
-        assert(lua["KeycodeToScancode"](SDLK_e) == SDL_GetScancodeFromKey(SDLK_e));
-        assert(lua["KeycodeToScancode"](SDLK_f) == SDL_GetScancodeFromKey(SDLK_f));
-        assert(lua["KeycodeToScancode"](SDLK_c) == SDL_GetScancodeFromKey(SDLK_c));
-        assert(lua["KeycodeToScancode"](SDLK_LEFT) == SDL_GetScancodeFromKey(SDLK_LEFT));
-        assert(lua["KeycodeToScancode"](SDLK_RIGHT) == SDL_GetScancodeFromKey(SDLK_RIGHT));
-        assert(lua["KeycodeToScancode"](SDLK_UP) == SDL_GetScancodeFromKey(SDLK_UP));
-        assert(lua["KeycodeToScancode"](SDLK_DOWN) == SDL_GetScancodeFromKey(SDLK_DOWN));
-        assert(lua["KeycodeToScancode"](SDLK_SPACE) == SDL_GetScancodeFromKey(SDLK_SPACE));
+        assert(lua_state["KeycodeToScancode"](SDLK_a) == SDL_GetScancodeFromKey(SDLK_a));
+        assert(lua_state["KeycodeToScancode"](SDLK_d) == SDL_GetScancodeFromKey(SDLK_d));
+        assert(lua_state["KeycodeToScancode"](SDLK_w) == SDL_GetScancodeFromKey(SDLK_w));
+        assert(lua_state["KeycodeToScancode"](SDLK_s) == SDL_GetScancodeFromKey(SDLK_s));
+        assert(lua_state["KeycodeToScancode"](SDLK_q) == SDL_GetScancodeFromKey(SDLK_q));
+        assert(lua_state["KeycodeToScancode"](SDLK_e) == SDL_GetScancodeFromKey(SDLK_e));
+        assert(lua_state["KeycodeToScancode"](SDLK_f) == SDL_GetScancodeFromKey(SDLK_f));
+        assert(lua_state["KeycodeToScancode"](SDLK_c) == SDL_GetScancodeFromKey(SDLK_c));
+        assert(lua_state["KeycodeToScancode"](SDLK_LEFT) == SDL_GetScancodeFromKey(SDLK_LEFT));
+        assert(lua_state["KeycodeToScancode"](SDLK_RIGHT) == SDL_GetScancodeFromKey(SDLK_RIGHT));
+        assert(lua_state["KeycodeToScancode"](SDLK_UP) == SDL_GetScancodeFromKey(SDLK_UP));
+        assert(lua_state["KeycodeToScancode"](SDLK_DOWN) == SDL_GetScancodeFromKey(SDLK_DOWN));
+        assert(lua_state["KeycodeToScancode"](SDLK_SPACE) == SDL_GetScancodeFromKey(SDLK_SPACE));
 
         PrintTestResult("KeyBinding checks", true);
 
-        sol::load_result script3 = lua_state_state.load(R"(
+        sol::load_result script3 = lua_state.load(R"(
             toDelete = {}
             obj = gameObjects["test1"]
             obj_test_copy = gameObjects["test2"]
