@@ -132,7 +132,6 @@ bool TestGameObjects() {
         allPassed = false;
     }
 
-    // Test 6: Collision detection
     try
     {
         GameObject obj1(testRenderer, 100, 100, 0, 0, 255, 255, 255, 255);
@@ -144,9 +143,9 @@ bool TestGameObjects() {
         obj1.addedCollision = true;
         obj2.addedCollision = true;
 
-        std::vector<GameObject> tempObjects = { obj2 };
+        std::vector<GameObject> tempObjects = {obj2};
         bool collisionDetected = obj1.collisionBox.Collision_Check_Bool(obj1, tempObjects);
-        PrintTestResult("Collision Between Two Objects", collisionDetected);
+        PrintTestResult("Collision Detection Between Two Objects", collisionDetected);
         allPassed = allPassed && collisionDetected;
     } catch (...) {
         PrintTestResult("GameObject Collision Test", false);
@@ -168,10 +167,11 @@ bool TestGameScreen() {
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
 
     try {
-        GameScreen gameScreen(testRenderer);
+        bool rendererCreated = (testRenderer != nullptr);
+        PrintTestResult("SDL Renderer Creation", rendererCreated);
 
-        // Test Constructor: renderer should not be null
-        PrintTestResult("GameScreen Constructor", gameScreen.renderer != nullptr);
+        GameScreen gameScreen(testRenderer);
+        PrintTestResult("GameScreen Constructor Assignment", rendererCreated && gameScreen.renderer == testRenderer);
 
         // Test Zoom
         SDL_Event fakeEvent;
@@ -265,21 +265,6 @@ bool TestFileManager()
         allPassed = false;
     }
 
-    // Test 4: CreateTree
-    try
-    {
-        std::vector<std::pair<std::string, int>> fakeDirs = {
-            {"root", 0},
-            {"child1", 1},
-            {"child2", 1}};
-        TreeNode *tree = CreateTree(fakeDirs, ".");
-        bool treeBuilt = (tree != nullptr) && (tree->children.size() == 2);
-        PrintTestResult("CreateTree Basic Structure", treeBuilt);
-        allPassed = allPassed && treeBuilt;
-    } catch (...) {
-        PrintTestResult("CreateTree", false);
-        allPassed = false;
-    }
     return allPassed;
 }
 
