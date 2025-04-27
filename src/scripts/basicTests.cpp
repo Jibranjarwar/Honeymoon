@@ -400,7 +400,7 @@ bool Testlua_stateFunctions(){
         assert(lua_state["KeycodeToScancode"](SDLK_w).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_w));
         assert(lua_state["KeycodeToScancode"](SDLK_s).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_s));
         assert(lua_state["KeycodeToScancode"](SDLK_q).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_q));
-        assert(lua_state["KeycodeToScancode"](SDLK_f).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_e));
+        assert(lua_state["KeycodeToScancode"](SDLK_e).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_e));
         assert(lua_state["KeycodeToScancode"](SDLK_f).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_f));
         assert(lua_state["KeycodeToScancode"](SDLK_c).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_c));
         assert(lua_state["KeycodeToScancode"](SDLK_LEFT).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_LEFT));
