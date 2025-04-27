@@ -6,7 +6,7 @@
 #include "camera.h"
 #include "serilization.h"
 #include "gameobjectui.h"
-#include "lua_statefunctions.h"
+#include "luafunctions.h"
 #include "Sol/sol.hpp"
 #include <fstream>
 #include <vector>
