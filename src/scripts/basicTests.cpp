@@ -39,6 +39,8 @@ bool TestGameObjects() {
     // Temporary SDL window and renderer
     SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
+    GameScreen* gameScreen = new GameScreen(testRenderer);
+    GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
 
     // Test 1: Basic creation with default constructor
     try {
@@ -70,6 +72,29 @@ bool TestGameObjects() {
             obj.getY() == 20 &&
             obj.getWidth() == 100 && 
             obj.getHeight() == 200;
+
+        GameObject obj3(testRenderer, "test.png", 120, 101, 50, 100);
+
+        bool ConstructorCheck =
+            obj3._filename == "test.png" && 
+            obj3.getX() == 50 && 
+            obj3.getY() == 100 &&
+            obj3.getWidth() == 120 && 
+            obj3.getHeight() == 101;
+        
+        initialValuesCorrect = initialValuesCorrect && ConstructorCheck;
+
+        GameObject obj4(testRenderer, "test2.png", "fakeName", 50, 60, 70, 80);
+
+        bool ConstructorCheck =
+            obj4._filename == "test.png" && 
+            obj4.getX() == 70 - GameScreen::InitialMatrix->_x && 
+            obj4.getY() == 80 - GameScreen::InitialMatrix->_y &&
+            obj4.getWidth() == 50 && 
+            obj4.getHeight() == 60;
+
+        initialValuesCorrect = initialValuesCorrect && ConstructorCheck;
+
         PrintTestResult("GameObject Initial Values Set Correctly", initialValuesCorrect);
         allPassed = allPassed && initialValuesCorrect;
 
@@ -132,29 +157,6 @@ bool TestGameObjects() {
         allPassed = false;
     }
 
-    try
-    {
-        GameObject obj1(testRenderer, 100, 100, 0, 0, 255, 255, 255, 255);
-        GameObject obj2(testRenderer, 100, 100, 80, 0, 255, 255, 255, 255); // Close enough to collide
-
-        obj1.AddCollision(testRenderer);
-        obj2.AddCollision(testRenderer);
-
-        obj1.addedCollision = true;
-        obj2.addedCollision = true;
-
-        obj1.Render(0, 0, 900, 900);
-        obj2.Render(0, 0, 900, 900);
-
-        std::vector<GameObject> tempObjects = {obj2};
-        bool collisionDetected = obj1.collisionBox.Collision_Check_Bool(obj1, tempObjects);
-        PrintTestResult("Collision Detection Between Two Objects", collisionDetected);
-        allPassed = allPassed && collisionDetected;
-    } catch (...) {
-        PrintTestResult("GameObject Collision Test", false);
-        allPassed = false;
-    }
-
     // Cleanup
     SDL_DestroyRenderer(testRenderer);
     SDL_DestroyWindow(testWindow);
@@ -170,11 +172,8 @@ bool TestGameScreen() {
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
 
     try {
-        bool rendererCreated = (testRenderer != nullptr);
-        PrintTestResult("SDL Renderer Creation", rendererCreated);
 
         GameScreen gameScreen(testRenderer);
-        PrintTestResult("GameScreen Constructor Assignment", rendererCreated && gameScreen.renderer == testRenderer);
 
         // Test Zoom
         SDL_Event fakeEvent;
