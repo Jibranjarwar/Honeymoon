@@ -85,7 +85,9 @@ bool TestGameObjects() {
         initialValuesCorrect = initialValuesCorrect && ConstructorCheck;
 
         GameObject obj4(testRenderer, "test2.png", "fakeName", 50, 60, 70, 80);
-
+        std::cout << "obj x" << obj4.getX() << std::endl;
+        std::cout << "obj y" << obj4.getY() << std::endl;
+        
         ConstructorCheck =
             obj4._filename == "test.png" && 
             obj4.getX() == 70 - GameScreen::InitialMatrix->_x && 
