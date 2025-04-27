@@ -400,7 +400,7 @@ bool Testlua_stateFunctions(){
         assert(lua_state["KeycodeToScancode"](SDLK_w).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_w));
         assert(lua_state["KeycodeToScancode"](SDLK_s).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_s));
         assert(lua_state["KeycodeToScancode"](SDLK_q).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_q));
-        assert(lua_state["KeycodeToScancode"](SDLK_e).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_e));
+        assert(lua_state["KeycodeToScancode"](SDLK_f).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_e));
         assert(lua_state["KeycodeToScancode"](SDLK_f).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_f));
         assert(lua_state["KeycodeToScancode"](SDLK_c).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_c));
         assert(lua_state["KeycodeToScancode"](SDLK_LEFT).get<SDL_Keycode>() == SDL_GetScancodeFromKey(SDLK_LEFT));
@@ -480,8 +480,8 @@ int main(int argc, char** argv) {
     bool CameraPassed = TestCameraObject();
     bool serializationPassed = TestSerialization();
     bool CollisionPassed = TestCollision();
-    bool lua_stateFunctionsPassed = Testlua_stateFunctions();
-    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed && lua_stateFunctionsPassed;
+    bool luaFunctionsPassed = Testlua_stateFunctions();
+    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed && luaFunctionsPassed;
     
     // Print summary
     std::cout << "\n==== TEST SUMMARY ====" << std::endl;
@@ -489,7 +489,7 @@ int main(int argc, char** argv) {
     std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Camera Tests: " << (CameraPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Collision Tests: " << (CollisionPassed ? "PASSED" : "FAILED") << std::endl;
-    std::cout << "lua_stateFunctions Tests: " << (lua_stateFunctionsPassed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "luaFunctions Tests: " << (luaFunctionsPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Overall: " << (allTestsPassed ? "PASSED" : "FAILED") << std::endl;
     
     // Clean up
