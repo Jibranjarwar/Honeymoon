@@ -15,6 +15,7 @@
 #include <algorithm>
 #include "Sol/sol.hpp"
 #include <cassert>
+#include <filemanager.h>
 
 std::vector<GameObject> gameObjects;
 sol::state global_lua_state;
@@ -35,7 +36,7 @@ bool TestGameObjects() {
 
     std::cout << "\n--- Testing GameObject Class ---" << std::endl;
 
-    // Setup temporary SDL window and renderer
+    // Temporary SDL window and renderer
     SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
 
@@ -60,10 +61,225 @@ bool TestGameObjects() {
         allPassed = false;
     }
 
+    // Test 3: Attributes set/get
+    try {
+        GameObject obj(testRenderer, 100, 200, 10, 20, 255, 100, 50, 255);
+
+        bool initialValuesCorrect = 
+            obj.getX() == 10 && 
+            obj.getY() == 20 &&
+            obj.getWidth() == 100 && 
+            obj.getHeight() == 200;
+        PrintTestResult("GameObject Initial Values Set Correctly", initialValuesCorrect);
+        allPassed = allPassed && initialValuesCorrect;
+
+        // Update position
+        obj.UpdatePosX(15);
+        obj.UpdatePosY(-10);
+
+        bool positionUpdatedCorrectly = (obj.getX() == 25) && (obj.getY() == 10);
+        PrintTestResult("GameObject Position Updated Correctly", positionUpdatedCorrectly);
+        allPassed = allPassed && positionUpdatedCorrectly;
+
+        // Update size
+        obj.UpdateWidth(50);
+        obj.UpdateHeight(50);
+
+        bool sizeUpdatedCorrectly = (obj.getWidth() == 150) && (obj.getHeight() == 250);
+        PrintTestResult("GameObject Size Updated Correctly", sizeUpdatedCorrectly);
+        allPassed = allPassed && sizeUpdatedCorrectly;
+    } catch (...) {
+        PrintTestResult("GameObject Attributes Setting/Getting", false);
+        allPassed = false;
+    }
+
+    // Test 4: Copying GameObject
+    try {
+        GameObject original(testRenderer, 100, 100, 30, 40, 255, 255, 255, 255);
+        original._name = "OriginalName";
+        GameObject copied = original.Copy();
+
+        bool copiedCorrectly = (copied.getX() == original.getX()) &&
+                               (copied.getY() == original.getY()) &&
+                               (copied.getWidth() == original.getWidth()) &&
+                               (copied.getHeight() == original.getHeight()) &&
+                               (copied._name == "OriginalName_copy") &&
+                               (copied.GetID() != original.GetID()); // IDs should be different
+
+        PrintTestResult("GameObject Copy Method", copiedCorrectly);
+        allPassed = allPassed && copiedCorrectly;
+    } catch (...) {
+        PrintTestResult("GameObject Copy Method", false);
+        allPassed = false;
+    }
+
+    // Test 5: Movement handling
+    try
+    {
+        GameObject movingObj(testRenderer, 100, 100, 0, 0, 255, 255, 255, 255);
+
+        SDL_Event fakeEvent;
+        fakeEvent.type = SDL_KEYDOWN;
+        fakeEvent.key.keysym.sym = SDLK_d; 
+
+        movingObj.Movement(fakeEvent);
+
+        bool movedRight = movingObj.getX() == 10; 
+        PrintTestResult("GameObject Movement to the Right", movedRight);
+        allPassed = allPassed && movedRight;
+    } catch (...) {
+        PrintTestResult("GameObject Movement Test", false);
+        allPassed = false;
+    }
+
+    // Test 6: Collision detection
+    try
+    {
+        GameObject obj1(testRenderer, 100, 100, 0, 0, 255, 255, 255, 255);
+        GameObject obj2(testRenderer, 100, 100, 80, 0, 255, 255, 255, 255); // Close enough to collide
+
+        obj1.AddCollision(testRenderer);
+        obj2.AddCollision(testRenderer);
+
+        obj1.addedCollision = true;
+        obj2.addedCollision = true;
+
+        std::vector<GameObject> tempObjects = { obj2 };
+        bool collisionDetected = obj1.collisionBox.Collision_Check_Bool(obj1, tempObjects);
+        PrintTestResult("Collision Between Two Objects", collisionDetected);
+        allPassed = allPassed && collisionDetected;
+    } catch (...) {
+        PrintTestResult("GameObject Collision Test", false);
+        allPassed = false;
+    }
+
     // Cleanup
     SDL_DestroyRenderer(testRenderer);
     SDL_DestroyWindow(testWindow);
 
+    return allPassed;
+}
+
+bool TestGameScreen() {
+    bool allPassed = true;
+    std::cout << "\n--- Testing GameScreen Class ---" << std::endl;
+
+    SDL_Window* testWindow = SDL_CreateWindow("Test Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_HIDDEN);
+    SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
+
+    try {
+        GameScreen gameScreen(testRenderer);
+
+        // Test Constructor: renderer should not be null
+        PrintTestResult("GameScreen Constructor", gameScreen.renderer != nullptr);
+
+        // Test Zoom
+        SDL_Event fakeEvent;
+        fakeEvent.type = SDL_MOUSEWHEEL; 
+        bool zoomed = gameScreen.Zoomed(fakeEvent);
+        PrintTestResult("GameScreen Zoomed Event Detection", zoomed);
+        allPassed = allPassed && zoomed;
+
+        // Test WindowChangeCheck
+        gameScreen.prev_window_width = 800;
+        gameScreen.prev_window_height = 600;
+        bool noChange = !gameScreen.WindowChangeCheck(800, 600);
+        bool changeDetected = gameScreen.WindowChangeCheck(1024, 768);
+        PrintTestResult("GameScreen Window No Change", noChange);
+        PrintTestResult("GameScreen Window Change Detected", changeDetected);
+        allPassed = allPassed && noChange && changeDetected;
+
+        // Test CreateInitialMatrix, UpdateMatrix
+        gameScreen.CreateInitialMatrix(testRenderer, "dummy.png", "DummyMatrix", 100, 100, 50, 50);
+        gameScreen.UpdateMatrix(200, 300);
+
+        bool matrixUpdated = GameScreen::InitialMatrix->_x == 200 && GameScreen::InitialMatrix->_y == 300;
+        PrintTestResult("GameScreen InitialMatrix Update", matrixUpdated);
+        allPassed = allPassed && matrixUpdated;
+
+        // Test ScreenOffset
+        gameScreen.window_width = 800;
+        gameScreen.window_height = 600;
+        gameScreen.offset_width = 200;
+        gameScreen.offset_height = 100;
+        gameScreen.window_x = 400;
+        gameScreen.window_y = 300;
+        gameScreen.difference_x = 10;
+        gameScreen.difference_y = 5;
+        gameScreen.ScreenOffset();
+
+        bool screenCoordsCorrect = (gameScreen.screen_x == 400 - (800 - 200) + 10) && (gameScreen.screen_y == 300 - (600 - 100) + 5);
+        PrintTestResult("GameScreen ScreenOffset Calculation", screenCoordsCorrect);
+        allPassed = allPassed && screenCoordsCorrect;
+
+    } catch (...) {
+        PrintTestResult("GameScreen Basic Tests", false);
+        allPassed = false;
+    }
+
+    SDL_DestroyRenderer(testRenderer);
+    SDL_DestroyWindow(testWindow);
+    return allPassed;
+}
+
+bool TestFileManager()
+{
+    bool allPassed = true;
+    std::cout << "\n--- Testing FileManager ---" << std::endl;
+
+    // Test 1: Create new TreeNode
+    try
+    {
+        TreeNode *root = GetNewNode("root");
+        bool nodeCreated = (root != nullptr) && (root->dirName == "root") && (root->parent == nullptr);
+        PrintTestResult("TreeNode Creation", nodeCreated);
+        allPassed = allPassed && nodeCreated;
+    } catch (...) {
+        PrintTestResult("TreeNode Creation", false);
+        allPassed = false;
+    }
+
+    // Test 2: Add Child
+    try
+    {
+        TreeNode *root = GetNewNode("root");
+        addChild(root, "child1");
+        bool childAdded = (root->children.size() == 1) && (root->children[0]->dirName == "child1");
+        PrintTestResult("Add Child Node", childAdded);
+        allPassed = allPassed && childAdded;
+    } catch (...) {
+        PrintTestResult("Add Child Node", false);
+        allPassed = false;
+    }
+
+    // Test 3: GetAllDirectories (simple temporary folder)
+    try
+    {
+        std::filesystem::path tempPath = std::filesystem::temp_directory_path();
+        auto directories = GetAllDirectories(tempPath.string());
+        bool directoriesFound = !directories.empty();
+        PrintTestResult("GetAllDirectories Found Something", directoriesFound);
+        allPassed = allPassed && directoriesFound;
+    } catch (...) {
+        PrintTestResult("GetAllDirectories", false);
+        allPassed = false;
+    }
+
+    // Test 4: CreateTree
+    try
+    {
+        std::vector<std::pair<std::string, int>> fakeDirs = {
+            {"root", 0},
+            {"child1", 1},
+            {"child2", 1}};
+        TreeNode *tree = CreateTree(fakeDirs, ".");
+        bool treeBuilt = (tree != nullptr) && (tree->children.size() == 2);
+        PrintTestResult("CreateTree Basic Structure", treeBuilt);
+        allPassed = allPassed && treeBuilt;
+    } catch (...) {
+        PrintTestResult("CreateTree", false);
+        allPassed = false;
+    }
     return allPassed;
 }
 
@@ -477,15 +693,19 @@ int main(int argc, char** argv) {
     }
     
     bool gameObjectsPassed = TestGameObjects();
+    bool gameScreenPassed = TestGameScreen();
+    bool fileManagerPassed = TestFileManager();
     bool CameraPassed = TestCameraObject();
     bool serializationPassed = TestSerialization();
     bool CollisionPassed = TestCollision();
     bool luaFunctionsPassed = Testlua_stateFunctions();
-    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed && luaFunctionsPassed;
+    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed && luaFunctionsPassed && gameScreenPassed && fileManagerPassed;
     
     // Print summary
     std::cout << "\n==== TEST SUMMARY ====" << std::endl;
     std::cout << "GameObject Tests: " << (gameObjectsPassed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "GameScreen Tests: " << (gameScreenPassed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "FileManager Tests: " << (fileManagerPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Camera Tests: " << (CameraPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Collision Tests: " << (CollisionPassed ? "PASSED" : "FAILED") << std::endl;
