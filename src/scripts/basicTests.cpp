@@ -15,7 +15,7 @@
 #include <algorithm>
 #include "Sol/sol.hpp"
 #include <cassert>
-#include <filemanager.h>
+#include "filemanager.h"
 
 std::vector<GameObject> gameObjects;
 sol::state global_lua_state;
@@ -37,7 +37,7 @@ bool TestGameObjects() {
     std::cout << "\n--- Testing GameObject Class ---" << std::endl;
 
     // Temporary SDL window and renderer
-    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_HIDDEN);
+    SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
 
     // Test 1: Basic creation with default constructor
@@ -142,6 +142,9 @@ bool TestGameObjects() {
 
         obj1.addedCollision = true;
         obj2.addedCollision = true;
+
+        obj1.Render(0, 0, 900, 900);
+        obj2.Render(0, 0, 900, 900);
 
         std::vector<GameObject> tempObjects = {obj2};
         bool collisionDetected = obj1.collisionBox.Collision_Check_Bool(obj1, tempObjects);
