@@ -1,6 +1,9 @@
 #include "window.h"
 #include <SDL2/SDL_image.h>
 #include <iostream>
+#include <chrono>
+
+using Clock = std::chrono::steady_clock;
 
 // Gives value too static window value
 
@@ -51,6 +54,15 @@ bool Window::init(){
         return false;
     }
 
+    SDL_Surface* iconSurface = IMG_Load("scripts\\Engine_Logo_icon.png");
+    if (iconSurface == nullptr) {
+        std::cerr << "Failed to load icon: " << IMG_GetError() << std::endl;
+        return false;
+    } else {
+        SDL_SetWindowIcon(window, iconSurface);
+        SDL_FreeSurface(iconSurface);
+    }
+
     return true;
 }
 
@@ -75,6 +87,66 @@ void Window::pollEvents(SDL_Event &event){
         }
     
     }
+}
+
+void Window::showBootUpScreen() {
+    // Load the splash image
+    SDL_Texture* splashTexture = IMG_LoadTexture(renderer, "scripts\\Engine_Logo.PNG");  // Replace with your image path
+    if (!splashTexture) {
+        std::cerr << "Error loading splash image: " << IMG_GetError() << std::endl;
+        return;
+    }
+    auto startTime = Clock::now();
+    bool done = false;
+    bool animate_text = true;
+    int value = _width / 2 - 300;
+    int width_box = 550;
+    SDL_Event event;
+
+    while (!done) {
+        auto elapsed = Clock::now() - startTime;
+        auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+
+        // Clear the screen
+        SDL_RenderClear(renderer);
+
+        // Render the splash image
+        SDL_RenderCopy(renderer, splashTexture, nullptr, nullptr);
+        
+        // give an animated effect for text
+        while(animate_text){
+            value += 5;
+            width_box -= 5;
+            // reset the render to update new values and image
+            SDL_RenderClear(renderer);
+
+            // Draw the background again
+            SDL_RenderCopy(renderer, splashTexture, nullptr, nullptr);
+            
+            // illusion of animated logo name
+            SDL_Rect _dest_rect = {value, _height - 150, width_box, 100};
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderFillRect(renderer, &_dest_rect);
+
+            if(width_box <= 0){
+                animate_text = false;
+            }
+            
+            // present to screen
+            SDL_RenderPresent(renderer);
+        }
+
+        // Update the screen
+        SDL_RenderPresent(renderer);
+
+        // Exit the loop after 1 seconds or when animation is done
+        if (elapsedMs >= 1500) {
+            done = true;
+        }
+    }
+
+    // Clean up the texture
+    SDL_DestroyTexture(splashTexture);
 }
 
 // renders everything including background NOTE: needs to be the last thing called in Main.cpp

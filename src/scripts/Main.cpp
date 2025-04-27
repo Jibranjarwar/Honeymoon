@@ -63,9 +63,10 @@ int main(int argc, char **argv){
 
 
     // created a window object
-    Window window("GAME ENGINE", 800, 640);
+    Window window("HoneyMoon ENGINE", 800, 640);
     Window previewWindow("PREVIEW", 800, 640);
     SDL_HideWindow(previewWindow.window);
+    window.showBootUpScreen();
 
     // initialize and setup for ImGUI
     IMGUI_CHECKVERSION();

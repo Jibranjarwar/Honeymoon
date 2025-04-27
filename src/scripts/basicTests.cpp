@@ -296,7 +296,7 @@ bool TestCollision(){
 bool Testlua_stateFunctions(){
     bool allPassed = true;
 
-    std::cout << "\n--- Testing lua_stateFunctions ---" << std::endl;
+    std::cout << "\n--- Testing luaFunctions ---" << std::endl;
 
     SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
