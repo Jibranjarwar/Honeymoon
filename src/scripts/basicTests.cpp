@@ -6,7 +6,7 @@
 #include "camera.h"
 #include "serilization.h"
 #include "gameobjectui.h"
-#include "luafunctions.h"
+#include "lua_statefunctions.h"
 #include "Sol/sol.hpp"
 #include <fstream>
 #include <vector>
@@ -14,9 +14,10 @@
 #include <unordered_map>
 #include <algorithm>
 #include "Sol/sol.hpp"
+#include <cassert>
 
 std::vector<GameObject> gameObjects;
-sol::state global_lua;
+sol::state global_lua_state;
 std::vector<GameObjectUI> gameObjectsUI;
 std::vector<GameObject> deleteObjects;
 std::unordered_map<int, GameObject> gameObjectsCopy;
@@ -292,10 +293,10 @@ bool TestCollision(){
     return allPassed;
 }
 
-bool TestLuaFunctions(){
+bool Testlua_stateFunctions(){
     bool allPassed = true;
 
-    std::cout << "\n--- Testing LuaFunctions ---" << std::endl;
+    std::cout << "\n--- Testing lua_stateFunctions ---" << std::endl;
 
     SDL_Window* testWindow = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 900, SDL_WINDOW_HIDDEN);
     SDL_Renderer* testRenderer = SDL_CreateRenderer(testWindow, -1, SDL_RENDERER_ACCELERATED);
@@ -307,12 +308,12 @@ bool TestLuaFunctions(){
     GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
 
     try{
-        sol::state lua_state;
-        lua_state.open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
-        RegisterGameObjectWithLua(lua_state);
-        RegisterGameObjectsWithLua(lua_state, gameObjects);
+        sol::state lua_state_state;
+        lua_state_state.open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
+        RegisterGameObjectWithlua_state(lua_state_state);
+        RegisterGameObjectsWithlua_state(lua_state_state, gameObjects);
 
-        sol::load_result script1 = lua_state.load(R"(
+        sol::load_result script1 = lua_state_state.load(R"(
             obj = gameObjects["test1"]
             obj.x = 100
             obj.y = 200
@@ -323,20 +324,20 @@ bool TestLuaFunctions(){
 
         if (!script1.valid()) {
             sol::error err = script1;
-            std::cerr << "Lua load error: " << err.what() << std::endl;
+            std::cerr << "lua load error: " << err.what() << std::endl;
             allPassed = false;
             PrintTestResult("Loading Script", false);
-            std::cout << "Skipping further tests on LuaFunctions.cpp" << std::endl;
+            std::cout << "Skipping further tests on lua Functions.cpp" << std::endl;
             return allPassed;
         }
         
         sol::protected_function_result result = script1();
         if (!result.valid()) {
             sol::error err = result;
-            std::cerr << "Lua execution error: " << err.what() << std::endl;
+            std::cerr << "lua execution error: " << err.what() << std::endl;
             allPassed = false;
             PrintTestResult("Executing Script", false);
-            std::cout << "Skipping further tests on LuaFunctions.cpp" << std::endl;
+            std::cout << "Skipping further tests on lua Functions.cpp" << std::endl;
             return allPassed;
         }
 
@@ -348,27 +349,27 @@ bool TestLuaFunctions(){
         PrintTestResult("Checking if script Updated values for gameObject", ValueChanges);
         allPassed = allPassed && ValueChanges;
 
-        sol::load_result script2 = lua_state.load(R"(
+        sol::load_result script2 = lua_state_state.load(R"(
             obj = gameObjects["test1"].children["test2"]
             return obj.name, obj:GetID()
         )");
 
         if (!script2.valid()) {
             sol::error err = script2;
-            std::cerr << "Lua load error: " << err.what() << std::endl;
+            std::cerr << "lua load error: " << err.what() << std::endl;
             allPassed = false;
             PrintTestResult("Loading Script", false);
-            std::cout << "Skipping further tests on LuaFunctions.cpp" << std::endl;
+            std::cout << "Skipping further tests on lua Functions.cpp" << std::endl;
             return allPassed;
         }
         
         sol::protected_function_result result2 = script2();
         if (!result2.valid()) {
             sol::error err = result2;
-            std::cerr << "Lua execution error: " << err.what() << std::endl;
+            std::cerr << "lua execution error: " << err.what() << std::endl;
             allPassed = false;
             PrintTestResult("Executing Script", false);
-            std::cout << "Skipping further tests on LuaFunctions.cpp" << std::endl;
+            std::cout << "Skipping further tests on lua Functions.cpp" << std::endl;
             return allPassed;
         }
 
@@ -379,6 +380,83 @@ bool TestLuaFunctions(){
         
         PrintTestResult("Checking if script Works with Children GameObjects", ChildrenCheck);
         allPassed = allPassed && ChildrenCheck;
+
+        assert(lua_state["A_key"] == SDLK_a);
+        assert(lua_state["D_key"] == SDLK_d);
+        assert(lua_state["W_key"] == SDLK_w);
+        assert(lua_state["S_key"] == SDLK_s);
+        assert(lua_state["Q_key"] == SDLK_q);
+        assert(lua_state["E_key"] == SDLK_e);
+        assert(lua_state["F_key"] == SDLK_f);
+        assert(lua_state["C_key"] == SDLK_c);
+        assert(lua_state["LEFT_key"] == SDLK_LEFT);
+        assert(lua_state["RIGHT_key"] == SDLK_RIGHT);
+        assert(lua_state["UP_key"] == SDLK_UP);
+        assert(lua_state["DOWN_key"] == SDLK_DOWN);
+        assert(lua_state["SPACE_key"] == SDLK_SPACE);
+
+        assert(lua["KeycodeToScancode"](SDLK_a) == SDL_GetScancodeFromKey(SDLK_a));
+        assert(lua["KeycodeToScancode"](SDLK_d) == SDL_GetScancodeFromKey(SDLK_d));
+        assert(lua["KeycodeToScancode"](SDLK_w) == SDL_GetScancodeFromKey(SDLK_w));
+        assert(lua["KeycodeToScancode"](SDLK_s) == SDL_GetScancodeFromKey(SDLK_s));
+        assert(lua["KeycodeToScancode"](SDLK_q) == SDL_GetScancodeFromKey(SDLK_q));
+        assert(lua["KeycodeToScancode"](SDLK_e) == SDL_GetScancodeFromKey(SDLK_e));
+        assert(lua["KeycodeToScancode"](SDLK_f) == SDL_GetScancodeFromKey(SDLK_f));
+        assert(lua["KeycodeToScancode"](SDLK_c) == SDL_GetScancodeFromKey(SDLK_c));
+        assert(lua["KeycodeToScancode"](SDLK_LEFT) == SDL_GetScancodeFromKey(SDLK_LEFT));
+        assert(lua["KeycodeToScancode"](SDLK_RIGHT) == SDL_GetScancodeFromKey(SDLK_RIGHT));
+        assert(lua["KeycodeToScancode"](SDLK_UP) == SDL_GetScancodeFromKey(SDLK_UP));
+        assert(lua["KeycodeToScancode"](SDLK_DOWN) == SDL_GetScancodeFromKey(SDLK_DOWN));
+        assert(lua["KeycodeToScancode"](SDLK_SPACE) == SDL_GetScancodeFromKey(SDLK_SPACE));
+
+        PrintTestResult("KeyBinding checks", true);
+
+        sol::load_result script3 = lua_state_state.load(R"(
+            toDelete = {}
+            obj = gameObjects["test1"]
+            obj_test_copy = gameObjects["test2"]
+            test_delete_copy_obj = obj:Copy()
+            copy_obj = obj_test_copy:Copy()
+            table.insert(toDelete, test_delete_copy_obj)
+            DeleteGameObjects(toDelete)
+            return copy_obj
+        )");
+
+        if (!script3.valid()) {
+            sol::error err = script3;
+            std::cerr << "lua load error: " << err.what() << std::endl;
+            allPassed = false;
+            PrintTestResult("Loading Script", false);
+            std::cout << "Skipping further tests on lua Functions.cpp" << std::endl;
+            return allPassed;
+        }
+
+        sol::protected_function_result result3 = script3();
+        if (!result3.valid()) {
+            sol::error err = result3;
+            std::cerr << "lua execution error: " << err.what() << std::endl;
+            allPassed = false;
+            PrintTestResult("Executing Script", false);
+            std::cout << "Skipping further tests on lua Functions.cpp" << std::endl;
+            return allPassed;
+        }
+
+        if (result3.valid()) {
+            sol::object copy_obj_lua = result3;
+            GameObject* copy_obj = copy_obj_lua.as<GameObject*>();
+
+            assert(gameObjects.size() == 3);
+            assert(gameObjects[2]._name == "test2_copy");
+            PrintTestResult("Checking if Copy Function worked", true);
+
+            assert(gameObjectsCopy.count(copy_obj->GetID()) == 0);
+            PrintTestResult("Checking if DeleteGameObject Function worked", true);
+        }else{
+            sol::error err = result;
+            std::cerr << "Lua script execution failed: " << err.what() << std::endl;
+            allPassed = false;
+            PrintTestResult("Lua script execution", false);
+        }
 
     }catch(...){
         allPassed = false;
@@ -402,8 +480,8 @@ int main(int argc, char** argv) {
     bool CameraPassed = TestCameraObject();
     bool serializationPassed = TestSerialization();
     bool CollisionPassed = TestCollision();
-    bool LuaFunctionsPassed = TestLuaFunctions();
-    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed && LuaFunctionsPassed;
+    bool lua_stateFunctionsPassed = Testlua_stateFunctions();
+    bool allTestsPassed = gameObjectsPassed && CameraPassed && serializationPassed && CollisionPassed && lua_stateFunctionsPassed;
     
     // Print summary
     std::cout << "\n==== TEST SUMMARY ====" << std::endl;
@@ -411,7 +489,7 @@ int main(int argc, char** argv) {
     std::cout << "Serialization Tests: " << (serializationPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Camera Tests: " << (CameraPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Collision Tests: " << (CollisionPassed ? "PASSED" : "FAILED") << std::endl;
-    std::cout << "LuaFunctions Tests: " << (LuaFunctionsPassed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "lua_stateFunctions Tests: " << (lua_stateFunctionsPassed ? "PASSED" : "FAILED") << std::endl;
     std::cout << "Overall: " << (allTestsPassed ? "PASSED" : "FAILED") << std::endl;
     
     // Clean up
