@@ -462,8 +462,8 @@ bool TestCollision(){
         bool collisionUpdateX = _old_x + 100 == collider._x;
         bool collisionUpdateY = _old_y + 100 == collider._y;
 
-        PrintTestResult("Camera Updating Position X", collisionUpdateX);
-        PrintTestResult("Camera Updating Poistion Y", collisionUpdateY);
+        PrintTestResult("Collision Updating Position X", collisionUpdateX);
+        PrintTestResult("Collision Updating Poistion Y", collisionUpdateY);
 
         allPassed = allPassed && collisionUpdateX && collisionUpdateY;
 
