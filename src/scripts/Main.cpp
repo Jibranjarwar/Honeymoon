@@ -21,11 +21,6 @@
 #include "Sol/sol.hpp"
 #include <algorithm>
 #include <memory>
-//SETUP LUA CPP WRAPPER 
-//DEAFULT CHILDERN NAME
-//CHILD STICKS WITH PARENT,
-//CHILD PROPERTIES
-//gameobject 
 
 using json = nlohmann::json;
 
@@ -38,6 +33,7 @@ std::unordered_map<int, std::unique_ptr<sol::state>> gameObjectStates;
 std::vector<GameObject> deleteObjects;
 std::unordered_map<int, GameObject> gameObjectsCopy;
 extern bool dragFile;
+extern bool stopDragFile;
 bool stopDrag = false;
 
 bool isStringInVector(const std::vector<std::string>& vec, const std::string& str) {
@@ -77,8 +73,8 @@ int main(int argc, char **argv){
 
 
     //create empty gameObjects since we assign in the if statement and couldnt access them outside without initialising them first
-    GameObject player;
-    GameObject player3;
+    //GameObject player;
+    //GameObject player3;
 
 
     GameScreen* gameScreen = new GameScreen(window.renderer);
@@ -90,26 +86,6 @@ int main(int argc, char **argv){
     std::vector<Camera> cameraObjects;
 
     cameraObjects.push_back(gameCamera);
-    
-    // creates gameObject types
-    if(!(std::filesystem::exists("data1.json"))){
-        //std::cout << "yes it does" << std::endl;
-    
-        player = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\Azula.png", 200, 200, 500, 200);
-        //GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
-        player3 = GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\blue_lock.jpg", 100, 100, 200, 300);
-        
-    }
-    else{
-
-        //json load_data = reader_tester();
-
-        //player = GameObject(window.renderer, load_data["gameObjects"][0]["filename"], load_data["gameObjects"][0]["size"]["width"], load_data["gameObjects"][0]["size"]["height"], load_data["gameObjects"][0]["position"]["x"], load_data["gameObjects"][0]["position"]["y"]);
-        //GameObject player2(window.renderer, 100, 100, 50, 50, 55, 55, 200, 255);
-        //player3 = GameObject(window.renderer, load_data["gameObjects"][1]["filename"], load_data["gameObjects"][1]["size"]["width"], load_data["gameObjects"][1]["size"]["height"], load_data["gameObjects"][1]["position"]["x"], load_data["gameObjects"][1]["position"]["y"]);
-
-        //gameScreen->Setter(load_data);
-    }
     
     // list to hold all GameObjects in the UI
     std::vector<std::pair<int, GameObject>> deletedObjects;
@@ -133,7 +109,7 @@ int main(int argc, char **argv){
     //std::vector<GameObject> gameObjectsCopy;
 
     // creates game Object with Texture or in game development terms "sprite"
-    GameObject player4(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", 500, 500, 100, 100);
+    //GameObject player4(window.renderer, "C:\\Users\\shvdi\\Pictures\\gyro_zepelli.jpg", 500, 500, 100, 100);
 
     //tester(gameObjects);
     //reader_tester();
@@ -155,15 +131,15 @@ int main(int argc, char **argv){
     makes sure that the id's are static and being incremented each time new object of type
     GameObject class is created
     */
-    std::cout << "object id: " << player.GetID() << std::endl;
+    //std::cout << "object id: " << player.GetID() << std::endl;
     //std::cout << "object2 id: " << player2.GetID() << std::endl;   
-    std::cout << "object3 id: " << player3.GetID() << std::endl;
-    std::cout << "object4 id: " << player4.GetID() << std::endl; 
+    //std::cout << "object3 id: " << player3.GetID() << std::endl;
+    //std::cout << "object4 id: " << player4.GetID() << std::endl; 
     GameObject* selectedGameObject = nullptr;
     GameObject* selectedChildObject = nullptr;
     global_lua.open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
     RegisterGameObjectWithLua(global_lua);               
-    RegisterGameObjectsWithLua(global_lua, gameObjects);
+    RegisterGameObjectsWithLua(global_lua, gameObjects, cameraObjects[0]);
 
     // FPS variables
     int frameCount = 0;
@@ -200,7 +176,7 @@ int main(int argc, char **argv){
                 if(ImGui::MenuItem("Load Project")){
                     std::string loaded_file = SelectJsonFile();
                     std::cout << "loaded_file: " << loaded_file << std::endl;
-                    json loaded_data = reader_tester(loaded_file);
+                    json loaded_data = LoadState(loaded_file);
                     std::vector<int> children = {};
                     try{
                         gameObjects.clear();
@@ -265,7 +241,7 @@ int main(int argc, char **argv){
                                 auto lua = std::make_unique<sol::state>();
                                 lua->open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
                                 RegisterGameObjectWithLua(*lua);
-                                RegisterGameObjectsWithLua(*lua, gameObjects);
+                                RegisterGameObjectsWithLua(*lua, gameObjects, cameraObjects[0]);
 
                                 gameObjectStates[gameObject_it->GetID()] = std::move(lua);
                             }
@@ -319,7 +295,7 @@ int main(int argc, char **argv){
                     if(projectName_saved.empty()){
                         openSavePopup = true;
                     }else{
-                        tester(projectName_saved, gameObjects, cameraObjects, gameScreen); 
+                        SaveState(projectName_saved, gameObjects, cameraObjects); 
                     }
                 }
 
@@ -389,6 +365,15 @@ int main(int argc, char **argv){
                         deletedObjects.clear();
 
                         // sets initializer back to false so we can runscript a new once we go into preview
+                        cameraObjects[0]._x = cameraObjects[0]._x - (cameraObjects[0]._x - cameraObjects[0].preview_diff_x);
+                        cameraObjects[0]._y = cameraObjects[0]._y - (cameraObjects[0]._y - cameraObjects[0].preview_diff_y);
+                        cameraObjects[0]._width = cameraObjects[0]._width - (cameraObjects[0]._width - cameraObjects[0].preview_diff_width);
+                        cameraObjects[0]._height = cameraObjects[0]._height - (cameraObjects[0]._height - cameraObjects[0].preview_diff_height);
+                        cameraObjects[0].preview_diff_x = 0;
+                        cameraObjects[0].preview_diff_y = 0;
+                        cameraObjects[0].preview_diff_width = 0;
+                        cameraObjects[0].preview_diff_height = 0;
+                        
                         for(auto& gameObject : gameObjects){
                             gameObject.initializedRunScript = false;
                             std::cout << "new x: " <<  + (GameScreen::InitialMatrix->_x - GameScreen::InitialMatrix->_original_x) << std::endl;
@@ -403,8 +388,13 @@ int main(int argc, char **argv){
                             int obj_to_col_diff_y = gameObject._y - gameObject.collisionBox._y;
                             gameObject._x = gameObject._x - (gameObject._x - gameObject.preview_diff_x);
                             gameObject._y = gameObject._y - (gameObject._y - gameObject.preview_diff_y);
+                            gameObject._width = gameObject._width - (gameObject._width - gameObject.preview_diff_width);
+                            gameObject._height = gameObject._height - (gameObject._height- gameObject.preview_diff_height);
                             gameObject.preview_diff_x = 0;
                             gameObject.preview_diff_y = 0;
+                            gameObject.preview_diff_width = 0;
+                            gameObject.preview_diff_height = 0;
+
                             if(gameObject.addedCollision){
                                 gameObject.collisionBox._x = gameObject._x - obj_to_col_diff_x; //+ (gameObject._x - gameObject.collisionBox._original_x);
                                 gameObject.collisionBox._y = gameObject._y - obj_to_col_diff_y;
@@ -413,16 +403,7 @@ int main(int argc, char **argv){
                         }
                         isPressed = !isPressed;
                     }
-                }
-                // test button for native script
-                if(ImGui::MenuItem("RunScript")){
-                    try{
-                        global_lua.script_file("C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\test.lua");
-                    }catch(const sol::error& e){
-                        std::cerr << "Lua Error: " << e.what() << std::endl;
-                    }
-                    
-                }         
+                }       
                 ImGui::MenuItem("Settings");     
                 ImGui::EndMenu();
             }
@@ -467,7 +448,7 @@ int main(int argc, char **argv){
                 stopDrag = false;
                 projectName_saved = std::string(ProjectName);
                 std::cout << "Saved Project name:" << projectName_saved << std::endl;
-                tester(projectName_saved, gameObjects, cameraObjects, gameScreen);
+                SaveState(projectName_saved, gameObjects, cameraObjects);
                 ImGui::CloseCurrentPopup();
             }
         
@@ -506,6 +487,13 @@ int main(int argc, char **argv){
         ImGui::Begin("GameObject Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
         ImGui::SetWindowSize(ImVec2(width - offset_width, height)); // Adjust size as needed
         ImGui::SetWindowPos(ImVec2(0, 18));
+
+        if (!ImGui::IsWindowFocused())
+        {
+            stopDrag = false; // Stop dragging if the window is unselected
+        }else{
+            stopDrag = true;
+        }
 
         // if preview is on we disable gameManager so no new items can be added or changed while the test is on
         if(isPressed){
@@ -578,10 +566,10 @@ int main(int argc, char **argv){
             // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
             //AddGameObjectToLua(lua, gameObjects.back());
             
-            RegisterGameObjectsWithLua(global_lua, gameObjects); 
+            RegisterGameObjectsWithLua(global_lua, gameObjects, cameraObjects[0]); 
             if(gameObjectStates.size() > 0){
                 for(auto& [id, state] : gameObjectStates){
-                    RegisterGameObjectsWithLua(*state, gameObjects);
+                    RegisterGameObjectsWithLua(*state, gameObjects, cameraObjects[0]);
                 }
             }
 
@@ -657,10 +645,10 @@ int main(int argc, char **argv){
                         // add last reference in gameObjects since new_object gets changed because of the vector needing to relocate memory for new space
                         // ISSUE: SINCE THE WHOLE VECTOR GETS REALLOCATED THE MEMORY GETS MESSED UP WITH LUA AND CREATES CRASH
                         //AddGameObjectToLua(lua, gameObjects.back());
-                        RegisterGameObjectsWithLua(global_lua, gameObjects);
+                        RegisterGameObjectsWithLua(global_lua, gameObjects, cameraObjects[0]);
                         if(gameObjectStates.size() > 0){
                             for(auto& [id, state] : gameObjectStates){
-                                RegisterGameObjectsWithLua(*state, gameObjects);
+                                RegisterGameObjectsWithLua(*state, gameObjects, cameraObjects[0]);
                             }
                         }
 
@@ -699,10 +687,10 @@ int main(int argc, char **argv){
                             }
 
                             // remake Lua Table after deleting gameObjects
-                            RegisterGameObjectsWithLua(global_lua, gameObjects);
+                            RegisterGameObjectsWithLua(global_lua, gameObjects, cameraObjects[0]);
                             if(gameObjectStates.size() > 0){
                                 for(auto& [id, state] : gameObjectStates){
-                                    RegisterGameObjectsWithLua(*state, gameObjects);
+                                    RegisterGameObjectsWithLua(*state, gameObjects, cameraObjects[0]);
                                 }
                             }
 
@@ -760,10 +748,10 @@ int main(int argc, char **argv){
                         gameObjectsUI[i].children.clear();
                     }
                     // remake Lua Table after deleting gameObjects
-                    RegisterGameObjectsWithLua(global_lua, gameObjects);
+                    RegisterGameObjectsWithLua(global_lua, gameObjects, cameraObjects[0]);
                     if(gameObjectStates.size() > 0){
                         for(auto& [id, state] : gameObjectStates){
-                            RegisterGameObjectsWithLua(*state, gameObjects);
+                            RegisterGameObjectsWithLua(*state, gameObjects, cameraObjects[0]);
                         }
                     }
                     
@@ -775,35 +763,10 @@ int main(int argc, char **argv){
 
 
 
-                    ImGui::TreePop(); // Close the tree node
-                }
-
-                ImGui::PopID(); // Remove the current GameObject ID
+                ImGui::TreePop(); // Close the tree node
             }
 
-        if (ImGui::Button("Open Popup")) {
-            ImGui::OpenPopup("MyPopup");
-        }
-        
-        if ((ImGui::BeginPopupModal("MyPopup", NULL, ImGuiWindowFlags_AlwaysAutoResize))) {
-            stopDrag = true;
-            ImGui::Text("This is a popup!");
-            ImGui::InputText("Project Name:", ProjectName, IM_ARRAYSIZE(ProjectName));
-            
-            if (ImGui::Button("OK")) {
-                // Do something
-                stopDrag = false;
-                projectName_saved = std::string(ProjectName);
-                std::cout << "Saved Project name:" << projectName_saved << std::endl;
-                ImGui::CloseCurrentPopup();
-            }
-        
-            if (ImGui::Button("Cancel")) {
-                stopDrag = false;
-                ImGui::CloseCurrentPopup();
-            }
-        
-            ImGui::EndPopup();
+            ImGui::PopID(); // Remove the current GameObject ID
         }
             
         
@@ -980,7 +943,7 @@ int main(int argc, char **argv){
                     ImGui::Text("Position");
                     
                     // Add drag controls for X and Y
-                    if (ImGui::DragInt("X Position", &matched_gameobject->_screen_x, 1.0f, -1000, 1000))
+                    if (ImGui::DragInt("X Position", &matched_gameobject->_screen_x, 1.0f))
                     {
                         stopDrag = true;
                         int diff_x = (prev_screen_x - matched_gameobject->_screen_x) * -1;
@@ -1018,7 +981,7 @@ int main(int argc, char **argv){
                         }
                     }
 
-                    if (ImGui::DragInt("Y Position", &matched_gameobject->_screen_y, 1.0f, -1000, 1000))
+                    if (ImGui::DragInt("Y Position", &matched_gameobject->_screen_y, 1.0f))
                     {
                         stopDrag = true;
                         int diff_y = (prev_screen_y - matched_gameobject->_screen_y);
@@ -1057,7 +1020,7 @@ int main(int argc, char **argv){
                     }
 
                     ImGui::Text("Size");
-                    if (ImGui::DragInt("Width", &matched_gameobject->_screen_width, 1.0f, -1000, 1000))
+                    if (ImGui::DragInt("Width", &matched_gameobject->_screen_width, 1.0f))
                     {
                         stopDrag = true;
                         int diff_width = (prev_screen_width - matched_gameobject->_screen_width) * -1;
@@ -1096,7 +1059,7 @@ int main(int argc, char **argv){
                         }
                     }
 
-                    if (ImGui::DragInt("Height", &matched_gameobject->_screen_height, 1.0f, -1000, 1000))
+                    if (ImGui::DragInt("Height", &matched_gameobject->_screen_height, 1.0f))
                     {
                         stopDrag = true;
                         int diff_height = (prev_screen_height - matched_gameobject->_screen_height) * -1;
@@ -1304,7 +1267,7 @@ int main(int argc, char **argv){
                         auto lua = std::make_unique<sol::state>();
                         lua->open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
                         RegisterGameObjectWithLua(*lua);
-                        RegisterGameObjectsWithLua(*lua, gameObjects);
+                        RegisterGameObjectsWithLua(*lua, gameObjects, cameraObjects[0]);
 
                         gameObjectStates[matched_gameobject->GetID()] = std::move(lua);
 
@@ -1426,9 +1389,9 @@ int main(int argc, char **argv){
 
         // renders the objects to the screen without this wont display
         // NOTE: THE ORDER IN WHICH YOU RENDER CAN BE SEEN AS "LAYERS"
-        player4.Render();
-       // player2.Render();
-        player3.Render();
+        //player4.Render();
+        // player2.Render();
+        //player3.Render();
 
         // draws graph
         gameScreen->DrawGraph(window.window);
@@ -1524,7 +1487,7 @@ int main(int argc, char **argv){
             }*/
 
             // prevents gameObjects from spawning in wrong areas once preview is on and user switches back to editor
-            if(!isPressed && !stopDrag && !dragFile){
+            if(!isPressed && !stopDrag && !dragFile && !stopDragFile){
             
                 // calls Zoom In and Out Function for GameScreen
                 //gameScreen->ZoomInAndOut(event, gameObjects, cameraObjects);
@@ -1555,11 +1518,23 @@ int main(int argc, char **argv){
             SDL_ShowWindow(previewWindow.window);
             selectedGameObject = nullptr;
             CameraProperties = false;
+            if(cameraObjects[0].preview_diff_x == 0 && cameraObjects[0].preview_diff_y == 0 && 
+                cameraObjects[0].preview_diff_width == 0 && cameraObjects[0].preview_diff_height == 0){
+                
+                cameraObjects[0].preview_diff_x = cameraObjects[0]._x;
+                cameraObjects[0].preview_diff_y = cameraObjects[0]._y;
+                cameraObjects[0].preview_diff_width = cameraObjects[0]._width;
+                cameraObjects[0].preview_diff_height = cameraObjects[0]._height;
+            }
 
             for(int i = 0; i < gameObjects.size(); i++){
-                if(gameObjects[i].preview_diff_x == 0 && gameObjects[i].preview_diff_y == 0){
+                if(gameObjects[i].preview_diff_x == 0 && gameObjects[i].preview_diff_y == 0 &&
+                    gameObjects[i].preview_diff_width == 0 && gameObjects[i].preview_diff_height == 0){
+                    
                     gameObjects[i].preview_diff_x = gameObjects[i]._x;
                     gameObjects[i].preview_diff_y = gameObjects[i]._y;
+                    gameObjects[i].preview_diff_width = gameObjects[i]._width;
+                    gameObjects[i].preview_diff_height = gameObjects[i]._height;
                 }
             }
             

@@ -16,6 +16,37 @@ using Clock = std::chrono::steady_clock;
 
 // creates a type for Lua to understand GameObject class
 void RegisterGameObjectWithLua(sol::state &lua) {
+    
+    lua.new_usertype<Camera>("Camera",
+        "x", 
+        sol::property(
+            [](Camera& obj) { return obj._x - GameScreen::InitialMatrix->_x; },
+            [](Camera& obj, int value) {
+                int desired_x = GameScreen::InitialMatrix->_x + value;
+                obj._x = desired_x;
+            }
+        ),
+        "y",
+        sol::property(
+            [](Camera& obj) { return (obj._y - GameScreen::InitialMatrix->_y) * -1; },
+            [](Camera& obj, int value) {
+                int desired_y = GameScreen::InitialMatrix->_y + (-value);
+                obj._y = desired_y;
+            }
+        ),
+        "width", &Camera::_width,
+        "height", &Camera::_height,
+        "FollowObject", [](Camera& self, GameObject& obj) {
+            // Center of the object
+            int obj_center_x = obj._x + (obj._width / 2);
+            int obj_center_y = obj._y + (obj._height / 2);
+
+            // Camera's top-left should be moved to center on obj center
+            self._x = obj_center_x - (self._width / 2);
+            self._y = obj_center_y - (self._height / 2);
+        }
+    );
+
     lua.new_usertype<GameObject>("GameObject", 
         
         "Copy", [&lua](GameObject& self) -> GameObject* {
@@ -36,6 +67,9 @@ void RegisterGameObjectWithLua(sol::state &lua) {
             }
         },
 
+        "Collide", [](GameObject& self){
+            self.collisionBox.On_Collision(self, gameObjects);
+        },
         "Movement", &GameObject::Lua_Movement,
         "OnCollision", [](GameObject& self) -> bool {
             return self.collisionBox.Collision_Check_Bool(self, gameObjects);
@@ -123,14 +157,15 @@ void RegisterGameObjectWithLua(sol::state &lua) {
 }
 
 // registers gameObject vector as a table for Lua
-void RegisterGameObjectsWithLua(sol::state& lua, std::vector<GameObject>& gameObjects) {
+void RegisterGameObjectsWithLua(sol::state& lua, std::vector<GameObject>& gameObjects, Camera& camera) {
 
     sol::table gameObjectsTable = lua.create_table();
     for (size_t i = 0; i < gameObjects.size(); ++i) {
         // made it so it saves with name, obj pair since it would be hard to identify objects by ID too users
         gameObjectsTable[gameObjects[i]._name] = &gameObjects[i];
     }
-    lua["gameObjects"] = gameObjectsTable; 
+    lua["gameObjects"] = gameObjectsTable;
+    lua["Camera"] = &camera;
 }
 
 // adds New instances of GameObject to Lua table

@@ -209,8 +209,11 @@ void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array
                 prev_drag_window_position_x = screen_x;
                 prev_drag_window_position_y = screen_y;
 
-                inital_drag_window_x = prev_drag_window_position_x;
-                inital_drag_window_y = prev_drag_window_position_y;
+                // edge case for when application goes too far with drag
+                if(prev_drag_window_position_x < 100 && prev_drag_window_position_y < 100){
+                    inital_drag_window_x = prev_drag_window_position_x;
+                    inital_drag_window_y = prev_drag_window_position_y;
+                }
             }
         }
     }
@@ -224,7 +227,6 @@ void GameScreen::DragScreen(Uint32 mouseState, std::vector<GameObject>& array,st
     if(mouseState && SDL_BUTTON(SDL_BUTTON_LEFT)){
         //std::cout << "left" << std::endl;       
         wasPressed = true;
-        //std::cout << "WRONG" << std::endl;
         // updates drag position and takes it away from intial drag start position to get total offset to be moved
         
         current_window_position_x = screen_x - prev_drag_window_position_x;

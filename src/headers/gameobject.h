@@ -57,7 +57,7 @@ public:
     void static setEvent(SDL_Event* event);
 
     // Movement
-    void Movement(SDL_Event &event);
+    void Movement(SDL_Event& event);
     void Lua_Movement();
 
     // Texture
@@ -85,6 +85,7 @@ public:
     int _original_w, _original_h;
     int _original_x, _original_y;
     int preview_diff_x = 0, preview_diff_y = 0;
+    int preview_diff_width = 0, preview_diff_height = 0;
     int _id, _lua_id = -1;
     std::string _filename;
     std::string _name;

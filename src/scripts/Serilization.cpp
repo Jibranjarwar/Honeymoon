@@ -4,7 +4,7 @@
 
 std::unordered_map<int, json> gameObjectMap;
 
-void tester(std::string projectName, std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjects, GameScreen* gamescreen){
+void SaveState(std::string projectName, std::vector<GameObject> gameObjects, std::vector<Camera> cameraObjects){
 
     /*json data = {
         {"name", "player"},
@@ -150,7 +150,7 @@ void tester(std::string projectName, std::vector<GameObject> gameObjects, std::v
     }
 }
 
-json reader_tester(std::string project){
+json LoadState(std::string project){
     std::ifstream file(project);
     json loaded_data;
     if(file.is_open()){

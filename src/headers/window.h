@@ -7,9 +7,9 @@ class Window{
 
 //public func
 public:
-    Window(const std::string &title, int width, int height);
+    Window(const std::string& title, int width, int height);
     ~Window();
-    void pollEvents(SDL_Event &event);
+    void pollEvents(SDL_Event& event);
     void showBootUpScreen();
 
     // function is not allowed to modify any members with the const

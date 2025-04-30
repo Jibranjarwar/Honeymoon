@@ -365,14 +365,14 @@ bool TestSerialization() {
         
         // Setup temporary SDL window and renderer
 
-        tester(testName, fakeGameObjects, fakeCameraObjects, gameScreen);
+        SaveState(testName, fakeGameObjects, fakeCameraObjects);
 
         bool fileExists = std::ifstream(testName + ".json").good();
         PrintTestResult("File Creation", fileExists);
         allPassed = allPassed && fileExists;
 
         if (fileExists) {
-            json testFile = reader_tester(testName + ".json");
+            json testFile = LoadState(testName + ".json");
         
             bool hasGameObjects = testFile.contains("gameObjects");
             bool hasCameras = testFile.contains("Camera");
@@ -510,12 +510,13 @@ bool Testlua_stateFunctions(){
     gameObjects[0].childrenIDs.push_back(gameObjects[1].GetID());
     GameScreen* gameScreen = new GameScreen(testRenderer);
     GameScreen::InitialMatrix = new GameObject(testRenderer, "default.png", "matrix4778192235010291", 100, 100, 400, 100);
+    Camera TestCamera(testRenderer, 200, 200, 100, 500, 0, 0, 0, 255);
 
     try{
         sol::state lua_state;
         lua_state.open_libraries(sol::lib::base, sol::lib::table, sol::lib::math);
         RegisterGameObjectWithLua(lua_state);
-        RegisterGameObjectsWithLua(lua_state, gameObjects);
+        RegisterGameObjectsWithLua(lua_state, gameObjects, TestCamera);
 
         sol::load_result script1 = lua_state.load(R"(
             obj = gameObjects["test1"]

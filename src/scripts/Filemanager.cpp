@@ -10,7 +10,8 @@ std::vector<std::filesystem::path> selectedFiles;
 std::string current_pressed_dir;
 SDL_Texture* file_image = nullptr;
 bool dragFile = false;
-extern bool stopDrag;
+bool stopDragFile = false;
+static bool fileManagerActive = false;
 
 void OpenFileWithDefaultProgram(const std::string& filePath){
     
@@ -95,6 +96,18 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
     }
     ImGui::Begin("File Manager", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
     ImGui::SetWindowSize(ImVec2(width, height));
+
+    // If the window or its children are clicked, set active
+    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        fileManagerActive = true;
+    }
+
+    // If the user clicks outside this window, deactivate
+    if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        fileManagerActive = false;
+    }
+
+    // Use the state to control drag behavior
 
     // Sidebar width
     float sidebarWidth = width * 0.2f;
@@ -208,6 +221,7 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
     ImGui::EndGroup();
 
     //AddFiles(directory_tree, absolutePath.string());
+    stopDragFile = fileManagerActive;
     ImGui::End();
 }
 

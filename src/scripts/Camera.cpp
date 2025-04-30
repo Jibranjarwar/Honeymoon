@@ -7,6 +7,10 @@ Camera::Camera(SDL_Renderer* renderer, int width, int height, int x, int y, int 
 _objRenderer(renderer), _width(width), _original_w(width), _height(height), _original_h(height), _x(x), _original_x(x), _y(y), _original_y(y), _r(r), _g(g), _b(b), _a(a){
 }
 
+Camera::~Camera(){
+    
+}
+
 void Camera::Camera_Render(int thickness, int gridMinX, int gridMinY, int gridMaxX, int gridMaxY){
     
     int value_y;
