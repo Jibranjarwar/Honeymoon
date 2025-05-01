@@ -21,9 +21,9 @@ all: $(TARGET) $(TEST_TARGET)
 $(TARGET): 
 	$(CXX) $(CXXFLAGS) -o $@ $(SRC_FILES) $(PLATFORM_LIBS) -mwindows
 
-$(TEST_TARGET): $(SRC_DIR)/basicTests.cpp
+$(TEST_TARGET): $(SRC_DIR)/UnitTests.cpp
 	$(CXX) $(CXXFLAGS) -o $@ \
-		$(SRC_DIR)/basicTests.cpp \
+		$(SRC_DIR)/UnitTests.cpp \
 		$(SRC_DIR)/Gameobject.cpp \
 		$(SRC_DIR)/Window.cpp \
 		$(SRC_DIR)/Serilization.cpp \

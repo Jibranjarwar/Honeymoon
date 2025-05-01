@@ -674,7 +674,7 @@ bool Testlua_stateFunctions(){
 
 // Main test function
 int main(int argc, char** argv) {
-    std::cout << "==== GAME ENGINE BASIC TESTS ====" << std::endl;
+    std::cout << "==== GAME ENGINE UNIT TESTS ====" << std::endl;
     
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;

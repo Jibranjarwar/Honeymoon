@@ -209,11 +209,8 @@ void GameScreen::InitalDragState(SDL_Event event, std::vector<GameObject>& array
                 prev_drag_window_position_x = screen_x;
                 prev_drag_window_position_y = screen_y;
 
-                // edge case for when application goes too far with drag
-                if(prev_drag_window_position_x < 100 && prev_drag_window_position_y < 100){
-                    inital_drag_window_x = prev_drag_window_position_x;
-                    inital_drag_window_y = prev_drag_window_position_y;
-                }
+                inital_drag_window_x = prev_drag_window_position_x;
+                inital_drag_window_y = prev_drag_window_position_y;
             }
         }
     }
