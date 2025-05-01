@@ -4,7 +4,7 @@ INCLUDE_DIR := include
 LIB_DIR := lib
 
 TARGET := main
-TEST_TARGET := basic_tests
+TEST_TARGET := unit_tests
 
 # === SOURCES ===
 SOURCES := Main.cpp Window.cpp Gameobject.cpp Gamescreen.cpp Filemanager.cpp Serilization.cpp Camera.cpp LuaFunctions.cpp Collision.cpp
