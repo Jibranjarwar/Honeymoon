@@ -1,0 +1,505 @@
+{
+    "Camera": {
+        "ChangedScreenCord": true,
+        "colours": {
+            "b": 0,
+            "g": 0,
+            "r": 0
+        },
+        "height": 400,
+        "oppacity": 255,
+        "originals": {
+            "height": 400,
+            "width": 400,
+            "x": 200,
+            "y": 220
+        },
+        "screen_x": 40,
+        "screen_y": 230,
+        "width": 400,
+        "x": 45,
+        "y": -33
+    },
+    "InitialMatrix": {
+        "filename": "scripts\\assets\\default.png",
+        "name": "matrix4778192235010291",
+        "originals": {
+            "height": 100,
+            "width": 100,
+            "x": 160,
+            "y": 450
+        },
+        "position": {
+            "x": 5,
+            "y": 197
+        },
+        "size": {
+            "height": 100,
+            "width": 100
+        }
+    },
+    "LastObjectID": {
+        "id": 124
+    },
+    "gameObjects": [
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\default.png",
+            "id": 4,
+            "name": "background_1",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 900,
+                "original_w": 900,
+                "original_x": 358,
+                "original_y": 92
+            },
+            "position": {
+                "x": -69,
+                "y": -46
+            },
+            "screen_cord": {
+                "height": 900,
+                "width": 900,
+                "x": -74,
+                "y": 243
+            },
+            "size": {
+                "height": 900,
+                "width": 900
+            }
+        },
+        {
+            "addedCollision": true,
+            "collision": {
+                "colours": {
+                    "b": 32,
+                    "g": 252,
+                    "r": 3
+                },
+                "oppacity": 255,
+                "originals": {
+                    "height": 40,
+                    "width": 30,
+                    "x": 642,
+                    "y": 202
+                },
+                "screen_x": 240,
+                "screen_y": 50,
+                "x": 245,
+                "y": 147
+            },
+            "filename": "C:\\Users\\shvdi\\Pictures\\dirt.png",
+            "id": 5,
+            "name": "player",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 40,
+                "original_w": 30,
+                "original_x": 697,
+                "original_y": 180
+            },
+            "position": {
+                "x": 245,
+                "y": 147
+            },
+            "screen_cord": {
+                "height": 40,
+                "width": 30,
+                "x": 240,
+                "y": 50
+            },
+            "scripts": [
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\lua_scripts\\player.lua",
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\lua_scripts\\camera.lua"
+            ],
+            "size": {
+                "height": 40,
+                "width": 30
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\default.png",
+            "id": 6,
+            "name": "background_2",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 400,
+                "original_w": 400,
+                "original_x": 1050,
+                "original_y": 219
+            },
+            "position": {
+                "x": 915,
+                "y": 147
+            },
+            "screen_cord": {
+                "height": 400,
+                "width": 400,
+                "x": 910,
+                "y": 50
+            },
+            "size": {
+                "height": 400,
+                "width": 400
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\grass.png",
+            "id": 10,
+            "name": "button1",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 20,
+                "original_w": 70,
+                "original_x": 1214,
+                "original_y": 427
+            },
+            "position": {
+                "x": 1192,
+                "y": 461
+            },
+            "screen_cord": {
+                "height": 20,
+                "width": 70,
+                "x": 1187,
+                "y": -264
+            },
+            "size": {
+                "height": 20,
+                "width": 70
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\grass.png",
+            "id": 11,
+            "name": "button2",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 20,
+                "original_w": 70,
+                "original_x": 905,
+                "original_y": 440
+            },
+            "position": {
+                "x": 1192,
+                "y": 497
+            },
+            "screen_cord": {
+                "height": 20,
+                "width": 70,
+                "x": 1187,
+                "y": -300
+            },
+            "size": {
+                "height": 20,
+                "width": 70
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\dirt.png",
+            "id": 12,
+            "name": "fight_player",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 120,
+                "original_w": 60,
+                "original_x": 668,
+                "original_y": 342
+            },
+            "position": {
+                "x": 955,
+                "y": 399
+            },
+            "screen_cord": {
+                "height": 120,
+                "width": 60,
+                "x": 950,
+                "y": -202
+            },
+            "scripts": [
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\lua_scripts\\fight_logic.lua",
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\lua_scripts\\arrow.lua",
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\lua_scripts\\healthbar.lua"
+            ],
+            "size": {
+                "height": 120,
+                "width": 60
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\DIME_poster.png",
+            "id": 13,
+            "name": "fight_enemy",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 120,
+                "original_w": 60,
+                "original_x": 911,
+                "original_y": 134
+            },
+            "position": {
+                "x": 1198,
+                "y": 191
+            },
+            "screen_cord": {
+                "height": 120,
+                "width": 60,
+                "x": 1193,
+                "y": 6
+            },
+            "size": {
+                "height": 120,
+                "width": 60
+            }
+        },
+        {
+            "addedCollision": true,
+            "collision": {
+                "colours": {
+                    "b": 32,
+                    "g": 252,
+                    "r": 3
+                },
+                "oppacity": 255,
+                "originals": {
+                    "height": 40,
+                    "width": 30,
+                    "x": 903,
+                    "y": 362
+                },
+                "screen_x": 501,
+                "screen_y": -110,
+                "x": 506,
+                "y": 307
+            },
+            "filename": "C:\\Users\\shvdi\\Pictures\\DIME_poster.png",
+            "id": 14,
+            "name": "enemy",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 40,
+                "original_w": 30,
+                "original_x": 876,
+                "original_y": 18
+            },
+            "position": {
+                "x": 506,
+                "y": 307
+            },
+            "screen_cord": {
+                "height": 40,
+                "width": 30,
+                "x": 501,
+                "y": -110
+            },
+            "size": {
+                "height": 40,
+                "width": 30
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Downloads\\arrow.png",
+            "id": 31,
+            "name": "arrow",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 30,
+                "original_w": 44,
+                "original_x": 1291,
+                "original_y": 449
+            },
+            "position": {
+                "x": 1265,
+                "y": 456
+            },
+            "screen_cord": {
+                "height": 30,
+                "width": 44,
+                "x": 1260,
+                "y": -259
+            },
+            "scripts": [
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\lua_scripts\\arrow.lua"
+            ],
+            "size": {
+                "height": 30,
+                "width": 44
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\water.png",
+            "id": 41,
+            "name": "ally",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 44,
+                "original_w": 54,
+                "original_x": 1177,
+                "original_y": 404
+            },
+            "position": {
+                "x": 1048,
+                "y": 404
+            },
+            "screen_cord": {
+                "height": 44,
+                "width": 54,
+                "x": 1043,
+                "y": -207
+            },
+            "size": {
+                "height": 44,
+                "width": 54
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\water.png",
+            "id": 42,
+            "name": "enemy_ally",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 44,
+                "original_w": 54,
+                "original_x": 1248,
+                "original_y": 315
+            },
+            "position": {
+                "x": 1119,
+                "y": 315
+            },
+            "screen_cord": {
+                "height": 44,
+                "width": 54,
+                "x": 1114,
+                "y": -118
+            },
+            "size": {
+                "height": 44,
+                "width": 54
+            }
+        },
+        {
+            "addedCollision": false,
+            "children": [
+                62
+            ],
+            "filename": "C:\\Users\\shvdi\\Pictures\\grass.png",
+            "id": 43,
+            "name": "player_health_bar",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 11,
+                "original_w": 127,
+                "original_x": 646,
+                "original_y": 335
+            },
+            "position": {
+                "x": 920,
+                "y": 370
+            },
+            "screen_cord": {
+                "height": 11,
+                "width": 127,
+                "x": 915,
+                "y": -173
+            },
+            "size": {
+                "height": 11,
+                "width": 127
+            }
+        },
+        {
+            "addedCollision": false,
+            "children": [
+                63
+            ],
+            "filename": "C:\\Users\\shvdi\\Pictures\\grass.png",
+            "id": 44,
+            "name": "enemy_health_bar",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 11,
+                "original_w": 127,
+                "original_x": 858,
+                "original_y": 205
+            },
+            "position": {
+                "x": 1153,
+                "y": 166
+            },
+            "screen_cord": {
+                "height": 11,
+                "width": 127,
+                "x": 1148,
+                "y": 31
+            },
+            "size": {
+                "height": 11,
+                "width": 127
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\dirt.png",
+            "id": 62,
+            "name": "player_bar",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 11,
+                "original_w": 127,
+                "original_x": 912,
+                "original_y": 344
+            },
+            "position": {
+                "x": 920,
+                "y": 370
+            },
+            "screen_cord": {
+                "height": 11,
+                "width": 127,
+                "x": 915,
+                "y": -173
+            },
+            "size": {
+                "height": 11,
+                "width": 127
+            }
+        },
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\shvdi\\Pictures\\dirt.png",
+            "id": 63,
+            "name": "enemy_bar",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 11,
+                "original_w": 127,
+                "original_x": 1145,
+                "original_y": 140
+            },
+            "position": {
+                "x": 1153,
+                "y": 166
+            },
+            "screen_cord": {
+                "height": 11,
+                "width": 127,
+                "x": 1148,
+                "y": 31
+            },
+            "size": {
+                "height": 11,
+                "width": 127
+            }
+        }
+    ]
+}
