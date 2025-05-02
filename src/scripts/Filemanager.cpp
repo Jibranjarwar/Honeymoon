@@ -152,7 +152,7 @@ void Initialize(int x, int y, int width, int height, SDL_Renderer* renderer){
     ImGui::EndChild();
 
     if(file_image == nullptr){
-        file_image = LoadIconTexure("scripts\\file.png", renderer);
+        file_image = LoadIconTexure("scripts\\assets\\file.png", renderer);
     }
 
     ImGui::SameLine();  // This positions the following text on the same horizontal line as the child

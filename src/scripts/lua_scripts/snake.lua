@@ -37,6 +37,9 @@ function gameLoop()
             
             elseif obj.name == "snake_body_copy" then
                 run_game = false
+                copy_gameOver = gameOver_obj:Copy()
+                table.insert(body_parts, copy_gameOver)
+                copy_gameOver.oppacity = 255
 
             end
         end
@@ -64,7 +67,7 @@ function gameLoop()
             end
         end
     else
-        gameOver_obj.oppacity = 255
+        -- gameOver_obj.oppacity = 255
         if IsKeyPressed(Q_key) then
             snake.x = 240
             snake.y = 50

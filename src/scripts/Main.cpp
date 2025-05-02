@@ -78,7 +78,7 @@ int main(int argc, char **argv){
 
 
     GameScreen* gameScreen = new GameScreen(window.renderer);
-    GameScreen::InitialMatrix = new GameObject(window.renderer, "C:\\Users\\shvdi\\Pictures\\default.png", "matrix4778192235010291", 100, 100, 400, 100);
+    GameScreen::InitialMatrix = new GameObject(window.renderer, "scripts\\assets\\default.png", "matrix4778192235010291", 100, 100, 400, 100);
 
     Camera gameCamera(window.renderer, 400, 400, 200, 220, 0, 0, 0, 255);
     //Collision gameObjectCollision(window.renderer, 300, 300, 500, 220, 3, 252, 32, 255);
@@ -125,7 +125,7 @@ int main(int argc, char **argv){
     int previousWidth = 0, previousHeight = 0;
     int offset_width, offset_height;
     int window_x, window_y;
-    std::string default_texture_path = (std::filesystem::current_path() / "scripts\\default.png").string();
+    std::string default_texture_path = (std::filesystem::current_path() / "scripts\\assets\\default.png").string();
     
     /*
     makes sure that the id's are static and being incremented each time new object of type

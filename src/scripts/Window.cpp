@@ -54,7 +54,7 @@ bool Window::init(){
         return false;
     }
 
-    SDL_Surface* iconSurface = IMG_Load("scripts\\Engine_Logo_icon.png");
+    SDL_Surface* iconSurface = IMG_Load("scripts\\assets\\Engine_Logo_icon.png");
     if (iconSurface == nullptr) {
         std::cerr << "Failed to load icon: " << IMG_GetError() << std::endl;
         return false;
@@ -91,7 +91,7 @@ void Window::pollEvents(SDL_Event &event){
 
 void Window::showBootUpScreen() {
     // Load the splash image
-    SDL_Texture* splashTexture = IMG_LoadTexture(renderer, "scripts\\Engine_Logo.PNG");  // Replace with your image path
+    SDL_Texture* splashTexture = IMG_LoadTexture(renderer, "scripts\\assets\\Engine_Logo.PNG");  // Replace with your image path
     if (!splashTexture) {
         std::cerr << "Error loading splash image: " << IMG_GetError() << std::endl;
         return;

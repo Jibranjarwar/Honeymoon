@@ -21,7 +21,7 @@
         "y": -61
     },
     "InitialMatrix": {
-        "filename": "C:\\Users\\shvdi\\Pictures\\default.png",
+        "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\default.png",
         "name": "matrix4778192235010291",
         "originals": {
             "height": 100,
@@ -44,7 +44,7 @@
     "gameObjects": [
         {
             "addedCollision": false,
-            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\default.png",
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\default.png",
             "id": 4,
             "name": "background",
             "oppacity": 255,
@@ -110,7 +110,7 @@
                 "y": 50
             },
             "scripts": [
-                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\snake.lua"
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\lua_scripts\\snake.lua"
             ],
             "size": {
                 "height": 30,
@@ -185,7 +185,7 @@
                 "y": 50
             },
             "scripts": [
-                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\apple.lua"
+                "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\lua_scripts\\apple.lua"
             ],
             "size": {
                 "height": 30,
