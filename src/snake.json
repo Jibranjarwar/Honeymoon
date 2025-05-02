@@ -17,11 +17,11 @@
         "screen_x": 40,
         "screen_y": 230,
         "width": 500,
-        "x": 239,
-        "y": -61
+        "x": 386,
+        "y": 41
     },
     "InitialMatrix": {
-        "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\default.png",
+        "filename": "scripts\\assets\\default.png",
         "name": "matrix4778192235010291",
         "originals": {
             "height": 100,
@@ -30,8 +30,8 @@
             "y": 450
         },
         "position": {
-            "x": 199,
-            "y": 169
+            "x": 346,
+            "y": 271
         },
         "size": {
             "height": 100,
@@ -39,12 +39,12 @@
         }
     },
     "LastObjectID": {
-        "id": 14
+        "id": 19
     },
     "gameObjects": [
         {
             "addedCollision": false,
-            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\default.png",
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\grass_bk.jpg",
             "id": 4,
             "name": "background",
             "oppacity": 255,
@@ -55,8 +55,8 @@
                 "original_y": 37
             },
             "position": {
-                "x": 239,
-                "y": -61
+                "x": 386,
+                "y": 41
             },
             "screen_cord": {
                 "height": 500,
@@ -86,10 +86,10 @@
                 },
                 "screen_x": 240,
                 "screen_y": 50,
-                "x": 439,
-                "y": 119
+                "x": 586,
+                "y": 221
             },
-            "filename": "C:\\Users\\shvdi\\Pictures\\grass.png",
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\snake.png",
             "id": 5,
             "name": "snake_head",
             "oppacity": 255,
@@ -100,8 +100,8 @@
                 "original_y": 218
             },
             "position": {
-                "x": 439,
-                "y": 119
+                "x": 586,
+                "y": 221
             },
             "screen_cord": {
                 "height": 30,
@@ -119,7 +119,7 @@
         },
         {
             "addedCollision": false,
-            "filename": "C:\\Users\\shvdi\\Pictures\\dirt.png",
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\snake_body.png",
             "id": 6,
             "name": "snake_body",
             "oppacity": 255,
@@ -130,8 +130,8 @@
                 "original_y": 218
             },
             "position": {
-                "x": 469,
-                "y": 119
+                "x": 616,
+                "y": 221
             },
             "screen_cord": {
                 "height": 30,
@@ -161,10 +161,10 @@
                 },
                 "screen_x": 210,
                 "screen_y": 50,
-                "x": 409,
-                "y": 119
+                "x": 556,
+                "y": 221
             },
-            "filename": "C:\\Users\\shvdi\\Downloads\\apple.png",
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\apple.png",
             "id": 7,
             "name": "apple",
             "oppacity": 255,
@@ -175,8 +175,8 @@
                 "original_y": 218
             },
             "position": {
-                "x": 409,
-                "y": 119
+                "x": 556,
+                "y": 221
             },
             "screen_cord": {
                 "height": 30,
@@ -194,7 +194,7 @@
         },
         {
             "addedCollision": false,
-            "filename": "C:\\Users\\shvdi\\Downloads\\gameOver.png",
+            "filename": "C:\\Users\\shvdi\\Documents\\4_Year_Project\\src\\scripts\\assets\\gameOver.png",
             "id": 8,
             "name": "gameOver",
             "oppacity": 0,
@@ -205,8 +205,8 @@
                 "original_y": 22
             },
             "position": {
-                "x": 199,
-                "y": 19
+                "x": 346,
+                "y": 121
             },
             "screen_cord": {
                 "height": 300,
