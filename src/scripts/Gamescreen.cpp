@@ -291,21 +291,6 @@ void GameScreen::UpdateMatrix(int x_position, int y_position){
     InitialMatrix->_original_y = y_position;
 }
 
-void GameScreen::Setter(json data){
-    
-    current_window_position_x = data["gameScreen"]["current_window_position_x"];
-    current_window_position_y = data["gameScreen"]["current_window_position_y"];
-    difference_x = data["gameScreen"]["difference_x"];
-    difference_y = data["gameScreen"]["difference_y"];
-    height_difference = data["gameScreen"]["height_difference"];
-    mouse_wheel_max = data["gameScreen"]["mouse_wheel_max"];
-    mouse_wheel_y = data["gameScreen"]["mouse_wheel_y"];
-    viewport_offset_x = data["gameScreen"]["viewport_offset_x"];
-    viewport_offset_y = data["gameScreen"]["viewport_offset_y"];
-    width_difference = data["gameScreen"]["width_difference"];
-    zoomfactor = data["gameScreen"]["zoomfactor"];
-}
-
 bool GameScreen::WindowChangeCheck(int window_width, int window_height){
     if(window_width != prev_window_width && window_height != prev_window_height){
         return true;

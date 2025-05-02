@@ -37,8 +37,6 @@ _objRenderer(renderer), _width(width), _height(height), _x(x), _y(y){
     _original_h = height;
     _original_x = x;
     _original_y = y;
-
-    Setter();
 }
 
 void GameObject::ApplyGravity() {
@@ -93,7 +91,6 @@ _objRenderer(renderer), _width(width), _height(height){
         _screen_width = width;
         _screen_height = height;
     }
-    Setter();
 }
 // Destructor
 GameObject::~GameObject(){
@@ -412,12 +409,6 @@ SDL_Texture* GameObject::Texture(const std::string filename, SDL_Renderer* rende
     SDL_FreeSurface(tempSurface);
     
     return texture;
-}
-
-// TO DO: NEED TO FIX DATA SERILIZATION SO CAN STORE AND FETCH ORIGINAL VALUES
-void GameObject::Setter(){
-    json something = findGameObject(_id);
-    std::cout << "id: " << _id << " " << something.dump(4) << std::endl;
 }
 
 void GameObject::AddCollision(SDL_Renderer* renderer){
