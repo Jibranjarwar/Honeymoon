@@ -1,0 +1,73 @@
+{
+    "Camera": {
+        "ChangedScreenCord": true,
+        "colours": {
+            "b": 0,
+            "g": 0,
+            "r": 0
+        },
+        "height": 400,
+        "oppacity": 255,
+        "originals": {
+            "height": 400,
+            "width": 400,
+            "x": 200,
+            "y": 220
+        },
+        "screen_x": 40,
+        "screen_y": 230,
+        "width": 400,
+        "x": 413,
+        "y": -27
+    },
+    "InitialMatrix": {
+        "filename": "C:\\Users\\shvdi\\Pictures\\default.png",
+        "name": "matrix4778192235010291",
+        "originals": {
+            "height": 100,
+            "width": 100,
+            "x": 160,
+            "y": 450
+        },
+        "position": {
+            "x": 373,
+            "y": 203
+        },
+        "size": {
+            "height": 100,
+            "width": 100
+        }
+    },
+    "LastObjectID": {
+        "id": 4
+    },
+    "gameObjects": [
+        {
+            "addedCollision": false,
+            "filename": "C:\\Users\\jjlov\\Desktop\\4thyear\\2025-csc1097-jarwarj2-shvydci2\\src\\scripts\\default.png",
+            "id": 3,
+            "name": "GameObject1",
+            "oppacity": 255,
+            "originals": {
+                "original_h": 300,
+                "original_w": 300,
+                "original_x": 400,
+                "original_y": 400
+            },
+            "position": {
+                "x": 613,
+                "y": 153
+            },
+            "screen_cord": {
+                "height": 300,
+                "width": 300,
+                "x": 240,
+                "y": 50
+            },
+            "size": {
+                "height": 300,
+                "width": 300
+            }
+        }
+    ]
+}
